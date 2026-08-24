@@ -2,9 +2,9 @@
 
 An open-source **AI Governance Intelligence Dashboard** that runs entirely on your own
 computer. It watches AI regulation, standards, incidents, and AI security developments,
-then shows you **what changed and why it matters** — a radar, not another news feed.
+then shows you **what changed and why it matters**.
 
-Built for AI governance, risk, compliance, and security professionals — no developer
+Built for AI governance, risk, compliance, and security professionals. No developer
 background required to run it.
 
 ## ✨ Why you might want this
