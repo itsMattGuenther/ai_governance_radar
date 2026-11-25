@@ -109,7 +109,7 @@ export default function EntityDetail() {
                     className={`font-mono text-meta ${
                       verifiedAge !== null && verifiedAge > STALE_DAYS ? "text-sev-watch" : "text-tx-muted"
                     }`}
-                    title="Structured legal fields are human-verified against the official source"
+                    title="When the structured legal fields were last checked against official sources"
                   >
                     Verified {shortDate(reg.last_verified_at)}
                     {verifiedAge !== null && verifiedAge > STALE_DAYS && " — may be stale"}

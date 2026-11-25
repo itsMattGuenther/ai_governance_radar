@@ -1,0 +1,14 @@
+// Public read-only site (DEC-032): an assets-only Worker serving the static build
+// (`npm run build:static` plus `radar export-static`), deployed by
+// .github/workflows/publish.yml every 6 hours.
+{
+  "name": "ai-governance-radar",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./frontend/dist-static",
+    // Deep links (/entities/eu-ai-act) get the app with HTTP 200, not a 404 page.
+    "not_found_handling": "single-page-application"
+  },
+  "routes": [{ "pattern": "aigov.mattguenther.com", "custom_domain": true }],
+  "workers_dev": false
+}

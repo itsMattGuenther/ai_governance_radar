@@ -156,16 +156,17 @@ cloud calls except ingestion of the user's enabled sources. The app runs airgapp
   Governance Graph.
 - The public instance is the fully static option (DEC-029, see §9).
 
-## 9. Public static site (DEC-029)
+## 9. Public static site (DEC-029, DEC-032)
 
 ```
 GitHub Actions, every 6 h (.github/workflows/publish.yml)
   restore radar.db ← radar-data branch (single force-pushed commit)
   → radar seed (upserts curated records) → radar ingest --tolerate-source-errors
   → radar backup → push radar-data            (saved before the build can fail)
-  → npm run build:static (VITE_STATIC_DATA=1, base /<repo>/)  → frontend/dist-static/
+  → npm run build:static (VITE_STATIC_DATA=1)  → frontend/dist-static/ (+ _headers)
   → radar export-static → dist-static/data/*.json   (no demo data, ≤ 3,000 items)
-  → 404.html + top-level .html shells → GitHub Pages
+  → wrangler deploy → assets-only Cloudflare Worker at aigov.mattguenther.com
+    (unknown paths return index.html with HTTP 200, so deep links work)
 ```
 
 In static mode `lib/api.ts` routes every query to `lib/staticData.ts`, which loads

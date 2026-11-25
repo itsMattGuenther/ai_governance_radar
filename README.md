@@ -15,8 +15,9 @@ background required to run it.
   own provider — including free local models.)
 - 🔒 **Private by default** — your data never leaves your computer
 - 📌 **Facts you can trust** — every regulation shows its official source, key dates,
-  a confidence level, and the date a human last verified it. The software never
-  invents legal facts.
+  a confidence level, and the date it was last checked against official sources.
+  Confidence drops automatically when a check is overdue. The software never invents
+  legal facts.
 - 🖥️ **Made to scan** — a dark, information-dense dashboard you can read in one glance
   over morning coffee
 
@@ -63,12 +64,23 @@ content automatically the first time it runs.
 
 ### 🌐 Option 3 — Publish it as a public website (no server needed)
 
+The live public copy is at **https://aigov.mattguenther.com**.
+
 The repo includes a GitHub Actions workflow
 ([`.github/workflows/publish.yml`](.github/workflows/publish.yml)) that collects the
 latest items every 6 hours and publishes a **read-only** copy of the dashboard to
-GitHub Pages. It's free, needs no server, and visitors can't change anything. To
-turn it on for your fork: **Settings ▸ Pages ▸ Source: GitHub Actions**, then run the
-"Publish site" workflow once from the Actions tab. Details: DECISIONS.md DEC-029.
+Cloudflare (static files only, served free). Visitors can't change anything. To run
+your own copy from a fork:
+
+1. In [`wrangler.jsonc`](wrangler.jsonc), change the `routes` pattern to your own
+   domain (it must be on Cloudflare), or remove `routes` and set `"workers_dev": true`
+   for a free `*.workers.dev` address.
+2. Create a Cloudflare API token with the **Edit Cloudflare Workers** template, and add
+   it and your account ID as repository secrets `CLOUDFLARE_API_TOKEN` and
+   `CLOUDFLARE_ACCOUNT_ID`.
+3. Run the "Publish site" workflow once from the Actions tab.
+
+Details: DECISIONS.md DEC-029 and DEC-032.
 
 ### 📡 Pulling in fresh intelligence
 
@@ -110,7 +122,8 @@ them for live intelligence.
   impact and confidence using transparent rules you can inspect. Click any item and
   it shows you the math behind its score.
 - Important distinction: **regulations, standards, and incidents are curated
-  records** — maintained by humans with cited sources. The automatic feed-watcher can
+  records** with cited sources. Changes are researched against official sources and
+  approved by the maintainer before they're published. The automatic feed-watcher can
   flag "something changed here, take a look," but it never rewrites legal facts on
   its own.
 - The app is careful on the network, too: it only talks to the sources you've

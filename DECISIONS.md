@@ -308,6 +308,29 @@ means since the user *reviewed* the information, not since the process started.
 **Consequences:** Brief always has a day of content; watchlist statuses persist until
 actually viewed; frequent visitors see stable, truthful deltas.
 
+## DEC-032 — Public site served from Cloudflare at aigov.mattguenther.com (supersedes DEC-029's hosting)
+**Decision:** The static public site (DEC-029, unchanged in every other respect) is
+deployed by `wrangler deploy` as an assets-only Cloudflare Worker (`wrangler.jsonc`)
+on the custom domain `aigov.mattguenther.com`, replacing GitHub Pages. Unknown paths
+return `index.html` with HTTP 200 (`not_found_handling: single-page-application`).
+`frontend/public/_headers` sets a strict Content-Security-Policy and other security
+headers, a year-long cache for hashed assets and a 5-minute cache for `data/*.json`.
+GitHub Actions still collects, saves the database to `radar-data` and builds; only the
+last step changed. CI authenticates with the `CLOUDFLARE_API_TOKEN` and
+`CLOUDFLARE_ACCOUNT_ID` repository secrets.
+**Alternatives:** GitHub Pages (free and in one place, but deep links returned 404
+and no response headers could be set); Cloudflare Pages (in maintenance in favour of
+Workers static assets); Netlify (every production deploy draws on a shared credit
+pool, and four deploys a day would exhaust it).
+**Rationale:** The owner already pays for the Cloudflare plan, the mattguenther.com
+DNS zone is on Cloudflare, and static-asset requests and deploys cost nothing. Deep
+links returning 200 make detail pages shareable. Security headers matter because the
+site displays text from outside feeds.
+**Consequences:** A fork must change the `routes` pattern or use `workers.dev`.
+Deploys depend on a Cloudflare API token; if it expires, collection and the database
+snapshot still succeed and only the deploy step fails. The old base-path option
+(`SITE_BASE_PATH`) is gone because the site lives at a domain root.
+
 ## DEC-031 — Displayed regulation confidence ages with its verification
 **Decision:** The API and static export report a regulation's `confidence` as the
 curated value, lowered one level (never below `low`) for each of: (a) the effective

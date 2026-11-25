@@ -29,21 +29,17 @@ _Last updated: 2026-11-25 (records verified; confidence aging; feeds cleaned up)
   - Gates: backend 76 tests, ruff, mypy; frontend 16 tests, tsc, eslint, build.
     Checked in a browser: dashboard, regulations table, Colorado detail, the
     "confidence lowered" notice, and incidents with blank dates.
-- **Nothing is pushed or deployed.** `main` is ahead of `origin/main` by several
-  commits. Pushing to `main` triggers `.github/workflows/publish.yml`, which still
-  targets GitHub Pages.
+- **Public site: https://aigov.mattguenther.com** (DEC-032), an assets-only Cloudflare
+  Worker. publish.yml deploys it every 6 hours once the owner adds the
+  `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets.
 
 ## Next steps
-1. **T-039: deploy privately on Cloudflare.** The owner chose Workers static assets
-   behind Cloudflare Access until the site goes public. This needs the owner's
-   Cloudflare API token as a GitHub secret and an Access policy. Change publish.yml
-   before pushing.
-2. **Go public** once the owner is satisfied with the records, then link it from
-   mattguenther.com. Gate: the README promises "the date a human last verified it",
-   and the detail page says fields are "human-verified". The 2026-11-25 check was done
-   by AI agents and approved by the owner without reading the sources. Before going
-   public, either the owner reads the official pages for the nine material records
-   (see the report), or that wording changes to say how records are checked. That is a Netlify site, so a production deploy costs 15 credits:
+1. **T-039: finish the CI deploy.** The owner adds the Cloudflare repository secrets.
+   The owner chose to go public on 2026-11-25. The "human-verified" wording was
+   changed to "checked against official sources", because the checks were done by AI
+   agents and approved by the owner.
+2. **Link it from mattguenther.com.** That is a Netlify site, so a production deploy
+   costs 15 credits: ask first. That is a Netlify site, so a production deploy costs 15 credits:
    ask first.
 3. T-041 new records, T-040 data-model gaps, T-035 mobile, T-036 page weight, T-037
    About page.
@@ -74,9 +70,6 @@ cd ../backend && venv/bin/python -m app.cli export-static --out ../frontend/dist
 Then serve `frontend/dist-static` with any static server.
 
 ## Known limitations
-- Static site: detail-page deep links return HTTP 404 (served by 404.html). They work
-  for people but not for link unfurlers or crawlers. Top-level pages return 200. The
-  Cloudflare deploy (T-039) fixes this with SPA fallback.
 - Several official sites refuse automated readers: EUR-Lex, California leginfo, CanLII,
   and Colorado's legislature without browser headers. ilga.gov serves an incomplete TLS
   certificate chain. Page-watch sources on these may fail.

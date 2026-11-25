@@ -401,14 +401,16 @@ error states + accessibility reviewed. Update this file and CHANGELOG.md as you 
 - **Next check due:** 2027-02-23 (90 days), or sooner for Colorado SB 26-189 (effective
   2027-01-01, rules pending, xAI suit pending) and Brazil (Chamber report pending).
 
-### T-039 Deploy privately on Cloudflare
-- **Status:** TODO · needs owner (Cloudflare API token, Access policy)
-- **Description:** Owner chose Cloudflare Workers static assets behind Cloudflare Access
-  (only the owner can open it) until going public. Replace the GitHub Pages deploy in
-  publish.yml with `wrangler deploy`; SPA fallback returns 200 for deep links; add
-  security headers. Record as a decision superseding DEC-029's hosting.
-- **Acceptance:** site reachable from the owner's work laptop and phone after login;
-  refreshes every 6 hours; no deep-link 404s.
+### T-039 Public site on Cloudflare at aigov.mattguenther.com
+- **Status:** IN PROGRESS · DEC-032
+- **Description:** The owner chose to go public directly (2026-11-25) at
+  aigov.mattguenther.com. publish.yml deploys with `wrangler deploy` (assets-only
+  Worker); SPA fallback returns 200 for deep links; `_headers` sets CSP and security
+  headers. Verified locally with `wrangler dev`: deep links 200, headers present, no
+  CSP violations. Remaining: the owner adds the `CLOUDFLARE_API_TOKEN` and
+  `CLOUDFLARE_ACCOUNT_ID` repository secrets so the 6-hourly runs can deploy.
+- **Acceptance:** site live on the custom domain; refreshes every 6 hours; no
+  deep-link 404s.
 
 ### T-040 Data-model gaps found by the verification
 - **Status:** TODO

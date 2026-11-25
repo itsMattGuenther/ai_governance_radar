@@ -30,6 +30,7 @@ build/
 node_modules/
 frontend/dist/
 frontend/dist-static/
+.wrangler/
 .vite/
 *.tsbuildinfo
 npm-debug.log*

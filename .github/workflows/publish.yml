@@ -1,6 +1,6 @@
 name: Publish site
 
-# Rebuilds the public read-only site (DEC-029) and deploys it to GitHub Pages:
+# Rebuilds the public read-only site (DEC-029) and deploys it to Cloudflare (DEC-032):
 # collect from sources → save the database → build the SPA → export the JSON snapshot.
 # The SQLite database persists between runs on the `radar-data` branch as a single
 # force-pushed commit, so repository history never grows.
@@ -15,12 +15,11 @@ on:
       - "backend/**"
       - "frontend/**"
       - "data/**"
+      - "wrangler.jsonc"
       - ".github/workflows/publish.yml"
 
 permissions:
   contents: write # push the database snapshot to the data branch
-  pages: write
-  id-token: write
 
 concurrency:
   group: publish-site
@@ -86,36 +85,21 @@ jobs:
 
       - name: Build the site
         working-directory: frontend
-        # Project pages live under /<repo>/. Set the SITE_BASE_PATH repository variable
-        # to "/" if the site moves to a custom domain.
         run: |
           npm ci --no-audit --no-fund
-          npm run build:static -- --base="${{ vars.SITE_BASE_PATH || format('/{0}/', github.event.repository.name) }}"
+          npm run build:static
 
       - name: Export the data snapshot
         working-directory: backend
         run: python -m app.cli export-static --out ../frontend/dist-static/data
 
-      - name: Add page shells
-        # 404.html serves every route; the top-level pages also get their own copy so
-        # direct links return 200 (link previews in chat apps need that). GitHub Pages
-        # serves /regulatory from regulatory.html.
-        working-directory: frontend/dist-static
-        run: |
-          cp index.html 404.html
-          for page in regulatory standards incidents items search sources; do
-            cp index.html "$page.html"
-          done
-
-      - uses: actions/upload-pages-artifact@v5
-        with: { path: frontend/dist-static }
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v5
+      # wrangler.jsonc serves the build at aigov.mattguenther.com. Deep links return the
+      # app with HTTP 200 (single-page-application fallback), and frontend/public/_headers
+      # sets the security headers.
+      - name: Deploy to Cloudflare
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4.168.0"
+          command: deploy

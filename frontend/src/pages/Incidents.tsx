@@ -113,7 +113,7 @@ export default function Incidents() {
       {/* Curated records — the depth half */}
       <h2 className="mb-2 text-sm font-semibold text-tx-primary">Analyzed incident records</h2>
       <p className="mb-3 text-xs text-tx-muted">
-        Human-reviewed write-ups with governance and security analysis, mapped to frameworks.
+        Curated write-ups with cited sources, governance and security analysis, mapped to frameworks.
       </p>
 
       <div className="mb-4 flex flex-wrap gap-2">

@@ -5,6 +5,12 @@ All notable changes to this project. Dates are UTC.
 ## [Unreleased] — 2026-09-29 to 2026-11-25
 
 ### Changed (2026-11-25)
+- **Public site moves to Cloudflare at aigov.mattguenther.com** (DEC-032): assets-only
+  Worker deployed by `wrangler deploy` from publish.yml, replacing GitHub Pages. Deep
+  links return 200; `frontend/public/_headers` adds a strict CSP and security headers.
+  The 404.html and page-shell copies are gone.
+- Wording: "human-verified" became "checked against official sources" (README, detail
+  tooltip, incidents page), matching how records are actually checked.
 - **Curated records verified** against primary sources (T-038,
   docs/reviews/2026-11-25-records-verification.md). Nine material corrections, including
   Colorado SB 24-205 → SB 26-189 (new record), EU AI Act dates moved by Reg. (EU)
