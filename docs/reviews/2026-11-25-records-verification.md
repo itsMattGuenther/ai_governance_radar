@@ -1,7 +1,10 @@
 # Curated records verification, 2026-11-25
 
 **Status:** approved by the owner and applied on 2026-11-25, with the recommended
-choice for each decision below (commit 95727db).
+choice for each decision below (commit 95727db). Three applied edits were then pulled
+back to what the evidence supports: Korea and China keep medium confidence (non-English
+statutes, not spot-checked), SB 26-189's signing event doesn't name the Governor, and
+Japan's first event doesn't claim a version number.
 
 Can the curated records (`data/seed/entities.json`, `data/seed/incidents.json`) be
 trusted enough to publish? All 29 were checked field by field against primary sources:
@@ -14,14 +17,16 @@ invented day-of-month precision, stale versions, sources that don't support ever
 claim, and missing timeline events.
 
 ## Method
-- One reviewer per group (EU; Colorado and California; other US; international;
-  standards; incidents), each working from the record and the rules in DATA_MODEL.md.
+- **Who checked:** six AI research agents (Claude), one per group: EU; Colorado and
+  California; other US; international; standards; incidents. Each worked from the
+  record and the rules in DATA_MODEL.md, and reported every proposed change with its
+  source URL. No person read every source.
 - **Primary sources only for changes:** legislature and government pages, official
   journals, regulators, court dockets and the publishers' own sites. Law-firm and news
   articles were used only to find leads. A change marked *secondary* below has no
   primary confirmation and is proposed at lower confidence.
-- No reviewer edited the data. Every change below needs the owner's approval.
-- Three headline findings were re-read at the source by hand:
+- The agents edited no data. The owner approved the changes from this report.
+- Claude re-fetched three headline findings directly from the source:
   - NYC Legistar shows "Returned Unsigned by Mayor", enacted 12/11/2021.
   - Colorado's bill page shows SB 26-189 signed 05/14/2026.
   - The Commission's AI Act page gives 2 December 2027 and 2 August 2028 for

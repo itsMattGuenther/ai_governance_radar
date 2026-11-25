@@ -61,7 +61,7 @@
     "events": [
       {"type": "created", "occurred_at": "2026-05-01", "summary": "SB 26-189 introduced in the Colorado General Assembly.", "impact": 60},
       {"type": "status_change", "occurred_at": "2026-05-12", "previous": "introduced", "new": "passed", "summary": "Passed by the Colorado General Assembly.", "impact": 75},
-      {"type": "status_change", "occurred_at": "2026-05-14", "previous": "passed", "new": "signed", "summary": "Signed by Governor Polis; repeals and reenacts SB 24-205 from January 1, 2027.", "impact": 90},
+      {"type": "status_change", "occurred_at": "2026-05-14", "previous": "passed", "new": "signed", "summary": "Signed by the Governor; repeals and reenacts SB 24-205 from January 1, 2027.", "impact": 90},
       {"type": "note", "occurred_at": "2026-11-19", "summary": "The Attorney General's department adopted ADMT and chatbot safety rules; an AG opinion and Secretary of State filing are pending.", "impact": 70}
     ]
   },
@@ -443,7 +443,7 @@
       "last_amended_at": "2026-01-20",
       "penalties": "Fines up to KRW 30 million (Art. 43), e.g. for failing to give prior notice of AI use, failing to appoint a domestic representative, or ignoring stop or corrective orders.",
       "official_source_url": "https://www.law.go.kr/LSW/lsInfoP.do?lsiSeq=282791",
-      "confidence": "high",
+      "confidence": "medium",
       "last_verified_at": "2026-11-25"
     },
     "events": [
@@ -473,7 +473,7 @@
       "applicability_notes": "Issued as CAC Order No. 15 (July 10, 2023; published July 13). Sits alongside China's algorithm recommendation and deep synthesis provisions, the AI-generated content labelling measures (in force September 1, 2025) and the interim measures for anthropomorphic AI interaction services (in force July 15, 2026). Official text is Chinese.",
       "signed_at": "2023-07-10",
       "official_source_url": "https://www.cac.gov.cn/2023-07/13/c_1690898327029107.htm",
-      "confidence": "high",
+      "confidence": "medium",
       "last_verified_at": "2026-11-25"
     },
     "events": [
@@ -570,7 +570,7 @@
       "official_source_url": "https://www.meti.go.jp/shingikai/mono_info_service/ai_shakai_jisso/20260331_report.html"
     },
     "events": [
-      {"type": "created", "occurred_at": "2024-04-19", "summary": "Version 1.0 published.", "impact": 60},
+      {"type": "created", "occurred_at": "2024-04-19", "summary": "First edition published.", "impact": 60},
       {"type": "document_updated", "occurred_at": "2024-11-22", "summary": "Version 1.01.", "impact": 35},
       {"type": "document_updated", "occurred_at": "2025-03-28", "summary": "Version 1.1.", "impact": 45},
       {"type": "document_updated", "occurred_at": "2026-03-31", "summary": "Version 1.2 (current); cites the 2025 AI Promotion Act.", "impact": 50}

@@ -39,7 +39,11 @@ _Last updated: 2026-11-25 (records verified; confidence aging; feeds cleaned up)
    Cloudflare API token as a GitHub secret and an Access policy. Change publish.yml
    before pushing.
 2. **Go public** once the owner is satisfied with the records, then link it from
-   mattguenther.com. That is a Netlify site, so a production deploy costs 15 credits:
+   mattguenther.com. Gate: the README promises "the date a human last verified it",
+   and the detail page says fields are "human-verified". The 2026-11-25 check was done
+   by AI agents and approved by the owner without reading the sources. Before going
+   public, either the owner reads the official pages for the nine material records
+   (see the report), or that wording changes to say how records are checked. That is a Netlify site, so a production deploy costs 15 credits:
    ask first.
 3. T-041 new records, T-040 data-model gaps, T-035 mobile, T-036 page weight, T-037
    About page.
@@ -54,6 +58,8 @@ _Last updated: 2026-11-25 (records verified; confidence aging; feeds cleaned up)
 cd frontend && npm install && npm run build && cd ..             # UI (once)
 cd backend && python -m venv venv && venv/bin/pip install -e .   # Windows: venv\Scripts\...
 venv/bin/python -m app.cli serve                                 # http://127.0.0.1:8000
+# backend/.env (gitignored) on the Linux machine sets DEMO_DATA=false and
+# SCHEDULER_ENABLED=true, so `serve` keeps data fresh and never loads demo items.
 venv/bin/python -m app.cli ingest --force                        # pull real sources
 ```
 This repo is used on two machines. `backend/.venv` is a Windows venv; on the Linux
