@@ -9,6 +9,21 @@ All notable changes to this project. Dates are UTC.
   Home will lead with legal dates and record changes, and the visual system changes
   (DESIGN_SYSTEM.md). Tasks T-042 to T-048. Not built yet.
 
+### Added (2026-11-25, T-047)
+- **About page**: what the site is and who built it, what is tracked, how records are
+  checked (including that the last full check was done by AI research agents and
+  approved by the owner), when they were last checked and when the next check is due,
+  the corrections log, how impact and confidence are computed, and every source with
+  its health. Source Health is gone from the navigation; `/sources` opens About's
+  source list.
+- **Feeds**: `export-static` writes `data/milestones.ics`, a calendar of every
+  milestone still ahead, and `data/changes.xml`, an Atom feed of record changes. The
+  local app serves the same at `/api/feeds/`. `--site-url` (or `SITE_URL`) makes their
+  links absolute.
+- **Lighter pages**: initial JavaScript is 331 KB (was 3.6 MB). The map uses the 110m
+  country file and loads only on the Laws page; flags load one at a time as shown;
+  only the font weights in use ship.
+
 ### Changed (2026-11-25, T-046)
 - **Laws** (was Regulatory Radar): sorted by next date, then latest change; a Next
   date column with its day count; confidence shown only when below high, with the

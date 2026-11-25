@@ -7,8 +7,9 @@ import { useMemo, useState } from "react";
 import { geoNaturalEarth1, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
 import type { FeatureCollection, Geometry } from "geojson";
-// 50m rather than 110m: the 110m extract omits micro-states, Singapore among them.
-import world from "world-atlas/countries-50m.json";
+// 110m keeps the page light; it has no polygon for micro-states such as Singapore,
+// which get their marker from FIXED below. This module is loaded only on the Laws page.
+import world from "world-atlas/countries-110m.json";
 
 import { T } from "../../lib/tokens";
 import type { MapRow } from "../../lib/types";

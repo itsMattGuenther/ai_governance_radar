@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 
 import { Shell } from "./components/layout/Shell";
 import About from "./pages/About";
@@ -13,6 +13,7 @@ import SearchResults from "./pages/SearchResults";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Standards from "./pages/Standards";
+import { STATIC_MODE } from "./lib/env";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,8 +35,9 @@ export default function App() {
           <Route path="entities/:slug" element={<EntityDetail />} />
           <Route path="search" element={<SearchResults />} />
           <Route path="about" element={<About />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="sources" element={<Settings />} />
+          {/* Source health lives on About (DEC-033); the local app keeps Settings. */}
+          <Route path="settings" element={STATIC_MODE ? <Navigate to="/about#sources" replace /> : <Settings />} />
+          <Route path="sources" element={<Navigate to={STATIC_MODE ? "/about#sources" : "/settings"} replace />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

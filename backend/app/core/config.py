@@ -23,6 +23,10 @@ class Settings(BaseSettings):
     fetch_max_bytes: int = 2_000_000
     user_agent: str = "ai-governance-radar/0.1 (+https://github.com/ai-governance-radar)"
 
+    # Public address, for absolute links in the calendar and change feeds. Empty: the
+    # local app uses the address it is served from.
+    site_url: str = ""
+
     log_level: str = "info"
     demo_data: bool = True
 

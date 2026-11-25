@@ -1,10 +1,11 @@
-/** Settings (§50): source health + management, ingestion, import/export, AI placeholder. */
+/** Settings, local app only (§50): sources and collection, adding a source, import and export. */
 
 import { useRef, useState } from "react";
-import { AlertCircle, CheckCircle2, Download, Play, Upload } from "lucide-react";
+import { Download, Play, Upload } from "lucide-react";
 
 import { PageHeader } from "../components/layout/PageHeader";
 import { DemoBadge, TierBadge } from "../components/ui/Badge";
+import { Panel } from "../components/ui/Panel";
 import { CardSkeleton, ErrorState } from "../components/ui/States";
 import {
   exportConfig,
@@ -14,8 +15,7 @@ import {
   usePatchSource,
   useSources,
 } from "../lib/api";
-import { STATIC_MODE } from "../lib/env";
-import { relativeTime } from "../lib/format";
+import { utcStamp } from "../lib/format";
 
 function SourceHealth() {
   const sources = useSources();
@@ -28,46 +28,45 @@ function SourceHealth() {
     ingest.mutate(sourceId, { onSettled: () => setIngesting(null) });
   };
 
-  if (sources.isPending) return <div className="card"><CardSkeleton rows={5} /></div>;
-  if (sources.isError)
-    return <div className="card"><ErrorState detail={String(sources.error)} onRetry={() => sources.refetch()} /></div>;
-
-  // The public static site is read-only: it lists the feeds it collects from.
-  const shown = STATIC_MODE ? sources.data.filter((s) => s.enabled) : sources.data;
-
   return (
-    <section className="card overflow-hidden">
-      <header className="flex items-center justify-between border-b border-bd-subtle px-4 py-2.5">
-        <h2 className="meta-label !text-tx-secondary">Data Sources</h2>
-        {!STATIC_MODE && <button
+    <Panel
+      title="Sources"
+      marker="feed"
+      meta={sources.data ? `${sources.data.filter((s) => s.enabled && !s.last_error).length}/${sources.data.filter((s) => s.enabled).length} OK` : undefined}
+      action={
+        <button
+          type="button"
           onClick={() => run()}
           disabled={ingesting !== null}
-          className="inline-flex items-center gap-1.5 rounded-ctl border border-accent/50 px-2.5 py-1 text-xs text-accent transition-colors hover:bg-accent/10 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-ctl border border-accent/50 px-2.5 py-1 text-xs text-accent hover:bg-accent/10 disabled:opacity-50"
         >
           <Play aria-hidden className="h-3 w-3" />
-          {ingesting === "all" ? "Ingesting…" : "Ingest all now"}
-        </button>}
-      </header>
-      <ul>
-        {shown.map((s) => {
-          const healthy = !s.last_error;
-          return (
-            <li key={s.id} className="border-b border-bd-subtle px-4 py-3 last:border-b-0">
-              <div className="flex flex-wrap items-center gap-2">
-                {healthy ? (
-                  <CheckCircle2 aria-label="Healthy" className="h-4 w-4 shrink-0 text-sev-positive" />
-                ) : (
-                  <AlertCircle aria-label="Failing" className="h-4 w-4 shrink-0 text-sev-critical" />
-                )}
-                <span className="text-sm font-medium text-tx-primary">{s.name}</span>
+          {ingesting === "all" ? "Collecting…" : "Collect all now"}
+        </button>
+      }
+    >
+      {sources.isPending ? (
+        <CardSkeleton rows={5} />
+      ) : sources.isError ? (
+        <ErrorState detail={String(sources.error)} onRetry={() => sources.refetch()} />
+      ) : (
+        <ul>
+          {sources.data.map((s) => (
+            <li key={s.id} className="border-b border-bd-subtle px-3.5 py-2.5 last:border-b-0">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                <span className={s.last_error ? "text-detail font-medium text-sev-critical" : "text-detail font-medium text-sev-positive"}>
+                  <span aria-hidden>{s.last_error ? "▲ " : "● "}</span>
+                  {s.last_error ? "Failing" : "OK"}
+                </span>
+                <span className="text-row font-medium text-tx-primary">{s.name}</span>
                 <TierBadge tier={s.reliability_tier} />
-                <span className="meta-label">{s.source_type}</span>
                 <DemoBadge show={s.is_demo} />
-                {!STATIC_MODE && <div className="ml-auto flex items-center gap-2">
+                <span className="ml-auto flex items-center gap-3">
                   <button
+                    type="button"
                     onClick={() => run(s.id)}
                     disabled={ingesting !== null || !s.enabled}
-                    className="text-meta text-tx-muted transition-colors hover:text-accent disabled:opacity-40"
+                    className="text-xs text-tx-secondary hover:text-accent disabled:opacity-40"
                   >
                     {ingesting === s.id ? "Running…" : "Run"}
                   </button>
@@ -80,32 +79,19 @@ function SourceHealth() {
                     />
                     Enabled
                   </label>
-                </div>}
+                </span>
               </div>
-              <div className="mt-1 pl-6 text-meta text-tx-muted">
-                {s.last_success_at && <span>Last success {relativeTime(s.last_success_at)} · </span>}
-                <span>every {s.polling_interval_minutes} min</span>
-                {s.attribution && <span> · {s.attribution}</span>}
-              </div>
-              {s.last_error && (
-                <div className="mt-1.5 ml-6 rounded-ctl border border-sev-critical/30 bg-sev-critical/5 px-2.5 py-1.5 text-xs">
-                  <p className="text-sev-critical">{s.last_error}</p>
-                  <p className="mt-0.5 text-tx-muted">
-                    Last success: {s.last_success_at ? relativeTime(s.last_success_at) : "never"}
-                    {!STATIC_MODE && (
-                      <>
-                        {" · "}
-                        <button onClick={() => run(s.id)} className="text-accent hover:underline">Retry</button>
-                      </>
-                    )}
-                  </p>
-                </div>
-              )}
+              <p className="mt-0.5 text-detail text-tx-muted">
+                {s.source_type} · every {s.polling_interval_minutes / 60} h · last collected{" "}
+                <span className="num">{s.last_success_at ? utcStamp(s.last_success_at) : "never"}</span>
+                {s.attribution && ` · ${s.attribution}`}
+              </p>
+              {s.last_error && <p className="mt-1 text-detail text-sev-critical">{s.last_error}</p>}
             </li>
-          );
-        })}
-      </ul>
-    </section>
+          ))}
+        </ul>
+      )}
+    </Panel>
   );
 }
 
@@ -132,8 +118,8 @@ function AddSource() {
   const input = "w-full rounded-ctl border border-bd-subtle bg-bg-base px-2.5 py-1.5 text-xs text-tx-primary placeholder:text-tx-muted focus:border-accent";
 
   return (
-    <section className="card p-4">
-      <h2 className="meta-label mb-3 !text-tx-secondary">Add Source</h2>
+    <Panel title="Add a source" marker="feed">
+      <div className="p-3.5">
       <form onSubmit={submit} className="grid gap-2.5 sm:grid-cols-2">
         <label className="text-xs text-tx-secondary">
           Name
@@ -181,7 +167,8 @@ function AddSource() {
           )}
         </div>
       </form>
-    </section>
+    </div>
+    </Panel>
   );
 }
 
@@ -213,8 +200,8 @@ function ImportExport() {
   };
 
   return (
-    <section className="card p-4">
-      <h2 className="meta-label mb-3 !text-tx-secondary">Import / Export</h2>
+    <Panel title="Import and export" marker="changes">
+      <div className="p-3.5">
       <p className="text-xs text-tx-muted">
         Move your source configuration between instances, or export collected items —
         no lock-in.
@@ -247,39 +234,30 @@ function ImportExport() {
         />
       </div>
       {message && <p role="status" className="mt-2 text-xs text-tx-secondary">{message}</p>}
-    </section>
+    </div>
+    </Panel>
   );
 }
 
 export default function Settings() {
-  if (STATIC_MODE) {
-    return (
-      <>
-        <PageHeader
-          title="Source Health"
-          detail="Every feed this site collects from, and whether its most recent check succeeded. Data refreshes automatically several times a day."
-        />
-        <SourceHealth />
-      </>
-    );
-  }
   return (
     <>
       <PageHeader title="Settings" detail="Sources, ingestion, and data portability." />
-      <div className="space-y-4">
+      <div className="grid gap-3">
         <SourceHealth />
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid items-start gap-3 lg:grid-cols-2">
           <AddSource />
-          <div className="space-y-4">
+          <div className="grid gap-3">
             <ImportExport />
-            <section className="card p-4">
-              <h2 className="meta-label mb-2 !text-tx-secondary">AI Enrichment</h2>
+            <Panel title="AI enrichment" marker="standards">
+              <div className="p-3.5">
               <p className="text-xs text-tx-muted">
                 Optional AI features (summaries, semantic search, research workflows) arrive in a
                 future release with a model-agnostic provider layer — local models included. The
                 core product is fully functional without any LLM, by design.
               </p>
-            </section>
+            </div>
+            </Panel>
           </div>
         </div>
       </div>

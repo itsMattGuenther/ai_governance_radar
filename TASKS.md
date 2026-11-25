@@ -378,13 +378,13 @@ error states + accessibility reviewed. Update this file and CHANGELOG.md as you 
   effective date visible for each regulation on a phone.
 
 ### T-036 Page weight
-- **Status:** TODO — folded into T-047
+- **Status:** DONE 2026-11-25 — completed by T-044 and T-047
 - **Description:** 3.6 MB JS / 4.4 MB page. Use `countries-110m` (108 KB) instead of
   `countries-50m` (756 KB); load US state flags on demand instead of bundling all 50.
 - **Acceptance:** initial JS under 1 MB uncompressed with no visual regression.
 
 ### T-037 About & methodology page
-- **Status:** TODO — folded into T-047
+- **Status:** DONE 2026-11-25 — completed by T-047
 - **Description:** What is tracked, how impact and confidence are scored (the dots and
   rings), how curated records are verified, the last-verified policy, and the
   not-legal-advice notice. Hover tooltips don't reach phone users.
@@ -511,7 +511,7 @@ DESIGN_SYSTEM.md. T-035, T-036 and T-037 are folded in below.
   carries a ring, dots or more than one chip.
 
 ### T-047 About page, feeds, page weight
-- **Status:** TODO
+- **Status:** DONE 2026-11-25 · About with sources and health (`/sources` redirects), definitions and the corrections log; `milestones.ics` (9 events, parsed by a standard iCalendar library) and an Atom feed of record changes, also served locally under /api/feeds/; initial JS 331 KB (was 3.6 MB) with the 110m map loaded on demand
 - **Description:** **/about:** what the site is and who built it (Matt Guenther,
   mattguenther.com, the repository); what is tracked; how impact and confidence are
   computed (`lib/definitions.ts`); how records are checked, when they were last

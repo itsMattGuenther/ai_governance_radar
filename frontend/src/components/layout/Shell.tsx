@@ -34,7 +34,7 @@ const PHONE_TABS = [
 const PUBLIC_REFRESH_HOURS = 6;
 
 /** Where the source list with health lives. */
-export const SOURCES_PATH = STATIC_MODE ? "/sources" : "/settings";
+export const SOURCES_PATH = STATIC_MODE ? "/about#sources" : "/settings";
 
 const SITE_URL = (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/$/, "");
 
@@ -173,10 +173,20 @@ export function Shell() {
   const searchRef = useRef<HTMLInputElement>(null);
   const phoneSearchRef = useRef<HTMLInputElement>(null);
   const [phoneSearch, setPhoneSearch] = useState(false);
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
   useCanonical();
 
-  useEffect(() => window.scrollTo(0, 0), [pathname]);
+  // New page: back to the top, or to the section a #hash names. (No value may leak out
+  // of the effect: scrollTo returns a Promise in some browsers, which React would take
+  // for a cleanup function and call.)
+  useEffect(() => {
+    if (!hash) {
+      window.scrollTo(0, 0);
+      return;
+    }
+    const frame = requestAnimationFrame(() => document.getElementById(hash.slice(1))?.scrollIntoView());
+    return () => cancelAnimationFrame(frame);
+  }, [pathname, hash]);
 
   // "/" focuses search from anywhere except a text field.
   useEffect(() => {

@@ -22,6 +22,11 @@ function absoluteUrlTags(siteUrl: string | undefined): Plugin {
           injectTo: "head",
         },
         { tag: "meta", attrs: { name: "twitter:image", content: image }, injectTo: "head" },
+        {
+          tag: "link",
+          attrs: { rel: "alternate", type: "application/atom+xml", title: "Record changes", href: `${base}/data/changes.xml` },
+          injectTo: "head",
+        },
       ];
     },
   };

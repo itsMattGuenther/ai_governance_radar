@@ -91,7 +91,9 @@ jobs:
 
       - name: Export the data snapshot
         working-directory: backend
-        run: python -m app.cli export-static --out ../frontend/dist-static/data
+        run: >-
+          python -m app.cli export-static --out ../frontend/dist-static/data
+          --site-url https://aigov.mattguenther.com
 
       # wrangler.jsonc serves the build at aigov.mattguenther.com. Deep links return the
       # app with HTTP 200 (single-page-application fallback), and frontend/public/_headers

@@ -2,12 +2,11 @@
  * milestone, its latest change and when it was checked. A map of coverage above,
  * a timeline view of every recorded change beside. */
 
-import { useMemo, useState } from "react";
+import { Suspense, lazy, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import clsx from "clsx";
 
 import { PageHeader } from "../components/layout/PageHeader";
-import { CoverageMap } from "../components/map/WorldMap";
 import { DemoBadge, EventChip } from "../components/ui/Badge";
 import { CodeTile } from "../components/ui/CodeTile";
 import { Jurisdiction } from "../components/ui/Flag";
@@ -20,6 +19,9 @@ import { absDate, titleCase } from "../lib/format";
 import { type DatedMilestone, SOON_DAYS, latestChange, nextMilestone, shortName } from "../lib/records";
 import { lawStage } from "../lib/stages";
 import type { EntityOut, MapRow } from "../lib/types";
+
+// The map and its geometry load only when this page is opened.
+const CoverageMap = lazy(() => import("../components/map/WorldMap").then((m) => ({ default: m.CoverageMap })));
 
 const STATUSES = ["proposed", "introduced", "passed", "signed", "effective", "enforcement", "amended"];
 
@@ -284,7 +286,9 @@ export default function Regulations() {
           ) : map.isError ? (
             <ErrorState detail={String(map.error)} onRetry={() => map.refetch()} />
           ) : (
-            <CoverageMap rows={map.data} onSelect={selectCountry} />
+            <Suspense fallback={<CardSkeleton rows={2} />}>
+              <CoverageMap rows={map.data} onSelect={selectCountry} />
+            </Suspense>
           )}
         </div>
       </Panel>
