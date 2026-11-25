@@ -1,34 +1,68 @@
 [
   {
     "slug": "colorado-ai-act",
-    "name": "Colorado AI Act",
+    "name": "Colorado AI Act (SB 24-205)",
     "type": "regulation",
     "jurisdiction": "US-CO",
-    "description": "SB 24-205, Consumer Protections for Artificial Intelligence. Imposes duties on developers and deployers of high-risk AI systems to prevent algorithmic discrimination in consequential decisions.",
+    "description": "SB 24-205, Consumer Protections for Artificial Intelligence (2024). Imposed duties on developers and deployers of high-risk AI systems to prevent algorithmic discrimination in consequential decisions. Repealed and reenacted by SB 26-189 in May 2026; see the Colorado SB 26-189 record for the law now in force.",
     "official_url": "https://leg.colorado.gov/bills/sb24-205",
     "regulation": {
       "government_level": "state",
-      "status": "signed",
-      "status_label": "Signed — effective June 30, 2026",
-      "introduced_at": "2024-04-04",
+      "status": "amended",
+      "status_label": "Repealed and reenacted by SB 26-189 (effective January 1, 2027); AG enforcement paused by a court-approved stipulation",
+      "introduced_at": "2024-04-10",
       "passed_at": "2024-05-08",
       "signed_at": "2024-05-17",
-      "effective_at": "2026-06-30",
-      "last_amended_at": "2025-08-28",
+      "last_amended_at": "2026-05-14",
       "enforcement_authority": "Colorado Attorney General",
-      "penalties": "Violations constitute unfair trade practices under the Colorado Consumer Protection Act.",
+      "penalties": "A violation is a deceptive trade practice under the Colorado Consumer Protection Act; the legislature's fiscal note puts the civil penalty at up to $20,000 per violation.",
       "covered_entities": "Developers and deployers of high-risk AI systems doing business in Colorado.",
       "risk_classification": "High-risk AI systems in consequential decisions (employment, lending, housing, healthcare, education, insurance, legal, government services).",
-      "applicability_notes": "Effective date delayed from February 1, 2026 to June 30, 2026 by SB 25B-004 (August 2025 special session). Verify current status against the official source; amendment activity has been ongoing.",
+      "applicability_notes": "Superseded. SB 25B-004 (August 2025) moved the start of the duties from February 1, 2026 to June 30, 2026. SB 26-189 (signed May 14, 2026) repeals and reenacts this part of Colorado law with different duties, effective January 1, 2027. In X.AI LLC v. Weiser, No. 1:26-cv-01515 (D. Colo.), a court-approved stipulation of April 27, 2026 bars the Attorney General from enforcing SB 24-205 or its replacement for conduct up to 14 days after the court rules on xAI's request for a preliminary injunction. It is not an injunction or a ruling on the merits. Whether SB 24-205's duties applied between June 30 and December 31, 2026 is unresolved.",
       "official_source_url": "https://leg.colorado.gov/bills/sb24-205",
-      "confidence": "high",
-      "last_verified_at": "2026-01-15"
+      "confidence": "medium",
+      "last_verified_at": "2026-11-25"
     },
     "events": [
-      {"type": "created", "occurred_at": "2024-04-04", "summary": "SB 24-205 introduced in the Colorado General Assembly.", "impact": 60},
+      {"type": "created", "occurred_at": "2024-04-10", "summary": "SB 24-205 introduced in the Colorado General Assembly.", "impact": 60},
       {"type": "status_change", "occurred_at": "2024-05-08", "previous": "introduced", "new": "passed", "summary": "Passed by the Colorado General Assembly.", "impact": 70},
-      {"type": "status_change", "occurred_at": "2024-05-17", "previous": "passed", "new": "signed", "summary": "Signed by Governor Polis — first comprehensive US state AI law.", "impact": 90},
-      {"type": "amended", "occurred_at": "2025-08-28", "summary": "SB 25B-004 (special session) delayed the effective date from February 1, 2026 to June 30, 2026.", "impact": 75}
+      {"type": "status_change", "occurred_at": "2024-05-17", "previous": "passed", "new": "signed", "summary": "Signed by Governor Polis.", "impact": 90},
+      {"type": "amended", "occurred_at": "2025-08-28", "summary": "SB 25B-004 (special session) delayed the effective date from February 1, 2026 to June 30, 2026.", "impact": 75},
+      {"type": "note", "occurred_at": "2026-04-09", "summary": "xAI sued the Colorado Attorney General over SB 24-205 (X.AI LLC v. Weiser, D. Colo.).", "impact": 60},
+      {"type": "note", "occurred_at": "2026-04-24", "summary": "The court let the United States intervene; its complaint alleges an Equal Protection violation.", "impact": 60},
+      {"type": "note", "occurred_at": "2026-04-27", "summary": "The court approved a joint stipulation pausing the Attorney General's enforcement. It is not an injunction or a ruling on the merits.", "impact": 75},
+      {"type": "status_change", "occurred_at": "2026-05-14", "previous": "signed", "new": "amended", "summary": "Repealed and reenacted by SB 26-189 (signed May 14, 2026; effective January 1, 2027).", "impact": 90}
+    ]
+  },
+  {
+    "slug": "colorado-sb-26-189",
+    "name": "Colorado SB 26-189 (Automated Decision-Making Technology)",
+    "type": "regulation",
+    "jurisdiction": "US-CO",
+    "description": "SB 26-189 (2026) repeals and reenacts Colorado's AI Act (SB 24-205) as a law on automated decision-making technology used in consequential decisions. Developers must give deployers documentation. Deployers must notify consumers, explain adverse outcomes within 30 days, and offer correction and human review. Records are kept for 3 years. SB 24-205's duty of care, risk-management program and impact assessments are gone.",
+    "official_url": "https://leg.colorado.gov/bills/sb26-189",
+    "regulation": {
+      "government_level": "state",
+      "status": "signed",
+      "status_label": "Signed May 14, 2026 — effective January 1, 2027",
+      "introduced_at": "2026-05-01",
+      "passed_at": "2026-05-12",
+      "signed_at": "2026-05-14",
+      "effective_at": "2027-01-01",
+      "enforcement_authority": "Colorado Attorney General (exclusive), through the Colorado Consumer Protection Act",
+      "penalties": "Enforced by the Attorney General under the Colorado Consumer Protection Act; no private right of action. A 60-day notice-and-cure period applies until January 1, 2030.",
+      "covered_entities": "Developers and deployers of automated decision-making technology used in consequential decisions about Colorado consumers in seven areas (legal services, covered by SB 24-205, is no longer one).",
+      "risk_classification": "Automated decision-making technology in consequential decisions.",
+      "applicability_notes": "Applies to decisions made on or after January 1, 2027; a few provisions took effect on passage. The Attorney General's department adopted ADMT and chatbot safety rules on November 19, 2026 (proposed August 11, 2026); an AG opinion and filing with the Secretary of State are pending. Enforcement is subject to the court-approved stipulation in X.AI LLC v. Weiser (see the SB 24-205 record).",
+      "official_source_url": "https://leg.colorado.gov/bills/sb26-189",
+      "confidence": "medium",
+      "last_verified_at": "2026-11-25"
+    },
+    "events": [
+      {"type": "created", "occurred_at": "2026-05-01", "summary": "SB 26-189 introduced in the Colorado General Assembly.", "impact": 60},
+      {"type": "status_change", "occurred_at": "2026-05-12", "previous": "introduced", "new": "passed", "summary": "Passed by the Colorado General Assembly.", "impact": 75},
+      {"type": "status_change", "occurred_at": "2026-05-14", "previous": "passed", "new": "signed", "summary": "Signed by Governor Polis; repeals and reenacts SB 24-205 from January 1, 2027.", "impact": 90},
+      {"type": "note", "occurred_at": "2026-11-19", "summary": "The Attorney General's department adopted ADMT and chatbot safety rules; an AG opinion and Secretary of State filing are pending.", "impact": 70}
     ]
   },
   {
@@ -41,25 +75,30 @@
     "regulation": {
       "government_level": "supranational",
       "status": "effective",
-      "status_label": "In force — phased application through 2027",
+      "status_label": "In force; amended by Regulation (EU) 2026/1744 — phased application to August 2, 2028",
       "introduced_at": "2021-04-21",
       "passed_at": "2024-03-13",
       "signed_at": "2024-06-13",
       "effective_at": "2024-08-01",
-      "compliance_deadline": "2026-08-02",
-      "enforcement_authority": "National market surveillance authorities; European AI Office (GPAI).",
-      "penalties": "Up to €35M or 7% of global annual turnover for prohibited-practice violations; lower tiers for other breaches.",
-      "covered_entities": "Providers, deployers, importers, and distributors of AI systems placed on or used in the EU market, wherever established.",
+      "compliance_deadline": "2027-12-02",
+      "enforcement_authority": "National market surveillance authorities; the European AI Office for general-purpose AI models and, since Regulation (EU) 2026/1744, for AI systems built on the same provider's model or in very large online platforms and search engines; the EDPS for EU institutions.",
+      "penalties": "Up to €35M or 7% of worldwide annual turnover for prohibited practices; €15M or 3% for most other obligations; €7.5M or 1% for misleading information (whichever is higher; whichever is lower for SMEs). Commission fines on general-purpose AI model providers up to €15M or 3%, applicable from August 2, 2026.",
+      "covered_entities": "Providers placing AI systems or general-purpose AI models on the EU market, wherever established; deployers in the EU; third-country providers and deployers whose output is used in the EU; importers, distributors, product manufacturers and authorised representatives.",
       "risk_classification": "Risk-based: prohibited / high-risk / limited-risk transparency / minimal risk; separate GPAI model obligations.",
-      "applicability_notes": "Phased: prohibitions + AI literacy from Feb 2, 2025; GPAI obligations from Aug 2, 2025; most high-risk obligations from Aug 2, 2026. Verify current milestones against EUR-Lex and the AI Office.",
+      "applicability_notes": "Compliance deadline shown is for Annex III high-risk systems. Timeline: prohibitions and AI literacy from Feb 2, 2025; general-purpose AI, governance and penalties from Aug 2, 2025; general application, including Article 50 transparency, from Aug 2, 2026. Regulation (EU) 2026/1744 (in force Jul 27, 2026) set: new prohibitions on generating intimate imagery and CSAM, and the Article 50(2) deadline for generative systems already on the market, from Dec 2, 2026; national sandboxes by Aug 2, 2027; Annex III high-risk obligations from Dec 2, 2027; Annex I (regulated products) from Aug 2, 2028; high-risk systems already used by public authorities by Aug 2, 2030.",
+      "last_amended_at": "2026-07-27",
       "official_source_url": "https://eur-lex.europa.eu/eli/reg/2024/1689/oj",
       "confidence": "high",
-      "last_verified_at": "2026-01-15"
+      "last_verified_at": "2026-11-25"
     },
     "events": [
-      {"type": "status_change", "occurred_at": "2024-08-01", "previous": "signed", "new": "effective", "summary": "Entered into force (application phased over 6-36 months).", "impact": 95},
+      {"type": "status_change", "occurred_at": "2024-08-01", "previous": "signed", "new": "effective", "summary": "Entered into force; application originally phased over 6–36 months, extended to August 2, 2028 by Regulation (EU) 2026/1744.", "impact": 95},
       {"type": "status_change", "occurred_at": "2025-02-02", "summary": "Prohibited-practices provisions and AI literacy obligations became applicable.", "impact": 85},
-      {"type": "status_change", "occurred_at": "2025-08-02", "summary": "General-purpose AI model obligations became applicable; governance rules operational.", "impact": 85}
+      {"type": "status_change", "occurred_at": "2025-08-02", "summary": "General-purpose AI model obligations became applicable; governance rules operational.", "impact": 85},
+      {"type": "note", "occurred_at": "2025-11-19", "summary": "The Commission proposed the Digital Omnibus on AI (COM(2025) 836).", "impact": 70},
+      {"type": "note", "occurred_at": "2026-05-07", "summary": "Political agreement reached on the AI Omnibus.", "impact": 75},
+      {"type": "amended", "occurred_at": "2026-07-27", "summary": "Regulation (EU) 2026/1744 entered into force: Annex III high-risk obligations moved to December 2, 2027 and Annex I to August 2, 2028; new prohibitions; sandboxes moved to August 2, 2027; AI Office competence widened.", "impact": 90},
+      {"type": "status_change", "occurred_at": "2026-08-02", "summary": "General application date: Article 50 transparency rules, AI Office enforcement powers and fines for general-purpose AI providers apply.", "impact": 85}
     ]
   },
   {
@@ -73,20 +112,24 @@
       "government_level": "local",
       "status": "enforcement",
       "status_label": "In effect — enforcement since July 2023",
-      "signed_at": "2021-12-11",
       "effective_at": "2023-01-01",
-      "enforcement_authority": "NYC Department of Consumer and Worker Protection (DCWP)",
-      "penalties": "Civil penalties per violation per day; separate violations for audit, posting, and notice failures.",
+      "enforcement_authority": "NYC Department of Consumer and Worker Protection (DCWP); the Corporation Counsel may sue; penalty cases go to OATH",
+      "penalties": "Up to $500 for a first violation (and others the same day), then $500 to $1,500 for each later one. Each day of non-compliant use and each notice failure is a separate violation (Admin. Code §20-872).",
       "covered_entities": "Employers and employment agencies using AEDTs for candidates/employees in New York City.",
       "risk_classification": "Automated employment decision tools (hiring and promotion).",
-      "applicability_notes": "Enforcement began July 5, 2023 after DCWP final rules. Verify current guidance on the DCWP page.",
-      "official_source_url": "https://www.nyc.gov/site/dca/about/automated-employment-decision-tools.page",
+      "applicability_notes": "Passed by the City Council on November 10, 2021 and enacted without the Mayor's signature on December 11, 2021. Enforcement began July 5, 2023 after DCWP final rules. A December 2025 State Comptroller audit found DCWP's enforcement ineffective.",
+      "passed_at": "2021-11-10",
+      "official_source_url": "https://legistar.council.nyc.gov/LegislationDetail.aspx?ID=4344524&GUID=B051915D-A9AC-451E-81F8-6596032FA3F9",
       "confidence": "high",
-      "last_verified_at": "2026-01-15"
+      "last_verified_at": "2026-11-25"
     },
     "events": [
+      {"type": "status_change", "occurred_at": "2021-11-10", "previous": "introduced", "new": "passed", "summary": "Passed by the New York City Council.", "impact": 60},
+      {"type": "status_change", "occurred_at": "2021-12-11", "previous": "passed", "new": "enacted", "summary": "Enacted without the Mayor's signature (returned unsigned).", "impact": 65},
       {"type": "status_change", "occurred_at": "2023-01-01", "previous": "signed", "new": "effective", "summary": "Local Law 144 took effect.", "impact": 70},
-      {"type": "status_change", "occurred_at": "2023-07-05", "previous": "effective", "new": "enforcement", "summary": "DCWP began enforcement following final rulemaking.", "impact": 75}
+      {"type": "status_change", "occurred_at": "2023-07-05", "previous": "effective", "new": "enforcement", "summary": "DCWP began enforcement following final rulemaking.", "impact": 75},
+      {"type": "note", "occurred_at": "2025-12-02", "summary": "State Comptroller audit found DCWP's enforcement of the law ineffective; DCWP generally agreed with its recommendations.", "impact": 65},
+      {"type": "note", "occurred_at": "2026-01-17", "summary": "Local Law 25 of 2026 ordered a study of these tools' effect on city employees; it does not amend Local Law 144.", "impact": 45}
     ]
   },
   {
@@ -94,25 +137,29 @@
     "name": "Utah AI Policy Act",
     "type": "regulation",
     "jurisdiction": "US-UT",
-    "description": "SB 149 (2024): consumer-protection disclosure obligations for generative AI, plus an AI 'learning laboratory' program under the Office of AI Policy.",
-    "official_url": "https://le.utah.gov/~2024/bills/static/SB0149.html",
+    "description": "SB 149 (2024) created the Office of AI Policy and the AI Learning Laboratory (Utah Code Title 13, Chapter 72). Its disclosure duties were replaced in 2025 by Chapter 77: suppliers must disclose generative AI if a consumer clearly asks, and people in regulated occupations must disclose it up front in high-risk interactions.",
+    "official_url": "https://le.utah.gov/xcode/Title13/Chapter72/13-72.html",
     "regulation": {
       "government_level": "state",
       "status": "effective",
-      "status_label": "In effect since May 2024",
+      "status_label": "In effect since May 2024; amended 2025 and 2026",
       "signed_at": "2024-03-13",
       "effective_at": "2024-05-01",
-      "enforcement_authority": "Utah Division of Consumer Protection; Office of Artificial Intelligence Policy",
-      "penalties": "Administrative fines and enforcement under Utah consumer-protection law.",
-      "covered_entities": "Entities using generative AI in regulated consumer interactions in Utah.",
+      "enforcement_authority": "Utah Division of Consumer Protection (the Attorney General acts as counsel); the Office of AI Policy runs the Learning Laboratory",
+      "penalties": "Administrative or court fine up to $2,500 per violation, plus injunctions and disgorgement; up to $5,000 per violation of an order (Utah Code 13-77-105).",
+      "covered_entities": "Suppliers using generative AI with consumers in Utah, and people in regulated occupations using it in high-risk interactions.",
       "risk_classification": "Generative AI disclosure obligations (consumer protection).",
-      "applicability_notes": "Amended in subsequent sessions (scope refinements in 2025). Verify current text via the Utah Legislature site.",
-      "official_source_url": "https://le.utah.gov/~2024/bills/static/SB0149.html",
+      "applicability_notes": "SB 226 (2025) replaced the original disclosure section with Chapter 77. SB 332 (2025) moved the AI Policy Act's (Chapter 72) repeal date to July 1, 2027. HB 320 (2026) revised the Office of AI Policy's duties and the Learning Laboratory. Chapter 72 is repealed July 1, 2027 unless extended.",
+      "last_amended_at": "2026-03-18",
+      "official_source_url": "https://le.utah.gov/xcode/Title13/Chapter77/13-77.html",
       "confidence": "high",
-      "last_verified_at": "2026-01-15"
+      "last_verified_at": "2026-11-25"
     },
     "events": [
-      {"type": "status_change", "occurred_at": "2024-05-01", "previous": "signed", "new": "effective", "summary": "AI Policy Act took effect — one of the first US state AI consumer-disclosure laws.", "impact": 65}
+      {"type": "status_change", "occurred_at": "2024-05-01", "previous": "signed", "new": "effective", "summary": "AI Policy Act (SB 149) took effect.", "impact": 65},
+      {"type": "amended", "occurred_at": "2025-03-25", "summary": "SB 332 signed: moves the AI Policy Act's repeal date from May 1, 2025 to July 1, 2027.", "impact": 60},
+      {"type": "amended", "occurred_at": "2025-05-07", "summary": "SB 226 took effect: replaces the disclosure rules with Chapter 77 (disclose on request; up front for regulated occupations in high-risk interactions) and sets fines.", "impact": 70},
+      {"type": "amended", "occurred_at": "2026-05-06", "summary": "HB 320 took effect: revises the Office of AI Policy's duties and the Learning Laboratory.", "impact": 55}
     ]
   },
   {
@@ -120,26 +167,31 @@
     "name": "California SB 53 (Transparency in Frontier AI Act)",
     "type": "regulation",
     "jurisdiction": "US-CA",
-    "description": "Requires large frontier AI developers to publish safety frameworks, report critical safety incidents, and provides whistleblower protections.",
+    "description": "Transparency in Frontier AI Act. Large frontier developers publish frontier AI frameworks; all frontier developers publish transparency reports and report critical safety incidents to the Office of Emergency Services. Adds whistleblower protections and a CalCompute consortium.",
     "official_url": "https://leginfo.legislature.ca.gov/faces/billNavClient.xhtml?bill_id=202520260SB53",
     "regulation": {
       "government_level": "state",
       "status": "effective",
-      "status_label": "Signed September 2025 — operative January 1, 2026",
+      "status_label": "Signed September 29, 2025 (Chapter 138, Statutes of 2025) — effective January 1, 2026",
       "signed_at": "2025-09-29",
       "effective_at": "2026-01-01",
       "enforcement_authority": "California Attorney General",
-      "penalties": "Civil penalties for noncompliance with disclosure and reporting obligations.",
-      "covered_entities": "Large frontier AI model developers meeting compute/revenue thresholds.",
+      "penalties": "Civil penalty up to $1,000,000 per violation, scaled to severity, against a large frontier developer; recoverable only in a civil action by the Attorney General.",
+      "covered_entities": "Frontier developers (trained a model using more than 10^26 operations): transparency reports and critical-incident reports within 15 days. Large frontier developers (more than $500M annual revenue with affiliates): also a frontier AI framework and internal-use risk summaries.",
       "risk_classification": "Frontier model safety transparency and incident reporting.",
-      "applicability_notes": "Companion to California's broader 2024-2025 AI legislative package (incl. AB 2013 training-data transparency). Verify thresholds and current amendments against the official bill text.",
+      "applicability_notes": "Codified at Business and Professions Code §§22757.10–22757.16, Labor Code §§1107–1107.2 and Government Code §11546.8 (CalCompute, operative only once funded). No amendments in 2026. First annual incident and whistleblower reports are due January 1, 2027.",
+      "introduced_at": "2025-01-07",
+      "passed_at": "2025-09-13",
       "official_source_url": "https://leginfo.legislature.ca.gov/faces/billNavClient.xhtml?bill_id=202520260SB53",
       "confidence": "high",
-      "last_verified_at": "2026-01-15"
+      "last_verified_at": "2026-11-25"
     },
     "events": [
-      {"type": "status_change", "occurred_at": "2025-09-29", "previous": "passed", "new": "signed", "summary": "Signed by Governor Newsom — first US frontier-model transparency law.", "impact": 85},
-      {"type": "status_change", "occurred_at": "2026-01-01", "previous": "signed", "new": "effective", "summary": "Operative date reached.", "impact": 75}
+      {"type": "created", "occurred_at": "2025-01-07", "summary": "SB 53 introduced in the California Senate.", "impact": 55},
+      {"type": "status_change", "occurred_at": "2025-09-13", "previous": "introduced", "new": "passed", "summary": "Final passage: the Senate concurred in Assembly amendments (29–8).", "impact": 75},
+      {"type": "status_change", "occurred_at": "2025-09-29", "previous": "passed", "new": "signed", "summary": "Signed by Governor Newsom (Chapter 138, Statutes of 2025).", "impact": 85},
+      {"type": "status_change", "occurred_at": "2026-01-01", "previous": "signed", "new": "effective", "summary": "Took effect.", "impact": 75},
+      {"type": "note", "occurred_at": "2026-11-16", "summary": "The Attorney General sued OpenAI under unfair-competition and public-nuisance law, citing the Act only as public policy.", "impact": 55}
     ]
   },
   {
@@ -147,7 +199,7 @@
     "name": "Texas Responsible AI Governance Act",
     "type": "regulation",
     "jurisdiction": "US-TX",
-    "description": "HB 149 (2025): prohibits certain AI uses (behavioral manipulation, social scoring, certain biometric identification), sets government AI disclosure duties, creates a regulatory sandbox.",
+    "description": "HB 149 (2025): bars developing or deploying AI intended to incite self-harm, harm or crime, to infringe constitutional rights, to discriminate unlawfully, or to produce child sexual abuse material or sexual deepfakes. Social scoring and certain biometric identification are barred for government entities only. Government agencies and health-care providers must disclose AI interactions. Creates a regulatory sandbox and the Texas AI Council.",
     "official_url": "https://capitol.texas.gov/BillLookup/History.aspx?LegSess=89R&Bill=HB149",
     "regulation": {
       "government_level": "state",
@@ -156,13 +208,13 @@
       "signed_at": "2025-06-22",
       "effective_at": "2026-01-01",
       "enforcement_authority": "Texas Attorney General",
-      "penalties": "Civil penalties; cure period provisions for violations.",
-      "covered_entities": "Developers and deployers of AI systems in Texas; specific government-agency obligations.",
-      "risk_classification": "Prohibited-use framework plus disclosure obligations.",
-      "applicability_notes": "Verify scope details against the enrolled bill text; several provisions were narrowed during passage.",
-      "official_source_url": "https://capitol.texas.gov/BillLookup/History.aspx?LegSess=89R&Bill=HB149",
+      "penalties": "After a 60-day notice-and-cure period: $10,000–$12,000 per curable violation; $80,000–$200,000 per uncurable violation; $2,000–$40,000 per day for continuing violations; plus injunctions and fees. Licensing agencies may impose sanctions up to $100,000 on the Attorney General's recommendation.",
+      "covered_entities": "Developers and deployers of AI systems in Texas; additional duties for government entities and health-care providers.",
+      "risk_classification": "Intent-based prohibited uses plus disclosure duties for government and health care.",
+      "applicability_notes": "Discrimination claims require intent; disparate impact alone is not enough. No private right of action; the Attorney General enforces exclusively. Preempts local AI rules.",
+      "official_source_url": "https://capitol.texas.gov/tlodocs/89R/billtext/html/HB00149F.HTM",
       "confidence": "high",
-      "last_verified_at": "2026-01-15"
+      "last_verified_at": "2026-11-25"
     },
     "events": [
       {"type": "status_change", "occurred_at": "2025-06-22", "previous": "passed", "new": "signed", "summary": "Signed by Governor Abbott.", "impact": 75},
@@ -174,25 +226,29 @@
     "name": "Illinois HB 3773 (AI in Employment)",
     "type": "regulation",
     "jurisdiction": "US-IL",
-    "description": "Amends the Illinois Human Rights Act: employers may not use AI that discriminates in employment decisions and must give notice when AI is used for them.",
-    "official_url": "https://www.ilga.gov/legislation/BillStatus.asp?DocNum=3773&GAID=17&DocTypeID=HB&SessionID=112",
+    "description": "Amends the Illinois Human Rights Act: employers may not use AI that has the effect of subjecting employees to discrimination in employment decisions, may not use zip codes as a proxy for protected classes, and must give notice when AI is used for those decisions.",
+    "official_url": "https://www.ilga.gov/Legislation/PublicActs/View/103-0804",
     "regulation": {
       "government_level": "state",
       "status": "effective",
       "status_label": "In effect since January 1, 2026",
       "signed_at": "2024-08-09",
       "effective_at": "2026-01-01",
-      "enforcement_authority": "Illinois Department of Human Rights",
+      "enforcement_authority": "Illinois Department of Human Rights (charges, within 2 years); the Illinois Human Rights Commission or circuit court decides cases",
       "penalties": "Remedies under the Illinois Human Rights Act.",
       "covered_entities": "Employers using AI in recruitment, hiring, promotion, discipline, discharge, and related decisions affecting Illinois employees.",
       "risk_classification": "Employment discrimination via AI; notice obligations.",
-      "applicability_notes": "Verify implementing guidance from IDHR.",
-      "official_source_url": "https://www.ilga.gov/legislation/BillStatus.asp?DocNum=3773&GAID=17&DocTypeID=HB&SessionID=112",
+      "applicability_notes": "Public Act 103-0804. IDHR proposed rules on AI-use notices on May 15, 2026 and withdrew them (recorded June 26, 2026); there are no final rules, and the statute applies without them.",
+      "passed_at": "2024-05-24",
+      "official_source_url": "https://www.ilga.gov/Legislation/PublicActs/View/103-0804",
       "confidence": "high",
-      "last_verified_at": "2026-01-15"
+      "last_verified_at": "2026-11-25"
     },
     "events": [
-      {"type": "status_change", "occurred_at": "2026-01-01", "previous": "signed", "new": "effective", "summary": "AI employment-discrimination amendments took effect.", "impact": 70}
+      {"type": "status_change", "occurred_at": "2024-08-09", "previous": "passed", "new": "signed", "summary": "Approved by the Governor as Public Act 103-0804 (passed both houses May 24, 2024).", "impact": 65},
+      {"type": "status_change", "occurred_at": "2026-01-01", "previous": "signed", "new": "effective", "summary": "AI employment-discrimination amendments took effect.", "impact": 70},
+      {"type": "note", "occurred_at": "2026-05-15", "summary": "IDHR proposed rules on AI-use notices (50 Ill. Reg. 6794).", "impact": 50},
+      {"type": "note", "occurred_at": "2026-06-26", "summary": "IDHR's withdrawal of the proposed notice rules recorded; no final rules.", "impact": 50}
     ]
   },
   {
@@ -200,7 +256,7 @@
     "name": "NIST AI RMF",
     "type": "standard",
     "jurisdiction": "US",
-    "description": "NIST AI Risk Management Framework 1.0 — voluntary framework for managing AI risks across the lifecycle: Govern, Map, Measure, Manage.",
+    "description": "NIST AI Risk Management Framework 1.0 — voluntary framework for managing AI risks across the lifecycle: Govern, Map, Measure, Manage. NIST says a revision is under way under the 2025 AI Action Plan; no draft had been published as of November 2026.",
     "official_url": "https://www.nist.gov/itl/ai-risk-management-framework",
     "standard": {
       "publisher": "NIST",
@@ -212,7 +268,9 @@
       "official_source_url": "https://www.nist.gov/itl/ai-risk-management-framework"
     },
     "events": [
-      {"type": "created", "occurred_at": "2023-01-26", "summary": "AI RMF 1.0 published.", "impact": 90}
+      {"type": "created", "occurred_at": "2023-01-26", "summary": "AI RMF 1.0 published.", "impact": 90},
+      {"type": "note", "occurred_at": "2025-07-23", "summary": "The White House AI Action Plan tasked NIST with revising AI RMF 1.0.", "impact": 70},
+      {"type": "note", "occurred_at": "2026-04-07", "summary": "NIST released a concept note for an AI RMF profile on trustworthy AI in critical infrastructure.", "impact": 55}
     ]
   },
   {
@@ -221,7 +279,7 @@
     "type": "standard",
     "jurisdiction": "US",
     "description": "NIST AI 600-1 — cross-sectoral profile of the AI RMF for generative AI: 12 GAI risk categories and ~200 suggested actions.",
-    "official_url": "https://www.nist.gov/itl/ai-risk-management-framework",
+    "official_url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
     "standard": {
       "publisher": "NIST",
       "version": "NIST AI 600-1",
@@ -229,7 +287,7 @@
       "published_at": "2024-07-26",
       "change_magnitude": "major",
       "related_frameworks": ["nist-ai-rmf"],
-      "official_source_url": "https://www.nist.gov/itl/ai-risk-management-framework"
+      "official_source_url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
     },
     "events": [
       {"type": "created", "occurred_at": "2024-07-26", "summary": "Generative AI Profile (NIST AI 600-1) published alongside companion GenAI guidance.", "impact": 80}
@@ -241,18 +299,18 @@
     "type": "standard",
     "jurisdiction": "GLOBAL",
     "description": "AI management system standard (AIMS) — requirements for establishing, implementing, maintaining, and continually improving an AI management system. Certifiable.",
-    "official_url": "https://www.iso.org/standard/81230.html",
+    "official_url": "https://www.iso.org/standard/42001",
     "standard": {
       "publisher": "ISO",
       "version": "2023",
       "status": "final",
-      "published_at": "2023-12-01",
+      "published_at": "2023-12-18",
       "change_magnitude": "major",
       "related_frameworks": ["nist-ai-rmf", "iso-23894"],
-      "official_source_url": "https://www.iso.org/standard/81230.html"
+      "official_source_url": "https://www.iso.org/standard/42001"
     },
     "events": [
-      {"type": "created", "occurred_at": "2023-12-01", "summary": "ISO/IEC 42001:2023 published (December 2023) — first certifiable AI management system standard.", "impact": 85}
+      {"type": "created", "occurred_at": "2023-12-18", "summary": "ISO/IEC 42001:2023 published.", "impact": 85}
     ]
   },
   {
@@ -266,11 +324,14 @@
       "publisher": "ISO",
       "version": "2023",
       "status": "final",
-      "published_at": "2023-02-01",
+      "published_at": "2023-02-06",
       "change_magnitude": "major",
       "related_frameworks": ["iso-42001"],
       "official_source_url": "https://www.iso.org/standard/77304.html"
-    }
+    },
+    "events": [
+      {"type": "created", "occurred_at": "2023-02-06", "summary": "ISO/IEC 23894:2023 published.", "impact": 70}
+    ]
   },
   {
     "slug": "owasp-llm-top10",
@@ -281,16 +342,18 @@
     "official_url": "https://genai.owasp.org/",
     "standard": {
       "publisher": "OWASP",
-      "version": "2025",
+      "version": "2026",
       "status": "updated",
       "published_at": "2023-08-01",
-      "last_updated_at": "2024-11-01",
+      "last_updated_at": "2026-08-03",
       "change_magnitude": "major",
       "related_frameworks": ["mitre-atlas", "owasp-agentic"],
-      "official_source_url": "https://genai.owasp.org/"
+      "official_source_url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/"
     },
     "events": [
-      {"type": "document_updated", "occurred_at": "2024-11-01", "summary": "2025 edition released (November 2024): unbounded consumption, vector/embedding weaknesses, system prompt leakage added.", "impact": 70}
+      {"type": "created", "occurred_at": "2023-08-01", "summary": "Version 1.0 published.", "impact": 75},
+      {"type": "document_updated", "occurred_at": "2024-11-17", "summary": "2025 edition: Unbounded Consumption expands Denial of Service; Vector and Embedding Weaknesses and System Prompt Leakage added.", "impact": 70},
+      {"type": "document_updated", "occurred_at": "2026-08-03", "summary": "2026 edition: Excessive Agency moves to LLM03; new LLM08 Hidden Context Exposure; System Prompt Leakage no longer appears by name.", "impact": 75}
     ]
   },
   {
@@ -298,19 +361,21 @@
     "name": "OWASP Agentic AI Security",
     "type": "standard",
     "jurisdiction": "GLOBAL",
-    "description": "OWASP GenAI Security Project agentic AI workstream — threats and mitigations for autonomous/agentic AI systems.",
-    "official_url": "https://genai.owasp.org/",
+    "description": "OWASP GenAI Security Project's Agentic Security Initiative: threats and mitigations for autonomous and agentic AI systems, including the Top 10 for Agentic Applications (December 2025).",
+    "official_url": "https://genai.owasp.org/initiatives/agentic-security-initiative/",
     "standard": {
       "publisher": "OWASP",
       "status": "updated",
-      "published_at": "2025-02-01",
-      "last_updated_at": "2025-02-01",
+      "published_at": "2025-02-17",
+      "last_updated_at": "2026-11-10",
       "change_magnitude": "major",
       "related_frameworks": ["owasp-llm-top10", "mitre-atlas"],
-      "official_source_url": "https://genai.owasp.org/"
+      "official_source_url": "https://genai.owasp.org/initiatives/agentic-security-initiative/"
     },
     "events": [
-      {"type": "created", "occurred_at": "2025-02-01", "summary": "Agentic AI — Threats and Mitigations guidance published (February 2025).", "impact": 75}
+      {"type": "created", "occurred_at": "2025-02-17", "summary": "Agentic AI — Threats and Mitigations guidance published.", "impact": 75},
+      {"type": "document_updated", "occurred_at": "2025-12-09", "summary": "OWASP Top 10 for Agentic Applications for 2026 released (ASI01 Agent Goal Hijack to ASI10 Rogue Agents).", "impact": 75},
+      {"type": "document_updated", "occurred_at": "2026-11-10", "summary": "Securing Agentic Applications V2 guide published.", "impact": 60}
     ]
   },
   {
@@ -318,42 +383,52 @@
     "name": "MITRE ATLAS",
     "type": "standard",
     "jurisdiction": "GLOBAL",
-    "description": "Adversarial Threat Landscape for AI Systems — knowledge base of adversary tactics and techniques against AI, modeled after ATT&CK.",
+    "description": "Adversarial Threat Landscape for AI Systems — knowledge base of adversary tactics and techniques against AI, modeled after ATT&CK. Launched in June 2021; monthly content releases since May 2026.",
     "official_url": "https://atlas.mitre.org/",
     "standard": {
       "publisher": "MITRE",
       "status": "updated",
-      "published_at": "2021-06-01",
-      "last_updated_at": "2025-10-01",
+      "last_updated_at": "2026-10-28",
       "change_magnitude": "minor",
       "related_frameworks": ["owasp-llm-top10"],
+      "version": "v2026.10",
       "official_source_url": "https://atlas.mitre.org/"
-    }
+    },
+    "events": [
+      {"type": "note", "occurred_at": "2026-05-27", "summary": "v2026.05 moved content releases to monthly YYYY.MM versions (data format v6.0.0).", "impact": 45},
+      {"type": "document_updated", "occurred_at": "2026-10-28", "summary": "v2026.10: 16 tactics, 129 techniques, 92 sub-techniques, 77 case studies.", "impact": 50}
+    ]
   },
   {
     "slug": "sg-model-ai-governance",
     "name": "Singapore Model AI Governance Framework",
     "type": "framework",
     "jurisdiction": "SG",
-    "description": "IMDA/AI Verify Foundation framework for responsible AI deployment, including the Generative AI edition (May 2024) covering nine governance dimensions.",
-    "official_url": "https://aiverifyfoundation.sg/",
+    "description": "IMDA/AI Verify Foundation framework for responsible AI deployment, including the Generative AI edition (May 2024) covering nine governance dimensions. A separate Model AI Governance Framework for Agentic AI followed in January 2026.",
+    "official_url": "https://aiverifyfoundation.sg/resources/mgf-gen-ai/",
     "standard": {
-      "publisher": "IMDA",
+      "publisher": "IMDA / AI Verify Foundation",
       "version": "GenAI edition",
       "status": "final",
       "published_at": "2024-05-30",
       "change_magnitude": "major",
       "related_frameworks": ["nist-ai-rmf"],
-      "official_source_url": "https://aiverifyfoundation.sg/"
-    }
+      "official_source_url": "https://aiverifyfoundation.sg/resources/mgf-gen-ai/"
+    },
+    "events": [
+      {"type": "created", "occurred_at": "2019-01-23", "summary": "Model AI Governance Framework, first edition.", "impact": 60},
+      {"type": "document_updated", "occurred_at": "2020-01-21", "summary": "Second edition.", "impact": 50},
+      {"type": "note", "occurred_at": "2024-01-16", "summary": "Proposed framework for generative AI released for comment.", "impact": 45},
+      {"type": "document_updated", "occurred_at": "2024-05-30", "summary": "Model AI Governance Framework for Generative AI released.", "impact": 65}
+    ]
   },
   {
     "slug": "korea-ai-framework-act",
     "name": "South Korea AI Framework Act",
     "type": "regulation",
     "jurisdiction": "KR",
-    "description": "Framework Act on the Development of Artificial Intelligence and Establishment of a Foundation for Trustworthiness — Asia's first comprehensive AI statute. Imposes obligations on 'high-impact' AI in critical sectors and labelling duties for generative AI output.",
-    "official_url": "https://www.msit.go.kr/eng/index.do",
+    "description": "Framework Act on the Development of Artificial Intelligence and the Creation of a Foundation for Trust. Imposes obligations on 'high-impact' AI in listed areas, labelling duties for generative AI output, safety duties for very large models, and a domestic representative for certain overseas operators.",
+    "official_url": "https://www.law.go.kr/LSW/lsInfoP.do?lsiSeq=282791",
     "regulation": {
       "government_level": "federal",
       "status": "effective",
@@ -361,14 +436,23 @@
       "effective_at": "2026-01-22",
       "enforcement_authority": "Ministry of Science and ICT (MSIT)",
       "covered_entities": "Providers and deployers of AI in South Korea, including certain overseas operators required to appoint a domestic representative.",
-      "risk_classification": "High-impact AI in critical sectors (healthcare, energy, public services) plus generative AI labelling duties.",
-      "applicability_notes": "Passed by the National Assembly in December 2024 and effective 22 January 2026. Primary legal text is Korean; verify details and enforcement decrees via MSIT before relying on this summary.",
-      "official_source_url": "https://www.loc.gov/item/global-legal-monitor/2026-02-20/south-korea-comprehensive-ai-legal-framework-takes-effect/",
-      "confidence": "medium",
-      "last_verified_at": "2026-08-11"
+      "risk_classification": "High-impact AI in the areas listed in Art. 2(4), including energy, drinking water, health care and medical devices, nuclear facilities, biometric analysis in criminal investigations, hiring and loan screening, transport, public-sector decisions and student assessment; labelling duties for generative AI (Art. 31); safety duties for models above a compute threshold (Art. 32).",
+      "applicability_notes": "Promulgated January 21, 2025 (Act No. 20676) and in force January 22, 2026 together with Enforcement Decree No. 36053. MSIT has announced a grace period of at least one year on fact-finding investigations and fines; this is administrative policy, not statute, and no end date has been set. Amended by Act No. 21311 (January 20, 2026).",
+      "passed_at": "2024-12-26",
+      "signed_at": "2025-01-21",
+      "last_amended_at": "2026-01-20",
+      "penalties": "Fines up to KRW 30 million (Art. 43), e.g. for failing to give prior notice of AI use, failing to appoint a domestic representative, or ignoring stop or corrective orders.",
+      "official_source_url": "https://www.law.go.kr/LSW/lsInfoP.do?lsiSeq=282791",
+      "confidence": "high",
+      "last_verified_at": "2026-11-25"
     },
     "events": [
-      {"type": "status_change", "occurred_at": "2026-01-22", "previous": "signed", "new": "effective", "summary": "AI Framework Act took effect — first comprehensive national AI statute in Asia.", "impact": 85}
+      {"type": "status_change", "occurred_at": "2024-12-26", "previous": "introduced", "new": "passed", "summary": "Passed by the National Assembly.", "impact": 75},
+      {"type": "status_change", "occurred_at": "2025-01-21", "previous": "passed", "new": "signed", "summary": "Promulgated as Act No. 20676; in force one year later.", "impact": 75},
+      {"type": "amended", "occurred_at": "2026-01-20", "summary": "Amendment Act No. 21311: National AI Strategy Committee, training data, AI research institutes and AI-vulnerable groups.", "impact": 60},
+      {"type": "document_updated", "occurred_at": "2026-01-21", "summary": "Enforcement Decree (Presidential Decree No. 36053) issued.", "impact": 65},
+      {"type": "status_change", "occurred_at": "2026-01-22", "previous": "signed", "new": "effective", "summary": "AI Framework Act took effect with its Enforcement Decree; MSIT announced a grace period of at least one year on fines.", "impact": 85},
+      {"type": "amended", "occurred_at": "2026-07-21", "summary": "Deferred provisions of Act No. 21311 took effect.", "impact": 50}
     ]
   },
   {
@@ -385,13 +469,15 @@
       "effective_at": "2023-08-15",
       "enforcement_authority": "Cyberspace Administration of China (CAC) and co-issuing agencies",
       "covered_entities": "Providers of generative AI services offered to the public within mainland China.",
-      "risk_classification": "Public-facing generative AI services; algorithm filing and security assessment duties.",
-      "applicability_notes": "Sits alongside China's algorithm recommendation and deep synthesis provisions. Official text is Chinese; verify against the CAC source.",
+      "risk_classification": "Public-facing generative AI services; security assessment and algorithm filing apply to services with public-opinion attributes or social-mobilisation capacity (Art. 17).",
+      "applicability_notes": "Issued as CAC Order No. 15 (July 10, 2023; published July 13). Sits alongside China's algorithm recommendation and deep synthesis provisions, the AI-generated content labelling measures (in force September 1, 2025) and the interim measures for anthropomorphic AI interaction services (in force July 15, 2026). Official text is Chinese.",
+      "signed_at": "2023-07-10",
       "official_source_url": "https://www.cac.gov.cn/2023-07/13/c_1690898327029107.htm",
-      "confidence": "medium",
-      "last_verified_at": "2026-08-11"
+      "confidence": "high",
+      "last_verified_at": "2026-11-25"
     },
     "events": [
+      {"type": "created", "occurred_at": "2023-07-13", "summary": "Measures published by the CAC and six co-issuing agencies (CAC Order No. 15).", "impact": 65},
       {"type": "status_change", "occurred_at": "2023-08-15", "previous": "signed", "new": "effective", "summary": "Interim Measures for Generative AI Services took effect.", "impact": 75}
     ]
   },
@@ -401,24 +487,26 @@
     "type": "regulation",
     "jurisdiction": "BR",
     "description": "Risk-based AI framework bill establishing rights, risk classifications, transparency duties, and an enforcement structure centred on the ANPD. Approved by the Federal Senate; still under consideration in the Chamber of Deputies.",
-    "official_url": "https://www25.senado.leg.br/web/atividade/materias/-/materia/157233",
+    "official_url": "https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=2487262",
     "regulation": {
       "government_level": "federal",
-      "status": "passed",
+      "status": "introduced",
       "status_label": "Passed Senate — pending in Chamber of Deputies",
       "introduced_at": "2023-05-03",
-      "passed_at": "2024-12-10",
       "enforcement_authority": "Proposed: ANPD (Autoridade Nacional de Proteção de Dados) as coordinating authority",
       "covered_entities": "Proposed: developers, distributors, and deployers of AI systems in Brazil.",
       "risk_classification": "Proposed risk tiers with excessive-risk prohibitions and high-risk obligations.",
-      "applicability_notes": "NOT YET LAW. Approved by the Senate on 10 December 2024 and under committee review in the Chamber of Deputies as of August 2026; text and obligations may change before enactment.",
-      "official_source_url": "https://www25.senado.leg.br/web/atividade/materias/-/materia/157233",
+      "applicability_notes": "NOT YET LAW. The Federal Senate approved a substitute text on December 10, 2024 and sent it to the Chamber of Deputies on March 17, 2025. As of November 13, 2026 it is in a Chamber special committee awaiting the rapporteur's report, under priority procedure. The text and obligations may change before enactment.",
+      "official_source_url": "https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=2487262",
       "confidence": "high",
-      "last_verified_at": "2026-08-11"
+      "last_verified_at": "2026-11-25"
     },
     "events": [
       {"type": "created", "occurred_at": "2023-05-03", "summary": "PL 2338/2023 introduced in the Federal Senate.", "impact": 55},
-      {"type": "status_change", "occurred_at": "2024-12-10", "previous": "introduced", "new": "passed", "summary": "Approved by the Federal Senate; sent to the Chamber of Deputies.", "impact": 70}
+      {"type": "status_change", "occurred_at": "2024-12-10", "previous": "introduced", "new": "passed Senate", "summary": "Federal Senate approved a substitute text.", "impact": 70},
+      {"type": "note", "occurred_at": "2025-03-17", "summary": "Sent to and received by the Chamber of Deputies.", "impact": 55},
+      {"type": "note", "occurred_at": "2025-04-04", "summary": "Chamber of Deputies created a special committee on the bill.", "impact": 50},
+      {"type": "note", "occurred_at": "2025-05-20", "summary": "Rapporteur designated (Dep. Aguinaldo Ribeiro).", "impact": 45}
     ]
   },
   {
@@ -426,7 +514,7 @@
     "name": "Canada Voluntary Code of Conduct on Generative AI",
     "type": "framework",
     "jurisdiction": "CA",
-    "description": "Voluntary Code of Conduct on the Responsible Development and Management of Advanced Generative AI Systems — signatory commitments on accountability, safety, fairness, transparency, and human oversight. Creates no new legal obligations.",
+    "description": "Voluntary Code of Conduct on the Responsible Development and Management of Advanced Generative AI Systems — signatory commitments to six outcomes: accountability; safety; fairness and equity; transparency; human oversight and monitoring; validity and robustness. Creates no new legal obligations.",
     "official_url": "https://ised-isde.canada.ca/site/ised/en/voluntary-code-conduct-responsible-development-and-management-advanced-generative-ai-systems",
     "standard": {
       "publisher": "ISED Canada",
@@ -435,14 +523,20 @@
       "change_magnitude": "major",
       "related_frameworks": ["nist-ai-rmf"],
       "official_source_url": "https://ised-isde.canada.ca/site/ised/en/voluntary-code-conduct-responsible-development-and-management-advanced-generative-ai-systems"
-    }
+    },
+    "events": [
+      {"type": "created", "occurred_at": "2023-09-27", "summary": "Voluntary code launched.", "impact": 60},
+      {"type": "note", "occurred_at": "2025-01-06", "summary": "Bill C-27, which contained the proposed Artificial Intelligence and Data Act, was still at committee when the parliamentary session ended.", "impact": 60},
+      {"type": "document_updated", "occurred_at": "2025-03-06", "summary": "Implementation guide for managers published; 46 signatories.", "impact": 45},
+      {"type": "note", "occurred_at": "2026-06-04", "summary": "National AI strategy 'AI for All' launched.", "impact": 55}
+    ]
   },
   {
     "slug": "uk-pro-innovation-approach",
     "name": "UK Pro-Innovation Approach to AI Regulation",
     "type": "framework",
     "jurisdiction": "GB",
-    "description": "UK government white paper setting a principles-based, regulator-led approach to AI rather than a single AI statute: existing regulators apply five cross-sector principles within their remits.",
+    "description": "UK government white paper setting a principles-based, regulator-led approach to AI rather than a single AI statute: existing regulators apply five cross-sector principles within their remits. Published in March 2023 under the previous government; no government AI bill had been introduced as of November 2026.",
     "official_url": "https://www.gov.uk/government/publications/ai-regulation-a-pro-innovation-approach",
     "standard": {
       "publisher": "UK Government",
@@ -451,7 +545,12 @@
       "change_magnitude": "major",
       "related_frameworks": [],
       "official_source_url": "https://www.gov.uk/government/publications/ai-regulation-a-pro-innovation-approach"
-    }
+    },
+    "events": [
+      {"type": "created", "occurred_at": "2023-03-29", "summary": "White paper published.", "impact": 70},
+      {"type": "document_updated", "occurred_at": "2024-02-06", "summary": "Government response to the consultation published.", "impact": 60},
+      {"type": "note", "occurred_at": "2026-05-13", "summary": "King's Speech included no AI bill; the Regulating for Growth Bill includes cross-sector AI sandboxes.", "impact": 55}
+    ]
   },
   {
     "slug": "japan-ai-guidelines-business",
@@ -468,23 +567,34 @@
       "last_updated_at": "2026-03-31",
       "change_magnitude": "minor",
       "related_frameworks": ["nist-ai-rmf"],
-      "official_source_url": "https://www.meti.go.jp/shingikai/mono_info_service/ai_shakai_jisso/pdf/20260331_12.pdf"
-    }
+      "official_source_url": "https://www.meti.go.jp/shingikai/mono_info_service/ai_shakai_jisso/20260331_report.html"
+    },
+    "events": [
+      {"type": "created", "occurred_at": "2024-04-19", "summary": "Version 1.0 published.", "impact": 60},
+      {"type": "document_updated", "occurred_at": "2024-11-22", "summary": "Version 1.01.", "impact": 35},
+      {"type": "document_updated", "occurred_at": "2025-03-28", "summary": "Version 1.1.", "impact": 45},
+      {"type": "document_updated", "occurred_at": "2026-03-31", "summary": "Version 1.2 (current); cites the 2025 AI Promotion Act.", "impact": 50}
+    ]
   },
   {
     "slug": "australia-voluntary-ai-safety-standard",
     "name": "Australia Voluntary AI Safety Standard",
     "type": "framework",
     "jurisdiction": "AU",
-    "description": "Ten voluntary guardrails for organisations deploying AI, published by the Department of Industry, Science and Resources. Australia has no general AI statute; mandatory guardrails for high-risk settings remain under consideration.",
-    "official_url": "https://www.industry.gov.au/science-technology-and-innovation/technology/artificial-intelligence",
+    "description": "Ten voluntary guardrails for organisations using AI, published by the Department of Industry, Science and Resources in September 2024. In October 2025 the department published Guidance for AI Adoption, which it says 'evolves' this standard into six practices. The National AI Plan (December 2025) builds on existing laws rather than a general AI statute and sets up an AI Safety Institute.",
+    "official_url": "https://www.industry.gov.au/publications/voluntary-ai-safety-standard",
     "standard": {
       "publisher": "DISR Australia",
       "status": "final",
       "published_at": "2024-09-05",
       "change_magnitude": "major",
       "related_frameworks": ["iso-42001", "nist-ai-rmf"],
-      "official_source_url": "https://www.industry.gov.au/science-technology-and-innovation/technology/artificial-intelligence"
-    }
+      "official_source_url": "https://www.industry.gov.au/publications/voluntary-ai-safety-standard"
+    },
+    "events": [
+      {"type": "created", "occurred_at": "2024-09-05", "summary": "Voluntary AI Safety Standard published (10 guardrails).", "impact": 65},
+      {"type": "document_updated", "occurred_at": "2025-10-21", "summary": "Guidance for AI Adoption published, condensing the 10 guardrails into 6 practices.", "impact": 65},
+      {"type": "note", "occurred_at": "2025-12-02", "summary": "National AI Plan launched.", "impact": 60}
+    ]
   }
 ]

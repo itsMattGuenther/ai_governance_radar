@@ -109,8 +109,11 @@ def test_entity_timeline(client):
     r = client.get("/api/entities/colorado-ai-act")
     assert r.status_code == 200
     entity = r.json()
-    assert entity["regulation"]["status"] == "signed"
+    # SB 24-205 was repealed and reenacted by SB 26-189 (verified 2026-11-25).
+    assert entity["regulation"]["status"] == "amended"
     assert len(entity["events"]) >= 3
+    successor = client.get("/api/entities/colorado-sb-26-189").json()
+    assert successor["regulation"]["effective_at"].startswith("2027-01-01")
     assert client.get("/api/entities/nope").status_code == 404
 
 
