@@ -157,26 +157,44 @@ def seed_entities(db: Session, path: Path | None = None) -> int:
             entity.current_status = std.status
             db.merge(std)
 
-        # Timeline events (idempotent on entity_id + occurred_at + event_type)
-        for ev in row.get("events", []):
+        # Timeline: the seed file is the source of truth for curated events (those with
+        # no evidence item), keyed on occurred_at + event_type. A corrected date or
+        # summary replaces the old row rather than adding a second one: the public
+        # site re-seeds a database kept between runs (DEC-029). Events that ingestion
+        # linked to an evidence item are left alone.
+        events = row.get("events", [])
+        keys = [(ev["occurred_at"], ev["type"]) for ev in events]
+        _require(len(set(keys)) == len(keys),
+                 f"{row['slug']}: two events share a date and type")
+        kept: set[int] = set()
+        for ev in events:
             occurred = _dt(ev["occurred_at"])
-            exists = db.execute(
+            event = db.execute(
                 select(EntityEvent).where(
                     EntityEvent.entity_id == entity.id,
                     EntityEvent.occurred_at == occurred,
                     EntityEvent.event_type == ev["type"],
+                    EntityEvent.evidence_item_id.is_(None),
                 )
-            ).scalar_one_or_none()
-            if exists is None:
-                db.add(EntityEvent(
-                    entity_id=entity.id,
-                    event_type=ev["type"],
-                    occurred_at=occurred,
-                    previous_value=ev.get("previous"),
-                    new_value=ev.get("new"),
-                    summary=ev["summary"],
-                    impact_score=ev.get("impact"),
-                ))
+            ).scalars().first()
+            if event is None:
+                event = EntityEvent(entity_id=entity.id, event_type=ev["type"],
+                                    occurred_at=occurred)
+                db.add(event)
+            event.previous_value = ev.get("previous")
+            event.new_value = ev.get("new")
+            event.summary = ev["summary"]
+            event.impact_score = ev.get("impact")
+            db.flush()
+            kept.add(event.id)
+        for stale in db.execute(
+            select(EntityEvent).where(
+                EntityEvent.entity_id == entity.id,
+                EntityEvent.evidence_item_id.is_(None),
+                EntityEvent.id.not_in(kept),
+            )
+        ).scalars():
+            db.delete(stale)
         count += 1
     db.commit()
     return count
@@ -218,6 +236,12 @@ def seed_incidents(db: Session, path: Path | None = None) -> int:
         incident.source_links = row["source_links"]
         incident.is_demo = bool(row.get("demo", False))
         count += 1
+    # Incidents exist only through this file and are keyed on title, so a corrected
+    # title must replace the old row instead of leaving both.
+    titles = [row["title"] for row in data]
+    _require(len(set(titles)) == len(titles), "two incidents share a title")
+    for stale in db.execute(select(Incident).where(Incident.title.not_in(titles))).scalars():
+        db.delete(stale)
     db.commit()
     return count
 
