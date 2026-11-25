@@ -308,6 +308,26 @@ means since the user *reviewed* the information, not since the process started.
 **Consequences:** Brief always has a day of content; watchlist statuses persist until
 actually viewed; frequent visitors see stable, truthful deltas.
 
+## DEC-034 — Old databases upgrade through new tables and one-time repairs, not migrations
+**Decision:** Schema additions are new tables, which `create_all()` adds to an
+existing database; no column is added to an existing table. Fixes to how stored rows
+were written run once per database as named repairs (`services/repairs.py`), recorded
+under `repairs_applied` in `app_state` and run by `seed_all` after the source registry
+is re-read. The first two decode HTML entities left in stored titles and excerpts and
+group stored incident reports by their source's incident number (T-042).
+**Alternatives:** adopt Alembic now (DEC-021 planned it at V1 but it was never set up);
+`ALTER TABLE` statements at startup; ask the owner to delete and re-seed.
+**Rationale:** The public site's database persists between runs (DEC-029), so "delete
+radar.db and re-seed" would discard every collected item, and the publish workflow
+must upgrade it without a manual step. New tables need no migration tool. A repair
+that runs once and is recorded can't be applied twice, and running it from
+`seed_all` lets it read current source configuration.
+**Consequences:** A change that truly needs a new column on an existing table still
+means adopting Alembic first. Repairs stay in the code for databases that have not had
+them; a repaired row whose excerpt may now be cut at a different point is flagged
+`refresh_text`, so the next collection takes the feed's text without reporting an
+update.
+
 ## DEC-033 — "Watch Board": home leads with dates and record changes; visual system revised (supersedes DEC-025)
 **Decision:** (1) Home becomes a watch board built on the curated records: tiles for
 the nearest dates, then Dates ahead, Record changes, Laws by stage and a feed panel

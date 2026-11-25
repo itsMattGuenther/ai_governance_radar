@@ -76,6 +76,10 @@
   polling_interval_minutes: 360
   enabled: true
   attribution: "AI Incident Database (Responsible AI Collaborative), CC BY-SA."
+  config:
+    # Each description ends with the report's citation link, /cite/<incident>#<report>;
+    # reports that share an incident number are shown as one row.
+    report_group_pattern: 'https://incidentdatabase\.ai/cite/(\d+)'
 
 # --- AI governance / policy press (Tier 3) ---------------------------------
 # Disabled 2026-11-25: mostly general tech news with an AI angle (desktop proposals,

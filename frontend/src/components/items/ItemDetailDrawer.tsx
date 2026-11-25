@@ -135,7 +135,7 @@ export function ItemDetailDrawer({ item, onClose }: { item: ItemOut | null; onCl
           )}
 
           {cluster && cluster.length > 1 && (
-            <Section label={`Coverage — ${cluster.length} sources`}>
+            <Section label={`${cluster.length} reports of this event`}>
               <ul className="space-y-1.5">
                 {cluster.map((m) => (
                   <li key={m.id} className="text-xs">
@@ -146,7 +146,11 @@ export function ItemDetailDrawer({ item, onClose }: { item: ItemOut | null; onCl
                   </li>
                 ))}
               </ul>
-              <p className="text-meta text-tx-muted">Highest-tier source is treated as primary evidence.</p>
+              <p className="text-meta text-tx-muted">
+                Grouped because the source files them under the same incident, or because
+                sources published near-identical headlines within 72 hours. The row shows the
+                report from the most reliable source, newest first.
+              </p>
             </Section>
           )}
         </div>

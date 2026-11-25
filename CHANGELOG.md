@@ -9,6 +9,18 @@ All notable changes to this project. Dates are UTC.
   Home will lead with legal dates and record changes, and the visual system changes
   (DESIGN_SYSTEM.md). Tasks T-042 to T-048. Not built yet.
 
+### Fixed (2026-11-25, T-042)
+- Titles and excerpts showed raw HTML entities ("&amp;"). Text is decoded at
+  collection, and a one-time repair fixes rows already stored (DEC-034).
+- Reports of one incident filled the incident list (ten rows for one outage). The AI
+  Incident Database files each report under an incident number, given in the citation
+  link that ends each description; reports sharing it now show as one row with a
+  report count, and the drawer lists them.
+- "Last update" on the laws table fell back to the introduction date; it is now the
+  date of the newest timeline event.
+- The site had no description, canonical link or share-preview tags. A pasted link now
+  shows a title, description and image.
+
 ### Added (2026-11-25)
 - Curated **milestones** on four laws (EU AI Act, Colorado SB 26-189, California SB 53,
   Utah AI Policy Act) and `superseded_by` on Colorado SB 24-205, in the seed file only,

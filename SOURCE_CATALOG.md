@@ -25,7 +25,7 @@ ingestion order: official API > RSS/Atom > structured feed > official HTML > sec
 
 | Source | Mechanism | Result |
 |---|---|---|
-| **AI Incident Database** | RSS `incidentdatabase.ai/rss.xml` | ✅ verified — 100 entries, current within days. Primary incident stream (CC BY-SA). GraphQL API exists but needs POST; SafeFetcher is GET-only, so RSS is used. |
+| **AI Incident Database** | RSS `incidentdatabase.ai/rss.xml` | ✅ verified — 100 entries, current within days. Primary incident stream (CC BY-SA). GraphQL API exists but needs POST; SafeFetcher is GET-only, so RSS is used. Each description ends with the report's citation link (`/cite/<incident>#<report>`); `report_group_pattern` reads the incident number so reports of one incident share a row. |
 | European Commission — Digital Strategy | RSS | ✅ verified — official EU AI policy announcements (Tier 1) |
 | The Register — AI/ML | Atom | ✅ verified — 50 entries, AI-specific section (Tier 3) |
 | MIT Technology Review — AI | RSS | ✅ verified (Tier 3) |

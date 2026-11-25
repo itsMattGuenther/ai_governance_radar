@@ -44,8 +44,8 @@ items_found, items_new, items_updated, error_message, http_status.
 | url | str | original URL — always preserved |
 | canonical_url | str, indexed | normalized for dedupe |
 | content_hash | str, indexed | sha256 of normalized title+body |
-| title | str | |
-| excerpt | text? | plain text, ≤ ~500 chars, sanitized |
+| title | str | plain text, entities decoded |
+| excerpt | text? | plain text, ≤ ~500 chars, sanitized, entities decoded |
 | published_at | datetime? | from source |
 | first_seen_at / last_seen_at | datetime | retrieval timestamps — always preserved |
 | categories | JSON | list: `regulation`,`standard`,`incident`,`security`,`news`,`research`,`training`,`event`,`ranking` |
@@ -56,11 +56,14 @@ items_found, items_new, items_updated, error_message, http_status.
 | confidence | str | `high` \| `medium` \| `low` |
 | fact_status | str? | `confirmed`\|`reported`\|`alleged`\|`under_investigation`\|`disputed` (§9) |
 | cluster_id | int? FK item_clusters | dedupe/event grouping |
-| raw_metadata | JSON? | parser leftovers |
+| raw_metadata | JSON? | parser leftovers; `report_group` = the source's own key for the event a report belongs to (the AI Incident Database's incident number); `refresh_text` = text was repaired in place, take the feed's text silently on the next collection |
 
 ### item_clusters (§62)
-id, primary_item_id FK (highest-tier source = primary evidence), title, created_at.
-Groups duplicate coverage of one real-world event.
+id, primary_item_id FK, title, created_at. Groups reports of one real-world event:
+same-source reports sharing a `report_group` (takes precedence), or near-identical
+titles from different sources within 72 hours. The primary is the report from the
+most reliable source, then the newest, so an event with fresh coverage shows in recent
+windows.
 
 ### entities (§5.3)
 | column | type | notes |
@@ -112,8 +115,8 @@ Entity timeline = ordered entity_events.
 item_id FK + entity_id FK (composite PK), relation (`about`|`mentions`|`evidence`).
 
 ### app_state
-key PK, value JSON — single-user prefs: dashboard settings, last_visit_at,
-default time window, visible modules. (Replaces a `users` table in V1.)
+key PK, value JSON — single-user prefs and app metadata. `repairs_applied` lists the
+one-time data repairs this database has had (DEC-034). (Replaces a `users` table in V1.)
 
 ### items_fts (SQLite FTS5 virtual table)
 Indexes items.title + excerpt (+ entity names), kept in sync on ingest. Queried

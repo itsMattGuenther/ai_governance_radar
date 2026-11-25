@@ -436,7 +436,7 @@ Work these in order on the `ux-rebuild` branch. The look is specified in
 DESIGN_SYSTEM.md. T-035, T-036 and T-037 are folded in below.
 
 ### T-042 Defects that do not depend on the redesign
-- **Status:** TODO
+- **Status:** DONE 2026-11-25 · entities decoded at collection and repaired in stored rows (DEC-034); AIID reports grouped by incident number (23 groups from 91 reports); last update from the timeline; share tags and image
 - **Description:** (a) Titles and excerpts show raw HTML entities ("&amp;"): decode
   at ingestion and repair stored rows. (b) "Last update" on the laws table falls back
   to the introduction date; use the date of the latest timeline event. (c) Ten

@@ -331,9 +331,16 @@ def seed_demo_items(db: Session, path: Path | None = None) -> int:
 
 
 def seed_all(db: Session) -> dict:
-    return {
+    from app.services.repairs import apply_repairs
+
+    counts: dict[str, int | dict[str, int]] = {
         "sources": seed_sources(db),
         "entities": seed_entities(db),
         "incidents": seed_incidents(db),
         "demo_items": seed_demo_items(db),
     }
+    # After the registry is re-read, so repairs see the current source configuration.
+    repaired = apply_repairs(db)
+    if repaired:
+        counts["repairs"] = repaired
+    return counts

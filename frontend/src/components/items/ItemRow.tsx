@@ -37,8 +37,8 @@ export function ItemRow({ item, onOpen }: { item: ItemOut; onOpen: (item: ItemOu
             {item.jurisdiction_code && <MicroPill>{item.jurisdiction_code}</MicroPill>}
             <DemoBadge show={item.is_demo} />
             {item.cluster_size > 1 && (
-              <MicroPill title={`${item.cluster_size} sources reported this event`}>
-                <Layers aria-hidden className="mr-1 h-3 w-3" /> {item.cluster_size} src
+              <MicroPill title={`${item.cluster_size} reports of this event, shown as one row`}>
+                <Layers aria-hidden className="mr-1 h-3 w-3" /> {item.cluster_size} reports
               </MicroPill>
             )}
             <ConfDots level={item.confidence} />

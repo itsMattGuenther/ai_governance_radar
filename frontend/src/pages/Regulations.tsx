@@ -9,6 +9,7 @@ import { FlagChip } from "../components/ui/FlagChip";
 import { CardSkeleton, EmptyState, ErrorState } from "../components/ui/States";
 import { useJurisdictions, useRegulations } from "../lib/api";
 import { shortDate, titleCase } from "../lib/format";
+import { latestChange } from "../lib/records";
 
 const STATUSES = ["proposed", "introduced", "passed", "signed", "effective", "amended", "enforcement"];
 
@@ -126,7 +127,7 @@ export default function Regulations() {
             <tbody>
               {regs.data.map((e) => {
                 const r = e.regulation!;
-                const lastUpdate = r.last_amended_at ?? r.signed_at ?? r.passed_at ?? r.introduced_at;
+                const lastUpdate = latestChange(e);
                 return (
                   <tr key={e.slug} className="border-b border-bd-subtle transition-colors last:border-b-0 hover:bg-bg-raised/40">
                     <td className="whitespace-nowrap px-3 py-2.5">

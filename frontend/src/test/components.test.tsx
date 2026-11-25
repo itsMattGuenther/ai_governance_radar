@@ -96,7 +96,7 @@ describe("ItemRow", () => {
     expect(screen.getByRole("img", { name: /impact score 72/i })).toBeInTheDocument();
     expect(screen.getByText("72")).toBeInTheDocument();
     expect(screen.getByText("Test Source")).toBeInTheDocument();
-    expect(screen.getByText(/3 src/)).toBeInTheDocument();
+    expect(screen.getByText(/3 reports/)).toBeInTheDocument();
     expect(screen.getByText("DEMO DATA")).toBeInTheDocument();
     // jurisdiction flag chip renders for US-CO
     expect(screen.getAllByTitle("US-CO").length).toBeGreaterThan(0);

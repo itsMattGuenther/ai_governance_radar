@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Incident Reports Fixture</title>
+    <link>https://incidents.example.org</link>
+    <item>
+      <title><![CDATA[Agency network outage traced to a faulty update]]></title>
+      <description><![CDATA[Officials said the outage began on Monday ... (https://incidentdatabase.ai/cite/9001#5001)]]></description>
+      <link>https://news-one.example.com/outage-begins</link>
+      <pubDate>Mon, 16 Nov 2026 10:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title><![CDATA[Outage at the agency's network has been resolved]]></title>
+      <description><![CDATA[Service returned on Thursday ... (https://incidentdatabase.ai/cite/9001#5002)]]></description>
+      <link>https://news-two.example.com/outage-resolved</link>
+      <pubDate>Thu, 19 Nov 2026 10:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title><![CDATA[Lawmakers question the agency about the outage]]></title>
+      <description><![CDATA[A hearing was scheduled ... (https://incidentdatabase.ai/cite/9001#5003)]]></description>
+      <link>https://news-three.example.com/outage-hearing</link>
+      <pubDate>Tue, 17 Nov 2026 10:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title><![CDATA[Coding agent leaks secrets to GitHub & Docker Hub]]></title>
+      <description><![CDATA[Researchers found keys &amp; tokens in a settings file ... (https://incidentdatabase.ai/cite/9002#5004)]]></description>
+      <link>https://news-four.example.com/agent-secrets</link>
+      <pubDate>Fri, 20 Nov 2026 10:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>
