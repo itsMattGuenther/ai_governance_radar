@@ -390,11 +390,40 @@ error states + accessibility reviewed. Update this file and CHANGELOG.md as you 
   not-legal-advice notice. Hover tooltips don't reach phone users.
 
 ### T-038 Re-verify curated regulation records
-- **Status:** TODO (maintainer, not code)
-- **Description:** Records were last verified 2026-01-15. Re-check each against its
-  official source, update `data/seed/entities.json`, and bump `last_verified_at`.
-  Example: Colorado AI Act shows effective Jun 30, 2026, a date that has now passed.
-  Edits reach the public site on its next run (seeding upserts).
+- **Status:** DONE 2026-11-25 · DEC-031
+- **Description:** All 29 curated records checked against primary sources
+  (docs/reviews/2026-11-25-records-verification.md) and the approved changes applied.
+  Three were correct; nine had errors that would mislead (Colorado replaced by SB 26-189,
+  EU high-risk dates moved, Brazil not enacted, NYC LL 144 never signed, among others).
+  Colorado SB 26-189 added as a new record. Displayed confidence now drops when a
+  record goes 90 days without a check or a key date passes after its check (DEC-031),
+  and re-seeding replaces corrected events and renamed incidents.
+- **Next check due:** 2027-02-23 (90 days), or sooner for Colorado SB 26-189 (effective
+  2027-01-01, rules pending, xAI suit pending) and Brazil (Chamber report pending).
+
+### T-039 Deploy privately on Cloudflare
+- **Status:** TODO · needs owner (Cloudflare API token, Access policy)
+- **Description:** Owner chose Cloudflare Workers static assets behind Cloudflare Access
+  (only the owner can open it) until going public. Replace the GitHub Pages deploy in
+  publish.yml with `wrangler deploy`; SPA fallback returns 200 for deep links; add
+  security headers. Record as a decision superseding DEC-029's hosting.
+- **Acceptance:** site reachable from the owner's work laptop and phone after login;
+  refreshes every 6 hours; no deep-link 404s.
+
+### T-040 Data-model gaps found by the verification
+- **Status:** TODO
+- **Description:** (a) dates have no precision, so month-only facts are left empty and
+  stated in text; (b) regulations can't be marked repealed or superseded or link to a
+  successor (Colorado uses status_label); (c) evidence is one URL per record, not per
+  field; (d) standards, frameworks and incidents have no `last_verified_at`, so DEC-031
+  can't reach them.
+
+### T-041 Records the verification suggested
+- **Status:** TODO
+- **Description:** Japan AI Promotion Act (Act No. 53 of 2025); Singapore Model AI
+  Governance Framework for Agentic AI (v1.5); Australia Guidance for AI Adoption; OWASP
+  Top 10 for Agentic Applications (or re-scope `owasp-agentic`). Verify each against
+  primary sources first.
 
 ## Post-V1 (parked — do not start)
 Rankings page + snapshots (§12) · Training page (§13) · Events page (§14) · comparison

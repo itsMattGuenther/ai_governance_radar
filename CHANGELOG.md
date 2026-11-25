@@ -5,6 +5,16 @@ All notable changes to this project. Dates are UTC.
 ## [Unreleased] — 2026-09-29 to 2026-11-25
 
 ### Changed (2026-11-25)
+- **Curated records verified** against primary sources (T-038,
+  docs/reviews/2026-11-25-records-verification.md). Nine material corrections, including
+  Colorado SB 24-205 → SB 26-189 (new record), EU AI Act dates moved by Reg. (EU)
+  2026/1744, Brazil not enacted, NYC LL 144 enacted without signature, Utah's 2025
+  rewrite, and Texas's government-only bans. Every regulation now shows
+  `last_verified_at` 2026-11-25.
+- Re-seeding mirrors the curated files: corrected event dates and summaries replace the
+  old rows, events no longer in the file are removed (evidence-linked ingestion events
+  are kept), and a renamed incident replaces the old one. Duplicate event keys or
+  incident titles fail the seed.
 - Regulation confidence ages with its verification (DEC-031): lowered one level when
   the effective date or compliance deadline passed after the last check, and one more
   when the check is over 90 days old. `curated_confidence` and `confidence_notes`
@@ -47,6 +57,8 @@ All notable changes to this project. Dates are UTC.
 - mypy errors in `api/items.py` reported by current mypy.
 
 ### Tests
+- 2026-11-25: backend 69 → 76 (confidence aging, AI-relevance precision, seeder sync,
+  Colorado successor record).
 - Backend 66 → 69 (window/page-change semantics, static export without demo data,
   backup); frontend 11 → 16 (timestamp parsing across timezones).
 
