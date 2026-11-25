@@ -9,6 +9,20 @@ All notable changes to this project. Dates are UTC.
   Home will lead with legal dates and record changes, and the visual system changes
   (DESIGN_SYSTEM.md). Tasks T-042 to T-048. Not built yet.
 
+### Changed (2026-11-25, T-045)
+- **Home is the watch board** (DEC-033). Tiles: the next two legal dates (amber
+  within 60 days; a shared date names every law on it), record changes in 30 days,
+  records tracked, items collected in 7 days with the number from government sources.
+  Panels: Dates ahead (milestones only), Record changes (laws and standards, newest
+  first), Laws by stage (every law with its stage track; not yet in force first,
+  superseded last), From government sources (tier 1, last 7 days, with the rest counted
+  by type). The counter row, Top Developments, the map, Standards Watch, Regulatory
+  Pulse, the "Latest" strip and the LIVE dot are gone, which also retires the "High
+  impact" counter, the shared sparkline and the alphabetical Regulatory Pulse.
+- `/api/dashboard/summary` (and `summary.json`) now return `collected`, `government`,
+  `page_changes` and `others`; `high_impact`, `new_incidents` and the source counts are
+  gone. `/api/items` takes `tier` (e.g. `1` or `3,4`).
+
 ### Changed (2026-11-25, T-044)
 - **Watch Board foundation** (DEC-033, DESIGN_SYSTEM.md): new colour values under the
   same token names, IBM Plex Sans and Mono in place of Inter and JetBrains Mono, flat

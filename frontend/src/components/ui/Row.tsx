@@ -28,6 +28,7 @@ export function Row({
   to,
   onClick,
   leadWidth = "w-14",
+  chipBelowOnPhone = false,
   className,
 }: {
   /** Leading column: a DateCell, code tile or flag. */
@@ -39,6 +40,8 @@ export function Row({
   to?: string;
   onClick?: () => void;
   leadWidth?: string;
+  /** On phones, put the chip under the detail line instead of beside the title. */
+  chipBelowOnPhone?: boolean;
   className?: string;
 }) {
   const body = (
@@ -47,8 +50,11 @@ export function Row({
       <span className="min-w-0 flex-1">
         <span className="block text-row font-medium text-tx-primary">{title}</span>
         {detail && <span className="mt-0.5 block text-detail text-tx-secondary">{detail}</span>}
+        {chip && chipBelowOnPhone && <span className="mt-1.5 block sm:hidden">{chip}</span>}
       </span>
-      {chip && <span className="shrink-0 self-center">{chip}</span>}
+      {chip && (
+        <span className={clsx("shrink-0 self-center", chipBelowOnPhone && "hidden sm:block")}>{chip}</span>
+      )}
     </>
   );
   const cls = clsx(

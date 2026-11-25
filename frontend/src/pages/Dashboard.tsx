@@ -1,375 +1,276 @@
-/** Home dashboard (§17, approved Direction A rev 2): tinted KPI cards with
- * sparklines, color-tick module headers, avatars/flags, glowing map, incidents,
- * standards watch with donut, regulatory pulse, live feed strip. */
+/** Home, the watch board (DEC-033, DESIGN_SYSTEM.md §6): the next legal dates, what
+ * changed in the checked records, where every law stands, and what government sources
+ * published this week. Upcoming dates come from curated milestones only. */
 
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { Activity, AlertTriangle, Rss, ShieldAlert } from "lucide-react";
 
 import { ItemDetailDrawer } from "../components/items/ItemDetailDrawer";
 import { ItemRow } from "../components/items/ItemRow";
-import { WorldMap } from "../components/map/WorldMap";
-import { PageHeader } from "../components/layout/PageHeader";
-import { StatusPill } from "../components/ui/Badge";
-import { Donut } from "../components/ui/charts";
+import { EventChip } from "../components/ui/Badge";
+import { DayCount } from "../components/ui/Chip";
+import { CodeTile } from "../components/ui/CodeTile";
 import { Jurisdiction } from "../components/ui/Flag";
-import { KpiCard } from "../components/ui/KpiCard";
-import { OrgAvatar } from "../components/ui/OrgAvatar";
+import { Panel, PanelLink } from "../components/ui/Panel";
+import { DateCell, Row } from "../components/ui/Row";
+import { LawStage } from "../components/ui/StageTrack";
 import { CardSkeleton, EmptyState, ErrorState } from "../components/ui/States";
+import { Tile } from "../components/ui/Tile";
+import { useDashboardSummary, useItems, useRegulations, useStandards } from "../lib/api";
+import { absDate, parseTimestamp } from "../lib/format";
 import {
-  useDashboardSummary,
-  useItems,
-  useMapData,
-  useRegulations,
-  useStandards,
-} from "../lib/api";
-import { STATIC_MODE } from "../lib/env";
-import { parseTimestamp, shortDate } from "../lib/format";
-import { T } from "../lib/tokens";
-import type { ItemOut } from "../lib/types";
+  type DatedMilestone,
+  SOON_DAYS,
+  byStage,
+  nextDates,
+  nextMilestone,
+  shortName,
+  upcomingMilestones,
+} from "../lib/records";
+import { usePageTitle } from "../lib/usePageTitle";
+import type { EntityEventOut, EntityOut, ItemOut } from "../lib/types";
 
-const WINDOW_DAYS = 7;
-const TOP_WINDOW_DAYS = 30;
+const COLLECTED_DAYS = 7;
+const CHANGES_DAYS = 30;
+const DATES_SHOWN = 5;
+const GOV_SHOWN = 8;
 
-function Card({
-  title,
-  sub,
-  tick,
-  linkTo,
-  linkLabel,
-  headRight,
-  children,
-}: {
-  title: string;
-  sub?: string;
-  tick: string;
-  linkTo?: string;
-  linkLabel?: string;
-  headRight?: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="card flex flex-col">
-      <header className="flex items-center justify-between border-b border-bd-subtle px-4 py-2.5">
-        <h2 className="flex items-center gap-2 text-sm font-semibold text-tx-primary">
-          <span aria-hidden className="head-tick" style={{ background: tick }} />
-          {title}
-          {sub && <span className="text-xs font-normal text-tx-muted">· {sub}</span>}
-        </h2>
-        {headRight ??
-          (linkTo && (
-            <Link to={linkTo} className="text-xs text-accent hover:underline">
-              {linkLabel ?? "View all"}
-            </Link>
-          ))}
-      </header>
-      <div className="flex-1">{children}</div>
-    </section>
-  );
+/** Code tile for a record: the jurisdiction for laws, a short publisher for standards. */
+function recordCode(e: EntityOut): string {
+  const publisher = e.standard?.publisher;
+  if (publisher && publisher.length <= 6 && !publisher.includes(" ")) return publisher;
+  return e.jurisdiction_code ?? "—";
 }
 
-/** Per-day item counts for KPI sparklines (real data, last n days). */
-function sparkSeries(items: ItemOut[], days = 14): number[] {
-  const counts = new Array(days).fill(0);
-  const now = Date.now();
-  items.forEach((i) => {
-    const t = parseTimestamp(i.published_at ?? i.first_seen_at).getTime();
-    const age = Math.floor((now - t) / 86400000);
-    if (age >= 0 && age < days) counts[days - 1 - age] += 1;
-  });
-  return counts;
+const CATEGORY_NOUNS: Record<string, [string, string]> = {
+  incident: ["incident report", "incident reports"],
+  research: ["research item", "research items"],
+  news: ["news item", "news items"],
+  security: ["security item", "security items"],
+  regulation: ["policy item", "policy items"],
+  standard: ["standards item", "standards items"],
+};
+
+function counted(n: number, category: string): string {
+  const [one, many] = CATEGORY_NOUNS[category] ?? [`${category} item`, `${category} items`];
+  return `${n} ${n === 1 ? one : many}`;
+}
+
+function DateTile({ label, group, loading }: { label: string; group?: DatedMilestone[]; loading: boolean }) {
+  if (!group) {
+    return <Tile label={label} value="—" detail={loading ? undefined : "No date recorded"} loading={loading} />;
+  }
+  const { days, date } = group[0];
+  const laws = [...new Map(group.map((m) => [m.entity.slug, m.entity])).values()];
+  return (
+    <Tile
+      label={label}
+      value={days === 0 ? "Today" : days}
+      unit={days === 0 ? undefined : days === 1 ? "day" : "days"}
+      detail={`${laws.map((e) => shortName(e.name)).join(" · ")} · ${absDate(date)}`}
+      hot={days <= SOON_DAYS}
+      to={laws.length === 1 ? `/entities/${laws[0].slug}` : "/regulatory"}
+    />
+  );
 }
 
 export default function Dashboard() {
-  const summary = useDashboardSummary(WINDOW_DAYS);
-  // Top developments: highest-impact real items published recently. Page-change
-  // alerts are excluded (their score reflects the source, not the change), and demo
-  // data appears only on a fresh install with nothing real to rank yet.
-  // Fixed at mount so the query key stays stable across renders.
-  const [topSince] = useState(() =>
-    new Date(Date.now() - TOP_WINDOW_DAYS * 86_400_000).toISOString(),
-  );
-  const topReal = useItems({
-    min_impact: 50, sort: "impact", limit: 5, collapse_clusters: true,
-    include_demo: false, include_page_changes: false, since: topSince,
-  });
-  const noRealTop = topReal.data?.items.length === 0;
-  const topDemo = useItems(
-    { min_impact: 50, sort: "impact", limit: 5, collapse_clusters: true },
-    noRealTop,
-  );
-  const top = noRealTop ? topDemo : topReal;
-  const topLink = noRealTop
-    ? "/items?sort=impact&min_impact=50"
-    : `/items?${new URLSearchParams({
-        sort: "impact", min_impact: "50", include_demo: "false",
-        include_page_changes: "false", since: topSince,
-      })}`;
-  const feed = useItems({ sort: "newest", limit: 6, collapse_clusters: true });
-  // Wider sample purely for the KPI sparklines — six rows is not a trend.
-  const activity = useItems({ sort: "newest", limit: 100, collapse_clusters: true });
-  const incidentReports = useItems({
-    category: "incident", sort: "newest", limit: 4, collapse_clusters: true,
-  });
+  usePageTitle(null);
+  const laws = useRegulations();
   const standards = useStandards();
-  const regulations = useRegulations();
-  const map = useMapData();
+  const summary = useDashboardSummary(COLLECTED_DAYS);
+  const since = summary.data?.since;
+  const gov = useItems(
+    { since, tier: "1", include_page_changes: false, collapse_clusters: true, sort: "newest", limit: GOV_SHOWN },
+    !!since,
+  );
   const [openItem, setOpenItem] = useState<ItemOut | null>(null);
+  const [now] = useState(() => new Date());
 
-  const spark = useMemo(() => sparkSeries(activity.data?.items ?? []), [activity.data]);
+  const lawRows = useMemo(() => laws.data?.filter((e) => e.regulation) ?? [], [laws.data]);
+  const upcoming = useMemo(() => upcomingMilestones(lawRows, now), [lawRows, now]);
+  const [first, second] = nextDates(upcoming);
 
-  // KPI drill-downs carry the same window and filters as the count on the card.
-  const windowLink = (params: Record<string, string> = {}) =>
-    summary.data ? `/items?${new URLSearchParams({ since: summary.data.since, ...params })}` : "/items";
+  const changes = useMemo(() => {
+    const cutoff = now.getTime() - CHANGES_DAYS * 86_400_000;
+    const records = [...lawRows, ...(standards.data ?? [])];
+    return records
+      .flatMap((entity) => entity.events.map((event) => ({ entity, event })))
+      .filter(({ event }) => parseTimestamp(event.occurred_at).getTime() >= cutoff)
+      .sort((a, b) => b.event.occurred_at.localeCompare(a.event.occurred_at) || b.event.id - a.event.id);
+  }, [lawRows, standards.data, now]);
+  const changedLaws = new Set(changes.filter((c) => c.entity.regulation).map((c) => c.entity.slug)).size;
+  const changedStandards = new Set(changes.filter((c) => !c.entity.regulation).map((c) => c.entity.slug)).size;
 
-  const stdSegments = useMemo(() => {
-    const rows = standards.data ?? [];
-    const count = (s: string) => rows.filter((e) => e.standard?.status === s).length;
-    const known = count("final") + count("updated") + count("draft");
-    return [
-      { value: count("final"), color: T.positive },
-      { value: count("updated"), color: T.high },
-      { value: count("draft"), color: T.watch },
-      { value: rows.length - known, color: T.txMuted },
-    ];
-  }, [standards.data]);
+  const recordsLoading = laws.isPending || standards.isPending;
+  const recordsError = laws.isError ? laws : standards.isError ? standards : null;
+  const allSources = since ? `/items?${new URLSearchParams({ since })}` : "/items";
+  const others = summary.data
+    ? [
+        ...Object.entries(summary.data.others).map(([c, n]) => counted(n, c)),
+        ...(summary.data.page_changes
+          ? [`${summary.data.page_changes} page-change alert${summary.data.page_changes === 1 ? "" : "s"}`]
+          : []),
+      ]
+    : [];
 
   return (
     <>
-      <PageHeader
-        title="AI Governance Intelligence"
-        detail={`Your command center for AI governance, risk, and policy developments · rolling ${WINDOW_DAYS}-day window`}
-      />
+      <h1 className="sr-only">Watch board: legal dates ahead and what changed in the records</h1>
 
-      {/* KPI row (§19) — tinted cards with sparklines */}
-      <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-4">
-        <KpiCard
-          label="High impact"
-          value={summary.data?.high_impact ?? "—"}
-          loading={summary.isPending}
-          to={windowLink({ min_impact: "70", include_page_changes: "false" })}
-          tone="critical"
-          icon={ShieldAlert}
-          spark={spark}
-          sub="see what's new"
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-[1.4fr_1.4fr_1fr_1fr_1fr]">
+        <DateTile label="Next date" group={first} loading={laws.isPending} />
+        <DateTile label="Then" group={second} loading={laws.isPending} />
+        <Tile
+          label={`Record changes, ${CHANGES_DAYS} days`}
+          value={changes.length}
+          detail={`${changedLaws} law${changedLaws === 1 ? "" : "s"} · ${changedStandards} standard${changedStandards === 1 ? "" : "s"}`}
+          loading={recordsLoading}
         />
-        <KpiCard
-          label="Total changes"
-          value={summary.data?.total_changes ?? "—"}
-          loading={summary.isPending}
-          to={windowLink()}
-          tone="accent"
-          icon={Activity}
-          spark={spark}
-          sub={`last ${WINDOW_DAYS} days`}
+        <Tile
+          label="Records tracked"
+          value={lawRows.length + (standards.data?.length ?? 0)}
+          detail={`${lawRows.length} laws · ${standards.data?.length ?? 0} standards`}
+          loading={recordsLoading}
         />
-        <KpiCard
-          label="Incident reports"
-          value={summary.data?.new_incidents ?? "—"}
+        <Tile
+          label={`Collected, ${COLLECTED_DAYS} days`}
+          value={summary.data?.collected ?? "—"}
+          detail={summary.data ? `${summary.data.government} from government sources` : undefined}
+          to={allSources}
           loading={summary.isPending}
-          to={windowLink({ category: "incident" })}
-          tone="high"
-          icon={AlertTriangle}
-          spark={spark}
-          sub="reported harms & actions"
-        />
-        <KpiCard
-          label="Sources reporting"
-          value={
-            summary.data ? `${summary.data.sources_ok}/${summary.data.sources_total}` : "—"
-          }
-          loading={summary.isPending}
-          to={STATIC_MODE ? "/sources" : "/settings"}
-          tone={
-            summary.data && summary.data.sources_ok < summary.data.sources_total
-              ? "high"
-              : "positive"
-          }
-          icon={Rss}
-          sub="collection health"
+          className="col-span-2 md:col-span-1"
         />
       </div>
 
-      <div className="mt-3.5 grid gap-3.5 xl:grid-cols-12">
-        {/* Top developments (§20) */}
-        <div className="xl:col-span-5">
-          <Card
-            title="Top Developments"
-            sub={noRealTop ? undefined : `last ${TOP_WINDOW_DAYS} days`}
-            tick={T.critical}
-            linkTo={topLink}
-          >
-            {top.isPending ? (
-              <CardSkeleton rows={4} />
-            ) : top.isError ? (
-              <ErrorState detail={String(top.error)} onRetry={() => top.refetch()} />
-            ) : top.data.items.length === 0 ? (
-              <EmptyState
-                title="No high-signal developments"
-                detail={`Nothing scored 50+ in the last ${TOP_WINDOW_DAYS} days.${STATIC_MODE ? "" : " Run ingestion to collect fresh intelligence."}`}
-              />
-            ) : (
-              top.data.items.map((item) => <ItemRow key={item.id} item={item} onOpen={setOpenItem} />)
-            )}
-          </Card>
-        </div>
-
-        {/* Heat map (§21) */}
-        <div className="xl:col-span-7">
-          <Card title="Global AI Regulatory Heat Map" tick={T.accent} linkTo="/regulatory" linkLabel="Open radar">
-            <div className="p-4">
-              {map.isPending ? (
-                <CardSkeleton rows={4} />
-              ) : map.isError ? (
-                <ErrorState detail={String(map.error)} onRetry={() => map.refetch()} />
-              ) : (
-                <WorldMap rows={map.data} />
-              )}
-            </div>
-          </Card>
-        </div>
-      </div>
-
-      <div className="mt-3.5 grid gap-3.5 lg:grid-cols-3">
-        {/* Incident reports — newest first: incident signal is only useful if it's current */}
-        <Card
-          title="AI Incident Reports"
-          tick={T.high}
-          headRight={
-            <Link to="/incidents" className="text-xs text-accent hover:underline">
-              All incidents
-            </Link>
+      <div className="mt-3 grid items-start gap-3 lg:grid-cols-2">
+        <Panel
+          title="Dates ahead"
+          marker="dates"
+          meta={upcoming.length ? `next ${Math.min(DATES_SHOWN, upcoming.length)} of ${upcoming.length}` : undefined}
+          footer={
+            upcoming.length > DATES_SHOWN ? (
+              <PanelLink to="/regulatory">Every law and its next date →</PanelLink>
+            ) : undefined
           }
         >
-          {incidentReports.isPending ? (
-            <CardSkeleton rows={3} />
-          ) : incidentReports.isError ? (
-            <ErrorState detail={String(incidentReports.error)} onRetry={() => incidentReports.refetch()} />
-          ) : incidentReports.data.items.length === 0 ? (
-            <EmptyState
-              title="No incident reports collected"
-              detail={STATIC_MODE ? "No incident reports collected recently." : "Enable the AI Incident Database source in Settings to monitor reported AI harms."}
-            />
+          {laws.isPending ? (
+            <CardSkeleton rows={4} />
+          ) : laws.isError ? (
+            <ErrorState detail={String(laws.error)} onRetry={() => laws.refetch()} />
+          ) : upcoming.length === 0 ? (
+            <EmptyState title="No dates ahead" detail="No law in the records has a milestone after today." />
           ) : (
-            incidentReports.data.items.map((item) => (
-              <ItemRow key={item.id} item={item} onOpen={setOpenItem} />
+            upcoming.slice(0, DATES_SHOWN).map((m) => (
+              <Row
+                key={`${m.entity.slug}-${m.date}`}
+                to={`/entities/${m.entity.slug}`}
+                soon={m.days <= SOON_DAYS}
+                lead={<DateCell date={m.date} alwaysYear />}
+                title={shortName(m.entity.name)}
+                detail={m.label}
+                chip={<DayCount date={m.date} now={now} />}
+              />
             ))
           )}
-        </Card>
+        </Panel>
 
-        {/* Standards watch card */}
-        <Card
-          title="Standards Watch"
-          tick={T.info}
-          headRight={
-            <span className="flex items-center gap-2">
-              <Donut size={30} stroke={5.5} centerLabel={`${standards.data?.length ?? 0}`} segments={stdSegments} />
-              <Link to="/standards" className="text-xs text-accent hover:underline">View all</Link>
-            </span>
-          }
-        >
-          {standards.isPending ? (
-            <CardSkeleton rows={3} />
-          ) : standards.isError ? (
-            <ErrorState detail={String(standards.error)} onRetry={() => standards.refetch()} />
-          ) : standards.data.length === 0 ? (
-            <EmptyState title="No tracked standards" />
-          ) : (
-            <ul>
-              {[...standards.data]
-                .sort((a, b) =>
-                  (b.standard?.last_updated_at ?? b.standard?.published_at ?? "").localeCompare(
-                    a.standard?.last_updated_at ?? a.standard?.published_at ?? "",
-                  ),
-                )
-                .slice(0, 4)
-                .map((e) => (
-                  <li key={e.slug} className="border-b border-bd-subtle last:border-b-0">
-                    <Link
-                      to={`/entities/${e.slug}`}
-                      className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-accent/5"
-                    >
-                      <OrgAvatar name={`${e.standard?.publisher ?? ""} ${e.name}`} size={28} />
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-tx-primary">{e.name}</span>
-                        <span className="mt-0.5 block font-mono text-[10px] text-tx-muted">
-                          {e.standard?.last_updated_at
-                            ? `updated ${shortDate(e.standard.last_updated_at)}`
-                            : `published ${shortDate(e.standard?.published_at)}`}
-                        </span>
-                      </span>
-                      {e.standard && <StatusPill status={e.standard.status} kind="standard" />}
-                    </Link>
-                  </li>
-                ))}
-            </ul>
-          )}
-        </Card>
-
-        {/* Regulatory pulse card */}
-        <Card title="Regulatory Pulse" tick={T.emerging} linkTo="/regulatory">
-          {regulations.isPending ? (
-            <CardSkeleton rows={3} />
-          ) : regulations.isError ? (
-            <ErrorState detail={String(regulations.error)} onRetry={() => regulations.refetch()} />
-          ) : regulations.data.length === 0 ? (
-            <EmptyState title="No tracked regulations" />
-          ) : (
-            <ul>
-              {regulations.data.slice(0, 5).map((r) => (
-                <li key={r.slug} className="border-b border-bd-subtle last:border-b-0">
-                  <Link
-                    to={`/entities/${r.slug}`}
-                    className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-accent/5"
-                  >
-                    <Jurisdiction code={r.jurisdiction_code} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-tx-primary">{r.name}</span>
-                      <span className="mt-0.5 block font-mono text-[9.5px] text-tx-muted">
-                        {r.jurisdiction_code} · eff. {shortDate(r.regulation?.effective_at)}
-                      </span>
-                    </span>
-                    {r.regulation && <StatusPill status={r.regulation.status} kind="regulation" />}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-      </div>
-
-      {/* Live feed strip */}
-      <div className="mt-3.5">
-        <Card
-          title="Latest from All Sources"
-          tick={T.positive}
-          headRight={
-            <span className="inline-flex items-center gap-2 font-mono text-[10.5px] text-tx-secondary">
-              <span aria-hidden className="live-dot" />
-              LIVE
-              <Link to="/items" className="text-accent hover:underline">
-                View all
-              </Link>
-            </span>
-          }
-        >
-          {feed.isPending ? (
-            <CardSkeleton rows={3} />
-          ) : feed.isError ? (
-            <ErrorState detail={String(feed.error)} onRetry={() => feed.refetch()} />
-          ) : feed.data.items.length === 0 ? (
+        <Panel title="Record changes" marker="changes" meta={`last ${CHANGES_DAYS} days`}>
+          {recordsLoading ? (
+            <CardSkeleton rows={4} />
+          ) : recordsError ? (
+            <ErrorState detail={String(recordsError.error)} onRetry={() => recordsError.refetch()} />
+          ) : changes.length === 0 ? (
             <EmptyState
-              title="No collected items yet"
-              detail={STATIC_MODE ? "Nothing collected yet." : "Run ingestion from Settings to pull the latest from your sources."}
+              title={`No record changes in the last ${CHANGES_DAYS} days`}
+              detail="Each law and standard keeps its full timeline on its page."
             />
           ) : (
-            <div className="grid md:grid-cols-2">
-              {feed.data.items.map((item) => (
-                <ItemRow key={item.id} item={item} onOpen={setOpenItem} />
-              ))}
-            </div>
+            changes.map(({ entity, event }: { entity: EntityOut; event: EntityEventOut }) => (
+              <Row
+                key={`${entity.slug}-${event.id}`}
+                to={`/entities/${entity.slug}`}
+                leadWidth=""
+                lead={
+                  <span className="flex items-start gap-3">
+                    <span className="w-12">
+                      <DateCell date={event.occurred_at} />
+                    </span>
+                    <CodeTile code={recordCode(entity)} className="hidden w-16 sm:inline-block" />
+                  </span>
+                }
+                title={shortName(entity.name)}
+                detail={event.summary}
+                chip={<EventChip type={event.event_type} />}
+              />
+            ))
           )}
-        </Card>
+        </Panel>
+
+        <Panel title="Laws by stage" marker="laws" meta={lawRows.length || undefined}>
+          {laws.isPending ? (
+            <CardSkeleton rows={6} />
+          ) : laws.isError ? (
+            <ErrorState detail={String(laws.error)} onRetry={() => laws.refetch()} />
+          ) : lawRows.length === 0 ? (
+            <EmptyState title="No laws tracked" />
+          ) : (
+            byStage(lawRows).map((e) => {
+              const reg = e.regulation!;
+              const next = nextMilestone(e, now);
+              const successor = reg.superseded_by && lawRows.find((l) => l.slug === reg.superseded_by);
+              const detail = successor
+                ? `Replaced by ${shortName(successor.name)}`
+                : next
+                  ? `Next date ${absDate(next.date)} · ${next.days === 0 ? "today" : `${next.days} day${next.days === 1 ? "" : "s"}`}`
+                  : reg.status_label;
+              return (
+                <Row
+                  key={e.slug}
+                  to={`/entities/${e.slug}`}
+                  soon={!!next && next.days <= SOON_DAYS}
+                  leadWidth="w-[4.75rem]"
+                  lead={<Jurisdiction code={e.jurisdiction_code} />}
+                  title={e.name}
+                  detail={detail}
+                  chip={<LawStage regulation={reg} track />}
+                  chipBelowOnPhone
+                />
+              );
+            })
+          )}
+        </Panel>
+
+        <Panel
+          title="From government sources"
+          marker="feed"
+          meta={`last ${COLLECTED_DAYS} days`}
+          footer={
+            summary.data && (
+              <>
+                {summary.data.government > GOV_SHOWN && `Showing ${GOV_SHOWN} of ${summary.data.government}. `}
+                {others.length > 0 && `Also collected: ${others.join(" · ")}. `}
+                <PanelLink to={allSources}>Open All sources →</PanelLink>
+              </>
+            )
+          }
+        >
+          {summary.isPending || (gov.isPending && !!since) ? (
+            <CardSkeleton rows={3} />
+          ) : summary.isError ? (
+            <ErrorState detail={String(summary.error)} onRetry={() => summary.refetch()} />
+          ) : gov.isError ? (
+            <ErrorState detail={String(gov.error)} onRetry={() => gov.refetch()} />
+          ) : !gov.data || gov.data.items.length === 0 ? (
+            <EmptyState
+              title={`Nothing from government sources in the last ${COLLECTED_DAYS} days`}
+              detail="Governments, regulators and standards bodies (tier 1 sources)."
+            />
+          ) : (
+            gov.data.items.map((item) => (
+              <ItemRow key={item.id} item={item} onOpen={setOpenItem} showDetail={false} />
+            ))
+          )}
+        </Panel>
       </div>
 
       <ItemDetailDrawer item={openItem} onClose={() => setOpenItem(null)} />

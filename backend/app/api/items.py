@@ -33,6 +33,7 @@ def _base_query(
     until: datetime | None = None,
     include_demo: bool = True,
     include_page_changes: bool = True,
+    tiers: list[int] | None = None,
 ):
     q = select(Item)
     if category:
@@ -57,6 +58,8 @@ def _base_query(
         q = q.where(Item.is_demo.is_(False))
     if not include_page_changes:
         q = q.where(~is_page_change())
+    if tiers:
+        q = q.where(Item.source_id.in_(select(Source.id).where(Source.reliability_tier.in_(tiers))))
     return q
 
 
@@ -72,14 +75,18 @@ def list_items(
     until: datetime | None = None,
     include_demo: bool = True,
     include_page_changes: bool = True,
+    tier: str | None = Query(
+        default=None, pattern=r"^[1-4](,[1-4])*$", description="Source tiers, e.g. 3,4"
+    ),
     collapse_clusters: bool = False,
     sort: str = Query(default="newest", pattern="^(impact|newest|first_seen)$"),
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=25, ge=1, le=100),
     db: Session = Depends(get_db),
 ) -> PageOut:
+    tiers = [int(t) for t in tier.split(",")] if tier else None
     q = _base_query(category, jurisdiction, min_impact, confidence, source_id,
-                    entity_id, since, until, include_demo, include_page_changes)
+                    entity_id, since, until, include_demo, include_page_changes, tiers)
     if collapse_clusters:
         q = q.where(is_cluster_primary())
 

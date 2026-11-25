@@ -28,8 +28,6 @@ CHANGE_TYPE_POINTS = {
     "new": 5,
 }
 
-HIGH_IMPACT_THRESHOLD = 70
-
 # Items with no AI-specific relevance can never present as significant governance
 # signal, regardless of source authority or recency.
 NO_AI_RELEVANCE_CAP = 25

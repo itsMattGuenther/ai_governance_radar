@@ -477,7 +477,7 @@ DESIGN_SYSTEM.md. T-035, T-036 and T-037 are folded in below.
   horizontal body scroll from 360 to 430px; AA contrast holds.
 
 ### T-045 Home becomes the watch board
-- **Status:** TODO
+- **Status:** DONE 2026-11-25 · tiles for the two nearest dates (7 and 37 days today), record changes, records tracked and collection; Dates ahead, Record changes, Laws by stage, From government sources; old modules, KPI fields and chart components removed; items API gains a source-tier filter
 - **Description:** Per DESIGN_SYSTEM.md §6 and the mock-up. Tiles: the next two
   dates, record changes in the last 30 days, records tracked, items collected in 7
   days with the count from government sources. Panels: **Dates ahead** (milestones

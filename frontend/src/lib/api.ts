@@ -52,6 +52,8 @@ export type ItemFilters = {
   include_page_changes?: boolean;
   /** ISO timestamp; filters on publication date (collection time if undated). */
   since?: string;
+  /** Source reliability tiers, comma-separated: "1", or "3,4". */
+  tier?: string;
   collapse_clusters?: boolean;
   sort?: "impact" | "newest" | "first_seen";
   offset?: number;

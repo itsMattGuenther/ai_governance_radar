@@ -2,6 +2,7 @@
  * from a curated field, a milestone or a timeline event (DEC-014, DEC-033). */
 
 import { addDays, daysUntil, parseTimestamp } from "./format";
+import { lawStage } from "./stages";
 import type { EntityOut, Milestone } from "./types";
 
 /** Records are re-checked at least this often (DEC-031; backend REVERIFY_DAYS). */
@@ -48,4 +49,31 @@ export function recordsChecked(laws: EntityOut[]): { checked: string; due: strin
     parseTimestamp(a).getTime() <= parseTimestamp(b).getTime() ? a : b,
   );
   return { checked: oldest, due: addDays(oldest, REVERIFY_DAYS) };
+}
+
+/** "Colorado SB 26-189 (Automated Decision-Making Technology)" → "Colorado SB 26-189". */
+export const shortName = (name: string) => name.replace(/\s*\([^)]*\)\s*$/, "");
+
+/** The next two distinct dates, each naming every law that falls on it. */
+export function nextDates(upcoming: DatedMilestone[]): DatedMilestone[][] {
+  const groups: DatedMilestone[][] = [];
+  for (const m of upcoming) {
+    const last = groups[groups.length - 1];
+    if (last && last[0].date === m.date) last.push(m);
+    else if (groups.length < 2) groups.push([m]);
+    else break;
+  }
+  return groups;
+}
+
+/** Laws not yet in force first, then in force, superseded last; sooner dates first. */
+export function byStage(laws: EntityOut[]): EntityOut[] {
+  const group = (e: EntityOut) => {
+    const s = lawStage(e.regulation!);
+    return s.superseded ? 2 : s.stage >= 4 ? 1 : 0;
+  };
+  const next = (e: EntityOut) => nextMilestone(e)?.date ?? "9999";
+  return [...laws].sort(
+    (a, b) => group(a) - group(b) || next(a).localeCompare(next(b)) || a.name.localeCompare(b.name),
+  );
 }

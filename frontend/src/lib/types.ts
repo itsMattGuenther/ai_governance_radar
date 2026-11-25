@@ -173,13 +173,16 @@ export interface IncidentOut {
   is_demo: boolean;
 }
 
+/** Home's collection counts for a window (distinct developments, clusters collapsed). */
 export interface DashboardSummary {
   since: string;
-  high_impact: number;
-  total_changes: number;
-  new_incidents: number;
-  sources_ok: number;
-  sources_total: number;
+  /** Everything published in the window. */
+  collected: number;
+  /** From tier 1 sources, page-change alerts aside. */
+  government: number;
+  page_changes: number;
+  /** The rest by primary category, largest first. */
+  others: Record<string, number>;
 }
 
 export interface MapRow {

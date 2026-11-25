@@ -1,65 +1,47 @@
-"""Dashboard summary aggregation. Deterministic counts over stored data."""
+"""Home's collection counts (DEC-030, DEC-033). Deterministic counts over stored data.
+
+Every count is of distinct developments (reports of one event collapsed) published in
+the window, and equals the All Sources list it links to: same window, same filters.
+"""
 
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import String, cast, func, select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models import Incident, Item, Source
+from app.models import Item, Source
 from app.services.item_query import EVENT_TIME, is_cluster_primary, is_page_change
-from app.services.scoring import HIGH_IMPACT_THRESHOLD
 
 DEFAULT_WINDOW_DAYS = 7
 
 
-def _since(window_days: int | None) -> datetime:
-    return datetime.now(UTC) - timedelta(days=window_days or DEFAULT_WINDOW_DAYS)
-
-
-def _cat_count(db: Session, since: datetime, category: str) -> int:
-    return db.execute(
-        select(func.count(Item.id)).where(
-            EVENT_TIME > since,
-            is_cluster_primary(),
-            cast(Item.categories, String).like(f'%"{category}"%'),
-        )
-    ).scalar_one()
-
-
 def dashboard_summary(db: Session, window_days: int | None = None) -> dict:
-    """Windowed counts of distinct developments (duplicates collapsed). Each matches
-    the items list the dashboard links it to — same window, same filters — so a KPI
-    never disagrees with its drill-down."""
-    since = _since(window_days)
-    high_impact = db.execute(
-        select(func.count(Item.id)).where(
-            EVENT_TIME > since,
-            Item.impact_score >= HIGH_IMPACT_THRESHOLD,
-            ~is_page_change(),
-            is_cluster_primary(),
-        )
+    """`collected`: everything in the window. `government`: from tier 1 sources
+    (governments, regulators, standards bodies), page-change alerts aside. `others`:
+    the rest by primary category, and `page_changes` the alerts. The three add up to
+    `collected`."""
+    since = datetime.now(UTC) - timedelta(days=window_days or DEFAULT_WINDOW_DAYS)
+    window = (EVENT_TIME >= since, is_cluster_primary())
+    collected = db.execute(select(func.count(Item.id)).where(*window)).scalar_one()
+    page_changes = db.execute(
+        select(func.count(Item.id)).where(*window, is_page_change())
     ).scalar_one()
-    total = db.execute(
-        select(func.count(Item.id)).where(EVENT_TIME > since, is_cluster_primary())
-    ).scalar_one()
-
-    # Incident signal = newly reported incident records + freshly collected
-    # incident reports from monitored sources (e.g. the AI Incident Database).
-    incidents = db.execute(
-        select(func.count(Incident.id)).where(Incident.reported_at > since)
-    ).scalar_one() + _cat_count(db, since, "incident")
-
-    # Source health: the numbers above are only trustworthy if collection is
-    # working, so the dashboard surfaces it alongside them.
-    enabled_sources = db.execute(
-        select(Source).where(Source.enabled.is_(True))
-    ).scalars().all()
-
+    first_category = func.coalesce(func.json_extract(Item.categories, "$[0]"), "news")
+    rows = db.execute(
+        select(Source.reliability_tier, first_category, func.count(Item.id))
+        .join(Source, Item.source_id == Source.id)
+        .where(*window, ~is_page_change())
+        .group_by(Source.reliability_tier, first_category)
+    ).all()
+    government = sum(n for tier, _, n in rows if tier == 1)
+    others: dict[str, int] = {}
+    for tier, category, n in rows:
+        if tier != 1:
+            others[category] = others.get(category, 0) + n
     return {
         "since": since.isoformat(),
-        "high_impact": high_impact,
-        "total_changes": total,
-        "new_incidents": incidents,
-        "sources_ok": sum(1 for s in enabled_sources if s.last_error is None),
-        "sources_total": len(enabled_sources),
+        "collected": collected,
+        "government": government,
+        "page_changes": page_changes,
+        "others": dict(sorted(others.items(), key=lambda kv: -kv[1])),
     }

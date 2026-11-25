@@ -20,10 +20,14 @@ export function ItemRow({
   item,
   onOpen,
   showSource = true,
+  showDetail = true,
 }: {
   item: ItemOut;
   onOpen: (item: ItemOut) => void;
   showSource?: boolean;
+  /** Off where the panel already says what kind of items these are; phones, which
+   * hide the source code tile, still get the source name. */
+  showDetail?: boolean;
 }) {
   const reports = reportCount(item);
   const detail = [
@@ -49,7 +53,7 @@ export function ItemRow({
         </span>
       }
       title={<span className="line-clamp-2">{item.title}</span>}
-      detail={detail}
+      detail={showDetail ? detail : <span className="sm:hidden">{item.source_name}</span>}
       chip={
         item.is_demo ? (
           <DemoBadge show />

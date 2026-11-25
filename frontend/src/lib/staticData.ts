@@ -76,6 +76,7 @@ export async function items(f: ItemFilters): Promise<PageOut> {
   const at = (i: SnapshotItem) => eventAt.get(i.id) ?? 0;
   const seen = (i: SnapshotItem) => seenAt.get(i.id) ?? 0;
   const since = f.since ? parseTimestamp(f.since).getTime() : null;
+  const tiers = f.tier ? f.tier.split(",").map(Number) : null;
 
   const matches = rows.filter(
     (i) =>
@@ -86,6 +87,7 @@ export async function items(f: ItemFilters): Promise<PageOut> {
       (f.source_id === undefined || i.source_id === f.source_id) &&
       (f.entity_id === undefined || i.entities.some((e) => e.id === f.entity_id)) &&
       (since === null || at(i) >= since) &&
+      (tiers === null || tiers.includes(i.source_tier)) &&
       (f.include_demo !== false || !i.is_demo) &&
       (f.include_page_changes !== false || !i.is_page_change) &&
       (!f.collapse_clusters || i.is_cluster_primary),

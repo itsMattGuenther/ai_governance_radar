@@ -12,6 +12,7 @@ export function Tile({
   hot = false,
   to,
   loading = false,
+  className,
 }: {
   label: string;
   value: React.ReactNode;
@@ -20,6 +21,7 @@ export function Tile({
   hot?: boolean;
   to?: string;
   loading?: boolean;
+  className?: string;
 }) {
   const body = (
     <>
@@ -41,6 +43,7 @@ export function Tile({
       ? "border-[color-mix(in_srgb,theme(colors.sev.watch)_40%,theme(colors.bd.subtle))] bg-[color-mix(in_srgb,theme(colors.sev.watch)_9%,theme(colors.bg.surface))]"
       : "border-bd-subtle bg-bg-surface",
     to && (hot ? "hover:border-sev-watch/70" : "hover:border-bd-strong"),
+    className,
   );
   return to ? (
     <Link to={to} className={cls}>

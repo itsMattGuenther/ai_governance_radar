@@ -139,13 +139,11 @@ def test_search_grouped(client):
 
 def test_dashboard_summary(client):
     body = client.get("/api/dashboard/summary", params={"window_days": 30}).json()
-    for key in ("high_impact", "total_changes", "new_incidents",
-                "sources_ok", "sources_total", "since"):
+    for key in ("since", "collected", "government", "page_changes", "others"):
         assert key in body
-    # Source health must reflect enabled sources only.
-    enabled = [s for s in client.get("/api/sources").json() if s["enabled"]]
-    assert body["sources_total"] == len(enabled)
-    assert body["sources_ok"] <= body["sources_total"]
+    assert body["government"] + body["page_changes"] + sum(body["others"].values()) == (
+        body["collected"]
+    )
 
 
 def test_map_data(client):
@@ -245,15 +243,17 @@ def test_demo_data_flagged(client):
 
 def test_windows_use_publication_date_and_skip_page_changes(client, db):
     """A backlog collected today but published weeks ago is not "new", and page-change
-    signals never count as high impact — in the KPI or in the list it links to."""
+    signals are counted apart from government items — on Home and in the list it links to."""
     from datetime import UTC, datetime, timedelta
 
     from app.models import Item, Source
 
     now = datetime.now(UTC)
     before = client.get("/api/dashboard/summary").json()
-    feed = Source(name="Window Test Feed", url="https://example.org/", source_type="rss")
-    watch = Source(name="Window Test Page", url="https://example.org/p", source_type="page_watch")
+    feed = Source(name="Window Test Feed", url="https://example.org/", source_type="rss",
+                  reliability_tier=1)
+    watch = Source(name="Window Test Page", url="https://example.org/p", source_type="page_watch",
+                   reliability_tier=1)
     db.add_all([feed, watch])
     db.flush()
 
@@ -272,17 +272,20 @@ def test_windows_use_publication_date_and_skip_page_changes(client, db):
     db.commit()
     try:
         after = client.get("/api/dashboard/summary").json()
-        assert after["total_changes"] - before["total_changes"] == 2
-        assert after["high_impact"] - before["high_impact"] == 1
+        assert after["collected"] - before["collected"] == 2
+        assert after["government"] - before["government"] == 1
+        assert after["page_changes"] - before["page_changes"] == 1
 
         def titles(**params) -> set[str]:
             body = client.get("/api/items", params={
-                "since": after["since"], "min_impact": 70, "limit": 100, **params,
+                "since": after["since"], "limit": 100, "collapse_clusters": True, **params,
             }).json()
             return {i["title"] for i in body["items"] if i["title"].startswith("wt-")}
 
+        # The counts equal the lists Home links them to.
         assert titles() == {"wt-fresh", "wt-page-change"}
-        assert titles(include_page_changes="false") == {"wt-fresh"}
+        assert titles(tier="1", include_page_changes="false") == {"wt-fresh"}
+        assert titles(tier="2,3") == set()
     finally:
         for row in rows:
             db.delete(row)

@@ -2,7 +2,15 @@
 
 import { describe, expect, it } from "vitest";
 
-import { latestChange, recordsChecked, upcomingMilestones } from "../lib/records";
+import {
+  byStage,
+  latestChange,
+  nextDates,
+  recordsChecked,
+  shortName,
+  upcomingMilestones,
+} from "../lib/records";
+import { makeLaw } from "./fixtures";
 import type { EntityEventOut, EntityOut, Milestone, RegulationOut } from "../lib/types";
 
 const event = (occurred_at: string): EntityEventOut => ({
@@ -62,5 +70,43 @@ describe("recordsChecked", () => {
   });
   it("is null with no laws", () => {
     expect(recordsChecked([])).toBeNull();
+  });
+});
+
+describe("Home helpers", () => {
+  const now = new Date("2026-11-25T12:00:00Z");
+  const eu = makeLaw("eu-ai-act", "EU AI Act", {
+    milestones: [{ date: "2026-12-02", kind: "obligations_apply", label: "Prohibitions" }],
+  });
+  const co = makeLaw("colorado-sb-26-189", "Colorado SB 26-189 (Automated Decision-Making Technology)", {
+    status: "signed", milestones: [{ date: "2027-01-01", kind: "takes_effect", label: "Takes effect" }],
+  });
+  const ca = makeLaw("california-sb-53", "California SB 53 (Transparency in Frontier AI Act)", {
+    milestones: [{ date: "2027-01-01", kind: "deadline", label: "Reports due" }],
+  });
+  const ut = makeLaw("utah-ai-policy-act", "Utah AI Policy Act", {
+    milestones: [{ date: "2027-07-01", kind: "expires", label: "Repealed unless extended" }],
+  });
+  const old = makeLaw("colorado-ai-act", "Colorado AI Act (SB 24-205)", {
+    status: "amended", superseded_by: "colorado-sb-26-189",
+  });
+  const br = makeLaw("brazil-pl-2338", "Brazil AI Bill (PL 2338/2023)", { status: "introduced", code: "BR" });
+
+  it("tiles show the next two distinct dates; a tied date names every law on it", () => {
+    const [first, second, third] = nextDates(upcomingMilestones([ut, ca, eu, co], now));
+    expect(first.map((m) => m.entity.slug)).toEqual(["eu-ai-act"]);
+    expect(second.map((m) => m.entity.slug).sort()).toEqual(["california-sb-53", "colorado-sb-26-189"]);
+    expect(third).toBeUndefined();
+  });
+
+  it("lists laws not yet in force first, superseded last, sooner dates first", () => {
+    expect(byStage([old, eu, ut, br, co]).map((e) => e.slug)).toEqual([
+      "colorado-sb-26-189", "brazil-pl-2338", "eu-ai-act", "utah-ai-policy-act", "colorado-ai-act",
+    ]);
+  });
+
+  it("shortens names by dropping a trailing parenthetical", () => {
+    expect(shortName(co.name)).toBe("Colorado SB 26-189");
+    expect(shortName("EU AI Act")).toBe("EU AI Act");
   });
 });
