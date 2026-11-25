@@ -12,7 +12,7 @@ import { WorldMap } from "../components/map/WorldMap";
 import { PageHeader } from "../components/layout/PageHeader";
 import { StatusPill } from "../components/ui/Badge";
 import { Donut } from "../components/ui/charts";
-import { FlagChip } from "../components/ui/FlagChip";
+import { Jurisdiction } from "../components/ui/Flag";
 import { KpiCard } from "../components/ui/KpiCard";
 import { OrgAvatar } from "../components/ui/OrgAvatar";
 import { CardSkeleton, EmptyState, ErrorState } from "../components/ui/States";
@@ -322,7 +322,7 @@ export default function Dashboard() {
                     to={`/entities/${r.slug}`}
                     className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-accent/5"
                   >
-                    <FlagChip code={r.jurisdiction_code ?? "GLOBAL"} title={r.jurisdiction_code ?? undefined} />
+                    <Jurisdiction code={r.jurisdiction_code} />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-medium text-tx-primary">{r.name}</span>
                       <span className="mt-0.5 block font-mono text-[9.5px] text-tx-muted">

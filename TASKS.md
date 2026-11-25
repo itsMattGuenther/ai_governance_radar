@@ -466,7 +466,7 @@ DESIGN_SYSTEM.md. T-035, T-036 and T-037 are folded in below.
   upgrades without manual steps.
 
 ### T-044 Watch Board foundation: tokens, type, shell, primitives
-- **Status:** TODO
+- **Status:** DONE 2026-11-25 · Watch Board tokens and IBM Plex; Panel, Tile, Chip, DayCount, StageTrack, CodeTile, Flag, Row with render tests; banner, tabs, status strip, `/` search, five-tab phone bar; no body scroll at 360–430px on any page
 - **Description:** Apply DESIGN_SYSTEM.md §2 to §6: token values, IBM Plex Sans and
   Mono in place of Inter and JetBrains Mono, flat surfaces, 6px and 4px radii, no
   shadows or glow. Build the primitives (Panel and header, Tile, Chip, day count,

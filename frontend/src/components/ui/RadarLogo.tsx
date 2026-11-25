@@ -1,56 +1,24 @@
-/** Brand mark: blue radar structure, bright green sweep beam + contact blips.
- * Animation keyframes live in styles/index.css (reduced-motion safe). */
+/** Brand mark (DESIGN_SYSTEM.md §3): accent rings with the green sweep, the only thing
+ * on the page that moves (5s rotation, off under prefers-reduced-motion). */
 
-import { T } from "../../lib/tokens";
+import { SWEEP, T } from "../../lib/tokens";
 
-/** Brighter than the semantic positive green so the sweep reads clearly at small
- * sizes without becoming distracting. */
-const SWEEP = "#4FE58F";
-
-export function RadarLogo({ size = 48 }: { size?: number }) {
-  const accent = T.accent;
+export function RadarLogo({ size = 20 }: { size?: number }) {
   return (
-    <span
-      aria-hidden
-      style={{ position: "relative", width: size, height: size, display: "block", flexShrink: 0 }}
-    >
+    <span aria-hidden className="relative block shrink-0" style={{ width: size, height: size }}>
       <span
-        className="radar-sweep"
+        className="radar-sweep absolute rounded-full"
         style={{
-          position: "absolute",
-          inset: 2,
-          borderRadius: "50%",
-          background: `conic-gradient(from 0deg, ${SWEEP}E6 0deg, ${SWEEP}66 42deg, ${SWEEP}1A 72deg, transparent 96deg, transparent 360deg)`,
+          inset: size * 0.06,
+          background: `conic-gradient(from 0deg, ${SWEEP}CC 0deg, ${SWEEP}55 50deg, transparent 100deg, transparent 360deg)`,
           animation: "radar-spin 5s linear infinite",
         }}
       />
-      <svg width={size} height={size} viewBox="0 0 34 34" style={{ position: "relative", display: "block" }}>
-        <circle cx="17" cy="17" r="15" fill="none" stroke={accent} strokeWidth="1.4" opacity=".85" />
-        <circle cx="17" cy="17" r="10" fill="none" stroke={accent} strokeWidth="0.8" opacity=".4" />
-        <circle cx="17" cy="17" r="5" fill="none" stroke={accent} strokeWidth="0.8" opacity=".3" />
-        <line x1="2" y1="17" x2="32" y2="17" stroke={accent} strokeWidth="0.5" opacity=".2" />
-        <line x1="17" y1="2" x2="17" y2="32" stroke={accent} strokeWidth="0.5" opacity=".2" />
-        <circle cx="17" cy="17" r="1.6" fill={accent} />
-        <circle
-          className="radar-blip"
-          cx="24"
-          cy="10"
-          r="1.9"
-          fill={SWEEP}
-          style={{ animation: "radar-blip 5s linear infinite", filter: `drop-shadow(0 0 3px ${SWEEP})` }}
-        />
-        <circle
-          className="radar-blip"
-          cx="10"
-          cy="22"
-          r="1.5"
-          fill={SWEEP}
-          style={{
-            animation: "radar-blip 5s linear infinite",
-            animationDelay: "2.4s",
-            filter: `drop-shadow(0 0 3px ${SWEEP})`,
-          }}
-        />
+      <svg width={size} height={size} viewBox="0 0 34 34" className="relative block">
+        <circle cx="17" cy="17" r="15" fill="none" stroke={T.accent} strokeWidth="2" />
+        <circle cx="17" cy="17" r="9" fill="none" stroke={T.accent} strokeWidth="1.2" opacity=".5" />
+        <circle cx="17" cy="17" r="2.2" fill={T.accent} />
+        <circle cx="24" cy="10" r="2" fill={SWEEP} />
       </svg>
     </span>
   );

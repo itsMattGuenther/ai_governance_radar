@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Route, Routes } from "react-router-dom";
 
 import { Shell } from "./components/layout/Shell";
+import About from "./pages/About";
 import Dashboard from "./pages/Dashboard";
 import EntityDetail from "./pages/EntityDetail";
 import IncidentDetail from "./pages/IncidentDetail";
@@ -32,6 +33,7 @@ export default function App() {
           <Route path="items" element={<Items />} />
           <Route path="entities/:slug" element={<EntityDetail />} />
           <Route path="search" element={<SearchResults />} />
+          <Route path="about" element={<About />} />
           <Route path="settings" element={<Settings />} />
           <Route path="sources" element={<Settings />} />
           <Route path="*" element={<NotFound />} />

@@ -49,6 +49,53 @@ export function longDate(iso: string | null | undefined): string {
   });
 }
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function utcParts(iso: string | null | undefined): { d: number; m: number; y: number } | null {
+  if (!iso) return null;
+  const date = parseTimestamp(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  return { d: date.getUTCDate(), m: date.getUTCMonth(), y: date.getUTCFullYear() };
+}
+
+/** "25 Nov 2026" — the date in running text (DESIGN_SYSTEM.md §8). */
+export function absDate(iso: string | null | undefined): string {
+  const p = utcParts(iso);
+  return p ? `${p.d} ${MONTHS[p.m]} ${p.y}` : "—";
+}
+
+/** Mono date column: "02 DEC", with the year shown beneath when it isn't this year. */
+export function dateColumn(iso: string, now = new Date()): { day: string; year: string | null } {
+  const p = utcParts(iso);
+  if (!p) return { day: "—", year: null };
+  return {
+    day: `${String(p.d).padStart(2, "0")} ${MONTHS[p.m].toUpperCase()}`,
+    year: p.y === now.getUTCFullYear() ? null : String(p.y),
+  };
+}
+
+/** Data stamp in UTC: "25 NOV 2026 15:13Z". */
+export function utcStamp(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const d = parseTimestamp(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  const hh = String(d.getUTCHours()).padStart(2, "0");
+  const mm = String(d.getUTCMinutes()).padStart(2, "0");
+  return `${absDate(iso).toUpperCase()} ${hh}:${mm}Z`;
+}
+
+/** Whole days from today (UTC) to a calendar date; negative once it has passed. */
+export function daysUntil(isoDate: string, now = new Date()): number {
+  const target = parseTimestamp(isoDate.slice(0, 10));
+  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  return Math.round((target.getTime() - today) / 86_400_000);
+}
+
+/** Add days to a timestamp; returns an ISO string. */
+export function addDays(iso: string, days: number): string {
+  return new Date(parseTimestamp(iso).getTime() + days * 86_400_000).toISOString();
+}
+
 export function verificationAgeDays(iso: string | null | undefined): number | null {
   if (!iso) return null;
   const then = parseTimestamp(iso).getTime();

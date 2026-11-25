@@ -2,8 +2,8 @@
 
 import { describe, expect, it } from "vitest";
 
-import { latestChange } from "../lib/records";
-import type { EntityEventOut, EntityOut } from "../lib/types";
+import { latestChange, recordsChecked, upcomingMilestones } from "../lib/records";
+import type { EntityEventOut, EntityOut, Milestone, RegulationOut } from "../lib/types";
 
 const event = (occurred_at: string): EntityEventOut => ({
   id: Math.random(), event_type: "note", occurred_at, previous_value: null,
@@ -24,5 +24,43 @@ describe("latestChange", () => {
   });
   it("is null for a record with no events", () => {
     expect(latestChange(entity([]))).toBeNull();
+  });
+});
+
+const law = (slug: string, milestones: Milestone[], verified = "2026-11-25T00:00:00"): EntityOut => ({
+  ...entity([]),
+  slug,
+  regulation: { milestones, last_verified_at: verified } as unknown as RegulationOut,
+});
+
+describe("upcomingMilestones", () => {
+  const now = new Date("2026-11-25T12:00:00Z");
+  it("lists milestones from today on, soonest first, across laws", () => {
+    const eu = law("eu-ai-act", [
+      { date: "2026-08-02", kind: "obligations_apply", label: "Past" },
+      { date: "2026-12-02", kind: "obligations_apply", label: "Soon" },
+    ]);
+    const co = law("colorado-sb-26-189", [{ date: "2027-01-01", kind: "takes_effect", label: "Effective" }]);
+    const ca = law("california-sb-53", [{ date: "2027-01-01", kind: "deadline", label: "Reports due" }]);
+    const rows = upcomingMilestones([co, eu, ca], now);
+    expect(rows.map((m) => [m.entity.slug, m.date, m.days])).toEqual([
+      ["eu-ai-act", "2026-12-02", 7],
+      ["colorado-sb-26-189", "2027-01-01", 37],
+      ["california-sb-53", "2027-01-01", 37],
+    ]);
+  });
+});
+
+describe("recordsChecked", () => {
+  it("is the oldest check among the laws, due 90 days later", () => {
+    const checked = recordsChecked([
+      law("a", [], "2026-11-25T00:00:00"),
+      law("b", [], "2026-11-20T00:00:00"),
+    ]);
+    expect(checked?.checked).toBe("2026-11-20T00:00:00");
+    expect(checked?.due.slice(0, 10)).toBe("2027-02-18");
+  });
+  it("is null with no laws", () => {
+    expect(recordsChecked([])).toBeNull();
   });
 });

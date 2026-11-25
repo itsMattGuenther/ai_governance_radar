@@ -15,7 +15,10 @@ import { useIncidents, useItems } from "../lib/api";
 import { STATIC_MODE } from "../lib/env";
 import { CONFIDENCE_EXPLAINER, SEVERITY_DEFS } from "../lib/definitions";
 import { relativeTime, titleCase } from "../lib/format";
-import { severityColor } from "../lib/tokens";
+import { T } from "../lib/tokens";
+
+const severityColor = (s: string) =>
+  s === "critical" ? T.critical : s === "high" ? T.high : s === "medium" ? T.watch : T.info;
 import type { ItemOut } from "../lib/types";
 
 const SEVERITIES = ["critical", "high", "medium", "low"];

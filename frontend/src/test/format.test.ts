@@ -2,7 +2,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { parseTimestamp, relativeTime, shortDate } from "../lib/format";
+import { absDate, dateColumn, daysUntil, parseTimestamp, relativeTime, shortDate, utcStamp } from "../lib/format";
 
 describe("parseTimestamp", () => {
   it("reads offset-less API timestamps as UTC", () => {
@@ -25,5 +25,21 @@ describe("date display", () => {
   it("computes relative time from UTC", () => {
     const tenMinAgo = new Date(Date.now() - 10 * 60_000).toISOString().replace("Z", "");
     expect(relativeTime(tenMinAgo)).toBe("10m ago");
+  });
+});
+
+describe("absolute dates (DESIGN_SYSTEM.md §8)", () => {
+  const now = new Date("2026-11-25T15:13:00Z");
+  it("formats running-text dates, data stamps and mono columns", () => {
+    expect(absDate("2027-01-01")).toBe("1 Jan 2027");
+    expect(utcStamp("2026-11-25T15:13:41")).toBe("25 NOV 2026 15:13Z");
+    expect(dateColumn("2026-12-02", now)).toEqual({ day: "02 DEC", year: null });
+    expect(dateColumn("2027-08-02", now)).toEqual({ day: "02 AUG", year: "2027" });
+  });
+  it("counts whole UTC days to a calendar date", () => {
+    expect(daysUntil("2026-12-02", now)).toBe(7);
+    expect(daysUntil("2027-01-01", now)).toBe(37);
+    expect(daysUntil("2026-11-25", now)).toBe(0);
+    expect(daysUntil("2026-11-24", now)).toBe(-1);
   });
 });

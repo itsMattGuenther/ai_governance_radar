@@ -1,208 +1,308 @@
-/** App shell: fixed collapsible sidebar (desktop), bottom nav (mobile), global search. */
+/** App shell (DESIGN_SYSTEM.md §6): notice banner, top bar with tabs and search
+ * (`/` focuses it), status strip, and a bottom tab bar on phones. No side rail. */
 
-import { useState } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import {
-  Activity,
-  AlertTriangle,
-  BookOpenCheck,
-  ChevronsLeft,
-  ChevronsRight,
-  Landmark,
-  LayoutDashboard,
-  Menu,
-  Newspaper,
-  Search,
-  Settings,
-  X,
-} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { AlertTriangle, BookOpenCheck, Landmark, LayoutGrid, Newspaper, Search, X } from "lucide-react";
 import clsx from "clsx";
 
-import { useSnapshotMeta } from "../../lib/api";
+import { useRegulations, useSnapshotMeta, useSources } from "../../lib/api";
 import { STATIC_MODE } from "../../lib/env";
-import { relativeTime } from "../../lib/format";
+import { absDate, parseTimestamp, utcStamp } from "../../lib/format";
+import { recordsChecked } from "../../lib/records";
 import { RadarLogo } from "../ui/RadarLogo";
 
-const NAV = [
-  { to: "/", label: "Home", icon: LayoutDashboard, end: true },
-  { to: "/regulatory", label: "Regulatory Radar", icon: Landmark },
-  { to: "/standards", label: "Standards", icon: BookOpenCheck },
-  { to: "/incidents", label: "Incidents & Risks", icon: AlertTriangle },
-  { to: "/items", label: "All Sources", icon: Newspaper },
-  STATIC_MODE
-    ? { to: "/sources", label: "Source Health", icon: Activity }
-    : { to: "/settings", label: "Settings", icon: Settings },
+const TABS = [
+  { to: "/", label: "Watch", end: true },
+  { to: "/regulatory", label: "Laws" },
+  { to: "/standards", label: "Standards" },
+  { to: "/incidents", label: "Incidents" },
+  { to: "/items", label: "All sources" },
+  { to: "/about", label: "About" },
+  ...(STATIC_MODE ? [] : [{ to: "/settings", label: "Settings" }]),
 ];
 
-// Mobile priority (§56): Home, Regulatory, Incidents, All Sources
-const MOBILE_NAV = [NAV[0], NAV[1], NAV[3], NAV[4]];
+const PHONE_TABS = [
+  { to: "/", label: "Watch", icon: LayoutGrid, end: true },
+  { to: "/regulatory", label: "Laws", icon: Landmark },
+  { to: "/standards", label: "Standards", icon: BookOpenCheck },
+  { to: "/incidents", label: "Incidents", icon: AlertTriangle },
+  { to: "/items", label: "All", icon: Newspaper },
+];
 
-function GlobalSearch() {
+/** The public site is rebuilt by .github/workflows/publish.yml every 6 hours. */
+const PUBLIC_REFRESH_HOURS = 6;
+
+/** Where the source list with health lives. */
+export const SOURCES_PATH = STATIC_MODE ? "/sources" : "/settings";
+
+const SITE_URL = (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/$/, "");
+
+const WIDTH = "mx-auto w-full max-w-[1360px] px-3 sm:px-4 lg:px-5";
+
+function isTyping(target: EventTarget | null): boolean {
+  const el = target as HTMLElement | null;
+  return !!el && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName));
+}
+
+function SearchBox({
+  inputRef,
+  onDone,
+  className,
+}: {
+  inputRef: React.RefObject<HTMLInputElement>;
+  onDone?: () => void;
+  className?: string;
+}) {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
   return (
     <form
       role="search"
-      className="relative"
+      className={clsx("relative", className)}
       onSubmit={(e) => {
         e.preventDefault();
-        if (q.trim()) navigate(`/search?q=${encodeURIComponent(q.trim())}`);
+        if (!q.trim()) return;
+        navigate(`/search?q=${encodeURIComponent(q.trim())}`);
+        inputRef.current?.blur();
+        onDone?.();
       }}
     >
       <Search aria-hidden className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-tx-muted" />
       <input
+        ref={inputRef}
         type="search"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        placeholder="Search regulations, standards, incidents…"
-        aria-label="Search"
-        className="w-56 rounded-ctl border border-bd-subtle bg-bg-base py-1.5 pl-8 pr-3 text-xs text-tx-primary placeholder:text-tx-muted focus:border-accent md:w-72"
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            e.currentTarget.blur();
+            onDone?.();
+          }
+        }}
+        placeholder="Search"
+        aria-label="Search laws, standards, incidents and sources"
+        aria-keyshortcuts="/"
+        className="w-full rounded-ctl border border-bd-subtle bg-bg-base py-1.5 pl-8 pr-8 text-sm text-tx-primary placeholder:text-tx-muted focus:border-accent"
       />
+      <kbd
+        aria-hidden
+        className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded-code border border-bd-subtle px-1.5 font-mono text-meta leading-4 text-tx-muted md:block"
+      >
+        /
+      </kbd>
     </form>
   );
 }
 
-/** Local app: today's date. Static public site: how fresh the published data is. */
-function HeaderStamp() {
-  const meta = useSnapshotMeta();
-  if (!STATIC_MODE) {
-    return (
-      <span className="hidden font-mono text-[11px] text-tx-muted lg:block">
-        {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
-      </span>
-    );
-  }
-  if (!meta.data) return null;
+function Brand() {
   return (
-    <span className="hidden font-mono text-[11px] text-tx-muted sm:block">
-      Data updated {relativeTime(meta.data.generated_at)}
-    </span>
+    <Link to="/" className="flex shrink-0 items-center gap-2.5" aria-label="AI Governance Radar, home">
+      <RadarLogo size={20} />
+      <span className="text-[14px] font-semibold tracking-tight text-tx-primary">AI Governance</span>
+      <span className="font-mono text-code font-medium tracking-[0.3em] text-accent">RADAR</span>
+    </Link>
   );
 }
 
-export function Shell() {
-  const [collapsed, setCollapsed] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+function StatusStrip() {
+  const meta = useSnapshotMeta();
+  const sources = useSources();
+  const laws = useRegulations();
 
-  const navBody = (isCollapsed: boolean, onNavigate?: () => void) => (
-    <nav aria-label="Primary" className="flex flex-col gap-0.5 px-2">
-      {NAV.map(({ to, label, icon: Icon, end }) => (
-        <NavLink
-          key={to}
-          to={to}
-          end={end}
-          onClick={onNavigate}
-          className={({ isActive }) =>
-            clsx(
-              "group relative flex items-center gap-3 rounded-ctl border px-2.5 py-2 text-sm transition-colors",
-              isActive
-                ? "border-accent/40 bg-accent/10 text-tx-primary"
-                : "border-transparent text-tx-secondary hover:bg-bg-raised/60 hover:text-tx-primary",
-            )
-          }
-          title={isCollapsed ? label : undefined}
-        >
-          <Icon aria-hidden className="h-4 w-4 shrink-0" />
-          {!isCollapsed && <span className="truncate">{label}</span>}
-        </NavLink>
-      ))}
-    </nav>
-  );
+  const enabled = sources.data?.filter((s) => s.enabled) ?? [];
+  const ok = enabled.filter((s) => !s.last_error).length;
+  const allOk = ok === enabled.length;
+  // Local app: the newest successful collection. Public site: when it was built.
+  const dataTime = STATIC_MODE
+    ? meta.data?.generated_at
+    : enabled
+        .map((s) => s.last_success_at)
+        .filter((t): t is string => !!t)
+        .sort((a, b) => parseTimestamp(b).getTime() - parseTimestamp(a).getTime())[0];
+  const hours = enabled.map((s) => s.polling_interval_minutes / 60);
+  const refresh = STATIC_MODE
+    ? `Refreshes every ${PUBLIC_REFRESH_HOURS} h`
+    : hours.length
+      ? `Sources poll every ${Math.min(...hours)}–${Math.max(...hours)} h`
+      : null;
+  const checked = laws.data ? recordsChecked(laws.data) : null;
 
   return (
-    <div className="min-h-screen bg-bg-base">
-      {/* Desktop sidebar */}
-      <aside
-        className={clsx(
-          "fixed inset-y-0 left-0 z-40 hidden border-r border-bd-subtle bg-bg-surface md:flex md:flex-col",
-          collapsed ? "w-16" : "w-60",
+    <div className="border-b border-bd-subtle">
+      <p className={clsx(WIDTH, "flex flex-wrap gap-x-5 gap-y-0.5 py-1.5 font-mono text-meta uppercase text-tx-muted")}>
+        <span>
+          Data as of <b className="font-medium text-tx-secondary">{dataTime ? utcStamp(dataTime) : "—"}</b>
+        </span>
+        {refresh && <span>{refresh}</span>}
+        {sources.data && (
+          <Link to={SOURCES_PATH} className="hover:text-tx-secondary">
+            Sources{" "}
+            <b className={clsx("font-medium", allOk ? "text-sev-positive" : "text-sev-high")}>
+              <span aria-hidden>{allOk ? "●" : "▲"}</span> {ok}/{enabled.length} OK
+            </b>
+          </Link>
         )}
-      >
-        <div
-          className={clsx(
-            "flex flex-col items-center border-b border-bd-subtle",
-            collapsed ? "px-2 py-4" : "px-4 py-5",
-          )}
-        >
-          <RadarLogo size={collapsed ? 34 : 56} />
-          {!collapsed && (
-            <div className="mt-2.5 text-center leading-tight">
-              <p className="text-[15px] font-semibold tracking-tight text-tx-primary">AI Governance</p>
-              <p className="mt-0.5 font-mono text-[10px] tracking-[0.34em] text-accent">RADAR</p>
-            </div>
-          )}
-        </div>
-        <div className="flex-1 overflow-y-auto py-3">{navBody(collapsed)}</div>
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="m-2 flex items-center justify-center rounded-ctl border border-bd-subtle p-1.5 text-tx-muted transition-colors hover:text-tx-primary"
-        >
-          {collapsed ? <ChevronsRight className="h-4 w-4" /> : <ChevronsLeft className="h-4 w-4" />}
-        </button>
-      </aside>
+        {checked && (
+          <>
+            <span>
+              Records checked <b className="font-medium text-tx-secondary">{absDate(checked.checked)}</b>
+            </span>
+            <span>
+              Next check due <b className="font-medium text-tx-secondary">{absDate(checked.due)}</b>
+            </span>
+          </>
+        )}
+      </p>
+    </div>
+  );
+}
 
-      {/* Mobile drawer */}
-      {drawerOpen && (
-        <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label="Navigation">
-          <button aria-label="Close navigation" className="absolute inset-0 bg-black/60" onClick={() => setDrawerOpen(false)} />
-          <div className="absolute left-0 top-0 h-full w-64 border-r border-bd-subtle bg-bg-surface pt-4">
-            <div className="mb-3 flex items-center justify-between px-4">
-              <span className="text-sm font-semibold text-tx-primary">AI Governance Radar</span>
-              <button aria-label="Close" onClick={() => setDrawerOpen(false)} className="p-1 text-tx-muted">
-                <X className="h-4 w-4" />
+/** Keep the canonical link and og:url on the page being viewed (public build only). */
+function useCanonical() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    if (!SITE_URL) return;
+    const url = `${SITE_URL}${pathname}`;
+    document.querySelector('link[rel="canonical"]')?.setAttribute("href", url);
+    document.querySelector('meta[property="og:url"]')?.setAttribute("content", url);
+  }, [pathname]);
+}
+
+export function Shell() {
+  const searchRef = useRef<HTMLInputElement>(null);
+  const phoneSearchRef = useRef<HTMLInputElement>(null);
+  const [phoneSearch, setPhoneSearch] = useState(false);
+  const { pathname } = useLocation();
+  useCanonical();
+
+  useEffect(() => window.scrollTo(0, 0), [pathname]);
+
+  // "/" focuses search from anywhere except a text field.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey || isTyping(e.target)) return;
+      e.preventDefault();
+      if (window.matchMedia?.("(min-width: 768px)").matches ?? true) searchRef.current?.focus();
+      else setPhoneSearch(true);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
+  useEffect(() => {
+    if (phoneSearch) phoneSearchRef.current?.focus();
+  }, [phoneSearch]);
+
+  return (
+    <div className="flex min-h-screen flex-col bg-bg-base">
+      <a
+        href="#main"
+        className="sr-only z-50 rounded-ctl bg-bg-raised px-3 py-2 text-sm text-tx-primary focus:not-sr-only focus:fixed focus:left-3 focus:top-3"
+      >
+        Skip to content
+      </a>
+      <p className="bg-notice px-3 py-1 text-center font-mono text-code uppercase leading-snug tracking-[0.1em] text-sev-watch">
+        Open-source data · Not legal advice · Verify against the linked official source
+      </p>
+
+      <header className="sticky top-0 z-30 border-b border-bd-subtle bg-bg-surface">
+        <div className={clsx(WIDTH, "flex h-12 items-center gap-5")}>
+          {phoneSearch ? (
+            <div className="flex flex-1 items-center gap-2 md:hidden">
+              <SearchBox inputRef={phoneSearchRef} onDone={() => setPhoneSearch(false)} className="flex-1" />
+              <button
+                type="button"
+                onClick={() => setPhoneSearch(false)}
+                aria-label="Close search"
+                className="rounded-ctl p-1.5 text-tx-secondary hover:text-tx-primary"
+              >
+                <X aria-hidden className="h-4 w-4" />
               </button>
             </div>
-            {navBody(false, () => setDrawerOpen(false))}
-          </div>
+          ) : (
+            <Brand />
+          )}
+          <nav aria-label="Primary" className="hidden min-w-0 md:block">
+            <ul className="flex gap-1">
+              {TABS.map(({ to, label, end }) => (
+                <li key={to}>
+                  <NavLink
+                    to={to}
+                    end={end}
+                    className={({ isActive }) =>
+                      clsx(
+                        "block whitespace-nowrap rounded-ctl px-2.5 py-1 text-sm",
+                        isActive
+                          ? "bg-accent/[.14] font-semibold text-tx-primary"
+                          : "font-medium text-tx-secondary hover:text-tx-primary",
+                      )
+                    }
+                  >
+                    {label}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <SearchBox inputRef={searchRef} className="ml-auto hidden w-56 md:block lg:w-64" />
+          {!phoneSearch && (
+            <div className="ml-auto flex items-center gap-1 md:hidden">
+              <button
+                type="button"
+                onClick={() => setPhoneSearch(true)}
+                aria-label="Search"
+                className="rounded-ctl p-2 text-tx-secondary hover:text-tx-primary"
+              >
+                <Search aria-hidden className="h-4 w-4" />
+              </button>
+              <NavLink
+                to="/about"
+                className={({ isActive }) =>
+                  clsx("rounded-ctl px-2 py-1 text-sm font-medium", isActive ? "text-tx-primary" : "text-tx-secondary")
+                }
+              >
+                About
+              </NavLink>
+              {!STATIC_MODE && (
+                <NavLink to="/settings" className="rounded-ctl px-2 py-1 text-sm font-medium text-tx-secondary">
+                  Settings
+                </NavLink>
+              )}
+            </div>
+          )}
         </div>
-      )}
+      </header>
 
-      {/* Main column */}
-      <div className={clsx("flex min-h-screen flex-col", collapsed ? "md:pl-16" : "md:pl-60")}>
-        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-bd-subtle bg-bg-base/95 px-4 py-2.5 backdrop-blur">
-          <button
-            className="p-1 text-tx-secondary md:hidden"
-            aria-label="Open navigation"
-            onClick={() => setDrawerOpen(true)}
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-          <div className="ml-auto flex items-center gap-3">
-            <HeaderStamp />
-            <GlobalSearch />
-          </div>
-        </header>
-        <main className="flex-1 px-4 py-5 pb-20 md:px-6 md:pb-8">
-          <Outlet />
-        </main>
-        <footer className="hidden border-t border-bd-subtle px-6 py-3 text-meta text-tx-muted md:block">
-          AI Governance Radar is an information tool, not legal advice. Verify regulatory facts
-          against the linked official sources.
-        </footer>
-      </div>
+      <StatusStrip />
 
-      {/* Mobile bottom nav (§56) */}
+      <main id="main" className={clsx(WIDTH, "flex-1 pb-24 pt-4 md:pb-10")}>
+        <Outlet />
+      </main>
+
       <nav
-        aria-label="Primary mobile"
-        className="fixed inset-x-0 bottom-0 z-40 flex border-t border-bd-subtle bg-bg-surface md:hidden"
+        aria-label="Primary"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-bd-subtle bg-bg-surface pb-[env(safe-area-inset-bottom)] md:hidden"
       >
-        {MOBILE_NAV.map(({ to, label, icon: Icon, end }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={end}
-            className={({ isActive }) =>
-              clsx(
-                "flex flex-1 flex-col items-center gap-0.5 py-2 text-meta",
-                isActive ? "text-accent" : "text-tx-muted",
-              )
-            }
-          >
-            <Icon aria-hidden className="h-4 w-4" />
-            {label.split(" ")[0]}
-          </NavLink>
-        ))}
+        <ul className="flex">
+          {PHONE_TABS.map(({ to, label, icon: Icon, end }) => (
+            <li key={to} className="flex-1">
+              <NavLink
+                to={to}
+                end={end}
+                className={({ isActive }) =>
+                  clsx(
+                    "flex flex-col items-center gap-0.5 py-2 text-meta",
+                    isActive ? "font-semibold text-accent" : "text-tx-secondary",
+                  )
+                }
+              >
+                <Icon aria-hidden className="h-4 w-4" />
+                {label}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
       </nav>
     </div>
   );

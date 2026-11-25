@@ -1,7 +1,10 @@
 /** Small inline visualizations: sparkline, donut, impact ring, confidence dots. */
 
 import { CONFIDENCE_DEFS, IMPACT_EXPLAINER, impactBand } from "../../lib/definitions";
-import { T, impactColor } from "../../lib/tokens";
+import { T } from "../../lib/tokens";
+
+const impactColor = (score: number) =>
+  score >= 70 ? T.critical : score >= 50 ? T.high : score >= 30 ? T.watch : T.info;
 
 export function Sparkline({ data, width = 64, height = 20, stroke, fill }: {
   data: number[]; width?: number; height?: number; stroke: string; fill?: string;

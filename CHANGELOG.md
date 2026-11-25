@@ -9,6 +9,18 @@ All notable changes to this project. Dates are UTC.
   Home will lead with legal dates and record changes, and the visual system changes
   (DESIGN_SYSTEM.md). Tasks T-042 to T-048. Not built yet.
 
+### Changed (2026-11-25, T-044)
+- **Watch Board foundation** (DEC-033, DESIGN_SYSTEM.md): new colour values under the
+  same token names, IBM Plex Sans and Mono in place of Inter and JetBrains Mono, flat
+  surfaces with 6px and 4px corners, no shadows or glow. New primitives: Panel, Tile,
+  Chip, day count, stage track, code tile, square flag, row.
+- The side rail is gone. A notice banner shows at every width (the not-legal-advice
+  footer was hidden on phones), then a top bar with tabs and search (`/` focuses it)
+  and a status strip: data time in UTC, refresh interval, sources OK, when records were
+  last checked and when the next check is due. Phones get a five-tab bar that now
+  includes Standards. Feed rows lose the impact ring and confidence dots.
+- A first About page (completed in T-047).
+
 ### Fixed (2026-11-25, T-042)
 - Titles and excerpts showed raw HTML entities ("&amp;"). Text is decoded at
   collection, and a one-time repair fixes rows already stored (DEC-034).
