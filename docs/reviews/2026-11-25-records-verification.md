@@ -1,5 +1,8 @@
 # Curated records verification, 2026-11-25
 
+**Status:** approved by the owner and applied on 2026-11-25, with the recommended
+choice for each decision below (commit 95727db).
+
 Can the curated records (`data/seed/entities.json`, `data/seed/incidents.json`) be
 trusted enough to publish? All 29 were checked field by field against primary sources:
 10 regulations, 5 national frameworks, 7 standards and 7 incidents.
