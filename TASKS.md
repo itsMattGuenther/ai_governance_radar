@@ -450,7 +450,7 @@ DESIGN_SYSTEM.md. T-035, T-036 and T-037 are folded in below.
   description and image.
 
 ### T-043 Milestones and successor links: model, API, export
-- **Status:** TODO
+- **Status:** DONE 2026-11-25 · two new tables, mirrored by the seeder, in the API and export; the public snapshot of 2026-11-25 upgrades on `seed` (tested against its real schema)
 - **Description:** `data/seed/entities.json` already carries `regulation.milestones`
   (`date`, `kind`, `label`) for four laws and `superseded_by` on Colorado SB 24-205,
   guarded by `backend/tests/test_seed_data.py`. They were taken from record text

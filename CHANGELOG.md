@@ -23,8 +23,11 @@ All notable changes to this project. Dates are UTC.
 
 ### Added (2026-11-25)
 - Curated **milestones** on four laws (EU AI Act, Colorado SB 26-189, California SB 53,
-  Utah AI Policy Act) and `superseded_by` on Colorado SB 24-205, in the seed file only,
-  with shape checks in `backend/tests/test_seed_data.py`. Nothing reads them yet.
+  Utah AI Policy Act) and `superseded_by` on Colorado SB 24-205, with shape checks in
+  `backend/tests/test_seed_data.py`. Stored in two new tables (`regulation_milestones`,
+  `regulation_successions`), mirrored by the seeder, and returned by the API and the
+  static export as `regulation.milestones` (date order) and `regulation.superseded_by`
+  (T-043). An existing database gains the tables on its next `seed`.
 
 ### Changed (2026-11-25)
 - **Public site moves to Cloudflare at aigov.mattguenther.com** (DEC-032): assets-only

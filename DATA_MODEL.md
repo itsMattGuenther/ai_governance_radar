@@ -88,6 +88,20 @@ risk_classification?, applicability_notes?; official_source_url;
 confidence, last_verified_at. **Every status/date field is curated + evidence-linked;
 ingestion may only flag "needs review", never write these silently.**
 
+### regulation_milestones (DEC-033)
+id; entity_id FK regulations; date (full date; month-only facts stay in the record's
+text); kind (`takes_effect`|`obligations_apply`|`deadline`|`expires`); label. The
+dated phases and deadlines of a law. Every list of upcoming dates reads these and
+nothing else: dates are never parsed out of notes text. Curated like any other legal
+date; the seeder mirrors `regulation.milestones` in the seed file, so an edit there
+replaces the rows here. Returned in date order as `RegulationOut.milestones`.
+
+### regulation_successions (DEC-033)
+entity_id PK FK regulations; successor_id FK entities. The law that replaced a
+superseded one, from `regulation.superseded_by` (a slug) in the seed file; returned as
+`RegulationOut.superseded_by`. A table of its own so existing databases gain it
+through `create_all()` (DEC-034).
+
 ### standards (1:1 extension of entities where entity_type='standard') (§8)
 entity_id PK/FK; publisher (`NIST`|`ISO`|`OWASP`|`MITRE`|`IEEE`|`CISA`|`OECD`|…);
 version?; status (`announced`|`draft`|`public_comment`|`final`|`updated`|`amended`|
@@ -129,6 +143,7 @@ sources 1─* source_runs
 sources 1─* items *─1 item_clusters
 items *─* entities (item_entities)
 entities 1─0..1 regulations            entities 1─0..1 standards
+regulations 1─* regulation_milestones  regulations 1─0..1 regulation_successions ─1 entities
 entities 1─* entity_events (*─0..1 evidence item)
 incidents *─(evidence via item_entities on linked items; framework slugs JSON)
 jurisdiction codes ← validated against core/jurisdictions.py (static module)

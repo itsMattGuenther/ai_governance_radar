@@ -88,6 +88,13 @@ export interface EntityEventOut {
   evidence_item_id: number | null;
 }
 
+/** A dated phase or deadline of a law (curated, DEC-033). `date` is YYYY-MM-DD. */
+export interface Milestone {
+  date: string;
+  kind: "takes_effect" | "obligations_apply" | "deadline" | "expires";
+  label: string;
+}
+
 export interface RegulationOut {
   government_level: string;
   status: string;
@@ -110,6 +117,10 @@ export interface RegulationOut {
   curated_confidence: Confidence | null;
   /** Why `confidence` is lower than the curated value; empty when it isn't. */
   confidence_notes: string[];
+  /** Curated dates in date order: the only source for any list of upcoming dates. */
+  milestones: Milestone[];
+  /** Slug of the law that replaced this one. */
+  superseded_by: string | null;
 }
 
 export interface StandardOut {

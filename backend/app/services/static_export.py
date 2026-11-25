@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app import __version__
 from app.api.dashboard import map_data
+from app.api.entities import REGULATION_PARTS
 from app.api.helpers import item_to_out
 from app.core.jurisdictions import JURISDICTIONS
 from app.models import Entity, Incident, Item, ItemCluster, ItemEntity, Source
@@ -70,8 +71,7 @@ def export_static(db: Session, out_dir: Path) -> dict:
 
     entities = db.execute(
         select(Entity).where(Entity.is_demo.is_(False)).options(
-            joinedload(Entity.regulation), joinedload(Entity.standard),
-            joinedload(Entity.events))
+            *REGULATION_PARTS, joinedload(Entity.standard), joinedload(Entity.events))
         .order_by(Entity.name)
     ).unique().scalars().all()
     _dump(out_dir / "entities.json",

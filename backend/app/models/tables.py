@@ -1,8 +1,18 @@
 """V1 schema per DATA_MODEL.md. UTC timestamps; enums as short strings; JSON for lists."""
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db import Base
@@ -152,6 +162,43 @@ class Regulation(Base):
     last_verified_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
     entity: Mapped[Entity] = relationship(back_populates="regulation")
+    milestones: Mapped[list["RegulationMilestone"]] = relationship(
+        order_by="RegulationMilestone.date", cascade="all, delete-orphan"
+    )
+    succession: Mapped["RegulationSuccession | None"] = relationship(
+        foreign_keys="RegulationSuccession.entity_id", cascade="all, delete-orphan"
+    )
+
+    @property
+    def superseded_by(self) -> str | None:
+        """Slug of the law that replaced this one, if any."""
+        return self.succession.successor.slug if self.succession else None
+
+
+class RegulationMilestone(Base):
+    """A dated phase or deadline of a law (DEC-033). Curated legal dates: written only
+    from the seed file, which the seeder mirrors (DEC-014). Full dates only; month-only
+    facts stay in the record's text."""
+
+    __tablename__ = "regulation_milestones"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    entity_id: Mapped[int] = mapped_column(ForeignKey("regulations.entity_id"), index=True)
+    date: Mapped[date] = mapped_column(Date, index=True)
+    kind: Mapped[str] = mapped_column(String(30))  # takes_effect|obligations_apply|deadline|expires
+    label: Mapped[str] = mapped_column(String(400))
+
+
+class RegulationSuccession(Base):
+    """The law that replaced a superseded one (curated, DEC-033). A table of its own so
+    existing databases gain it through create_all() (DEC-034)."""
+
+    __tablename__ = "regulation_successions"
+
+    entity_id: Mapped[int] = mapped_column(ForeignKey("regulations.entity_id"), primary_key=True)
+    successor_id: Mapped[int] = mapped_column(ForeignKey("entities.id"))
+
+    successor: Mapped[Entity] = relationship(foreign_keys=[successor_id], lazy="joined")
 
 
 class Standard(Base):

@@ -1,4 +1,4 @@
-"""SQLAlchemy models — the 12-table V1 schema (DATA_MODEL.md)."""
+"""SQLAlchemy models (DATA_MODEL.md)."""
 
 from app.models.tables import (
     AppState,
@@ -9,6 +9,8 @@ from app.models.tables import (
     ItemCluster,
     ItemEntity,
     Regulation,
+    RegulationMilestone,
+    RegulationSuccession,
     Source,
     SourceRun,
     Standard,
@@ -23,6 +25,8 @@ __all__ = [
     "ItemCluster",
     "ItemEntity",
     "Regulation",
+    "RegulationMilestone",
+    "RegulationSuccession",
     "Source",
     "SourceRun",
     "Standard",

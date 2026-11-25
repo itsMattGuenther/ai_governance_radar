@@ -10,6 +10,13 @@ from app.schemas.models import EntityOut
 
 router = APIRouter(tags=["entities"])
 
+# Everything EntityOut reads from a regulation, loaded up front.
+REGULATION = joinedload(Entity.regulation)
+REGULATION_PARTS = (
+    REGULATION.selectinload(Regulation.milestones),
+    REGULATION.selectinload(Regulation.succession),
+)
+
 
 @router.get("/entities", response_model=list[EntityOut])
 def list_entities(
@@ -18,7 +25,7 @@ def list_entities(
     db: Session = Depends(get_db),
 ) -> list[Entity]:
     q = select(Entity).options(
-        joinedload(Entity.regulation), joinedload(Entity.standard), joinedload(Entity.events)
+        *REGULATION_PARTS, joinedload(Entity.standard), joinedload(Entity.events)
     )
     if entity_type:
         q = q.where(Entity.entity_type == entity_type)
@@ -31,7 +38,7 @@ def list_entities(
 def get_entity(slug: str, db: Session = Depends(get_db)) -> Entity:
     entity = db.execute(
         select(Entity).where(Entity.slug == slug).options(
-            joinedload(Entity.regulation), joinedload(Entity.standard), joinedload(Entity.events)
+            *REGULATION_PARTS, joinedload(Entity.standard), joinedload(Entity.events)
         )
     ).unique().scalar_one_or_none()
     if entity is None:
@@ -50,7 +57,7 @@ def list_regulations(
     q = (
         select(Entity)
         .join(Regulation, Regulation.entity_id == Entity.id)
-        .options(joinedload(Entity.regulation), joinedload(Entity.events))
+        .options(*REGULATION_PARTS, joinedload(Entity.events))
     )
     if jurisdiction:
         q = q.where(Entity.jurisdiction_code == jurisdiction)
