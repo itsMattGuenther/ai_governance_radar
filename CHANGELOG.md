@@ -9,6 +9,26 @@ All notable changes to this project. Dates are UTC.
   Home will lead with legal dates and record changes, and the visual system changes
   (DESIGN_SYSTEM.md). Tasks T-042 to T-048. Not built yet.
 
+### Changed (2026-11-25, T-046)
+- **Laws** (was Regulatory Radar): sorted by next date, then latest change; a Next
+  date column with its day count; confidence shown only when below high, with the
+  checked date otherwise; Colorado SB 24-205 nested under SB 26-189; stacked rows on
+  phones showing stage and next date; a smaller, flat coverage map above the table
+  whose shading counts tracked records, with the same counts listed beside it.
+- **Record page**: a milestone strip under the title (past dates, today, dates ahead);
+  the checked date and official source beside the title; a copy-link control; the
+  "Related intelligence" box only when it has items; successor and predecessor links.
+- **Standards**: one table (publisher, name, version, status, last updated); the zero
+  counters and "Change magnitude" are gone from the page.
+- **Incidents**: curated write-ups first, as a table with severity and fact status
+  columns and real dates; then reports from incident databases, one row per incident
+  with its report count expanding to the reports.
+- **All Sources**: tabs by source tier (government and standards bodies, research and
+  incident databases, press, and All), opening on the first; a table with impact and
+  confidence columns; the drawer's points breakdown is unchanged.
+- No list row carries a score ring, confidence dots or more than one chip. Search
+  results, incident detail and the not-found page use the same panels and rows.
+
 ### Changed (2026-11-25, T-045)
 - **Home is the watch board** (DEC-033). Tiles: the next two legal dates (amber
   within 60 days; a shared date names every law on it), record changes in 30 days,

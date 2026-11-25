@@ -1,242 +1,329 @@
-/** Entity detail: full regulation/standard record + timeline + linked evidence items. */
+/** Record page: a law or standard as curated, with its credentials (when it was
+ * checked, the official source) beside the title, its milestones under it, its
+ * timeline, and any collected items that mention it. */
 
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, Check, ExternalLink, Link2 } from "lucide-react";
+import clsx from "clsx";
 
 import { ItemDetailDrawer } from "../components/items/ItemDetailDrawer";
 import { ItemRow } from "../components/items/ItemRow";
-import { ConfidenceBadge, DemoBadge, StatusPill } from "../components/ui/Badge";
+import { ConfidenceBadge, DemoBadge, EventChip, StatusPill } from "../components/ui/Badge";
+import { Chip, DayCount } from "../components/ui/Chip";
 import { Jurisdiction } from "../components/ui/Flag";
+import { Panel } from "../components/ui/Panel";
+import { DateCell } from "../components/ui/Row";
+import { LawStage } from "../components/ui/StageTrack";
 import { CardSkeleton, EmptyState, ErrorState } from "../components/ui/States";
-import { useEntity, useItems } from "../lib/api";
-import { shortDate, titleCase, verificationAgeDays } from "../lib/format";
-import type { ItemOut } from "../lib/types";
+import { useEntity, useItems, useRegulations } from "../lib/api";
+import { absDate, daysUntil, titleCase, verificationAgeDays } from "../lib/format";
+import { REVERIFY_DAYS, SOON_DAYS, shortName } from "../lib/records";
+import { usePageTitle } from "../lib/usePageTitle";
+import type { ItemOut, Milestone } from "../lib/types";
 
-const STALE_DAYS = 90;
+function CopyLink() {
+  const [state, setState] = useState<"idle" | "copied" | "failed">("idle");
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setState("copied");
+    } catch {
+      setState("failed");
+    }
+    window.setTimeout(() => setState("idle"), 2500);
+  };
+  return (
+    <span className="inline-flex items-center gap-2">
+      <button
+        type="button"
+        onClick={copy}
+        className="inline-flex items-center gap-1.5 rounded-ctl border border-bd-subtle px-2 py-1 text-xs text-tx-secondary hover:border-bd-strong hover:text-tx-primary"
+      >
+        {state === "copied" ? <Check aria-hidden className="h-3.5 w-3.5" /> : <Link2 aria-hidden className="h-3.5 w-3.5" />}
+        {state === "copied" ? "Copied" : "Copy link"}
+      </button>
+      <span role="status" className="text-xs text-tx-muted">
+        {state === "failed" && "Copy the address from your browser's address bar."}
+      </span>
+    </span>
+  );
+}
+
+/** Milestones in date order with a marker for today: past dates muted, close ones
+ * amber, later ones quiet. A row on phones, a strip from tablet width up. */
+function MilestoneStrip({ milestones }: { milestones: Milestone[] }) {
+  const [now] = useState(() => new Date());
+  const today = now.toISOString().slice(0, 10);
+  const cells: ({ type: "milestone"; m: Milestone; days: number } | { type: "today" })[] = [];
+  let placed = false;
+  for (const m of milestones) {
+    if (!placed && m.date > today) {
+      cells.push({ type: "today" });
+      placed = true;
+    }
+    cells.push({ type: "milestone", m, days: daysUntil(m.date, now) });
+  }
+  if (!placed) cells.push({ type: "today" });
+
+  return (
+    <ol
+      aria-label="Milestones"
+      className="mt-4 grid gap-px overflow-hidden rounded-panel border border-bd-subtle bg-bd-subtle md:auto-cols-[minmax(132px,1fr)] md:grid-flow-col md:overflow-x-auto"
+    >
+      {cells.map((c) =>
+        c.type === "today" ? (
+          <li key="today" className="border-l-2 border-accent bg-bg-raised px-3 py-2 md:border-l-0 md:border-t-2">
+            <span className="num block text-xs font-medium uppercase text-accent">Today</span>
+            <span className="num block text-meta text-tx-secondary">{absDate(today)}</span>
+          </li>
+        ) : (
+          <li
+            key={c.m.date}
+            className={clsx(
+              "bg-bg-surface px-3 py-2 md:border-t-2",
+              "border-l-2 md:border-l-0",
+              c.days < 0 ? "border-bd-strong" : c.days <= SOON_DAYS ? "border-sev-watch" : "border-tx-muted",
+            )}
+          >
+            <span className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+              <span
+                className={clsx(
+                  "num whitespace-nowrap text-xs font-medium",
+                  c.days < 0 ? "text-tx-muted" : "text-tx-primary",
+                )}
+              >
+                {absDate(c.m.date)}
+              </span>
+              {c.days < 0 ? <span className="text-meta text-tx-muted">Past</span> : <DayCount date={c.m.date} now={now} />}
+            </span>
+            <span className={clsx("mt-1 block text-detail", c.days < 0 ? "text-tx-muted" : "text-tx-secondary")}>
+              {c.m.label}
+            </span>
+          </li>
+        ),
+      )}
+    </ol>
+  );
+}
+
+function Field({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex justify-between gap-4 border-b border-bd-subtle py-1.5 last:border-b-0">
+      <dt className="text-tx-muted">{label}</dt>
+      <dd className="text-right text-tx-secondary">{value}</dd>
+    </div>
+  );
+}
+
+function SideText({ label, text }: { label: string; text: string | null }) {
+  if (!text) return null;
+  return (
+    <div className="border-t border-bd-subtle px-3.5 py-3">
+      <h3 className="text-xs font-semibold text-tx-secondary">{label}</h3>
+      <p className="mt-1 text-detail text-tx-secondary">{text}</p>
+    </div>
+  );
+}
 
 export default function EntityDetail() {
   const { slug } = useParams();
   const entity = useEntity(slug);
-  const items = useItems({ entity_id: entity.data?.id, limit: 10, sort: "first_seen" });
+  const laws = useRegulations();
+  const items = useItems({ entity_id: entity.data?.id, limit: 10, sort: "first_seen" }, !!entity.data);
   const [openItem, setOpenItem] = useState<ItemOut | null>(null);
+  usePageTitle(entity.data ? entity.data.name : undefined);
 
-  if (entity.isPending) return <div className="card"><CardSkeleton rows={6} /></div>;
+  if (entity.isPending)
+    return (
+      <div className="card">
+        <CardSkeleton rows={6} />
+      </div>
+    );
   if (entity.isError)
     return (
       <div className="card">
-        <ErrorState title="Entity not found" detail={String(entity.error)} onRetry={() => entity.refetch()} />
+        <ErrorState title="Record not found" detail={String(entity.error)} onRetry={() => entity.refetch()} />
       </div>
     );
 
   const e = entity.data;
   const reg = e.regulation;
   const std = e.standard;
-  const verifiedAge = reg ? verificationAgeDays(reg.last_verified_at) : null;
+  const source = reg?.official_source_url ?? std?.official_source_url ?? e.official_url;
+  const age = reg ? verificationAgeDays(reg.last_verified_at) : null;
+  const successor = reg?.superseded_by ? laws.data?.find((l) => l.slug === reg.superseded_by) : undefined;
+  const replaces = laws.data?.filter((l) => l.regulation?.superseded_by === e.slug) ?? [];
+  const related = items.data?.items ?? [];
 
   return (
     <>
       <Link
-        to={e.entity_type === "regulation" ? "/regulatory" : "/standards"}
-        className="mb-4 inline-flex items-center gap-1.5 text-xs text-tx-muted hover:text-tx-secondary"
+        to={reg ? "/regulatory" : "/standards"}
+        className="mb-3 inline-flex items-center gap-1.5 text-xs text-tx-secondary hover:text-tx-primary"
       >
-        <ArrowLeft aria-hidden className="h-3.5 w-3.5" /> Back
+        <ArrowLeft aria-hidden className="h-3.5 w-3.5" /> {reg ? "Laws" : "Standards"}
       </Link>
 
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="flex flex-wrap items-center gap-1.5">
+      <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+        <div className="min-w-0 max-w-3xl">
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-tx-secondary">
             <Jurisdiction code={e.jurisdiction_code} />
-            <span className="meta-label">{titleCase(e.entity_type)}</span>
-            {reg && <StatusPill status={reg.status} kind="regulation" />}
+            <span>{std ? std.publisher : titleCase(e.entity_type)}</span>
+          </p>
+          <h1 className="mt-1.5 text-xl font-semibold text-tx-primary">{e.name}</h1>
+          {e.description && <p className="mt-1 text-base text-tx-secondary">{e.description}</p>}
+          <div className="mt-2.5 flex flex-wrap items-center gap-2">
+            {reg && <LawStage regulation={reg} />}
             {std && <StatusPill status={std.status} kind="standard" />}
             <DemoBadge show={e.is_demo} />
             {e.needs_review && (
-              <span className="rounded border border-sev-watch/40 bg-sev-watch/10 px-1.5 py-[1px] font-mono text-meta text-sev-watch">
-                NEEDS REVIEW
-              </span>
+              <Chip tone="high" title="A linked source changed; this record is due a check.">
+                Needs review
+              </Chip>
             )}
           </div>
-          <h1 className="mt-2 text-xl font-semibold text-tx-primary">{e.name}</h1>
-          {e.description && <p className="mt-1 max-w-2xl text-sm text-tx-secondary">{e.description}</p>}
+          {successor && (
+            <p className="mt-2 text-detail text-tx-secondary">
+              Replaced by{" "}
+              <Link to={`/entities/${successor.slug}`} className="text-accent hover:underline">
+                {successor.name}
+              </Link>
+              .
+            </p>
+          )}
+          {replaces.map((old) => (
+            <p key={old.slug} className="mt-2 text-detail text-tx-secondary">
+              Replaces{" "}
+              <Link to={`/entities/${old.slug}`} className="text-accent hover:underline">
+                {old.name}
+              </Link>
+              .
+            </p>
+          ))}
+        </div>
+
+        <div className="flex flex-col gap-2 text-xs sm:items-end">
+          {reg && (
+            <p className={clsx("num", age !== null && age > REVERIFY_DAYS ? "text-sev-high" : "text-tx-secondary")}>
+              Checked {absDate(reg.last_verified_at)}
+              {age !== null && age > REVERIFY_DAYS && " · may be out of date"}
+            </p>
+          )}
+          {reg && reg.confidence !== "high" && (
+            <ConfidenceBadge confidence={reg.confidence} notes={reg.confidence_notes} />
+          )}
+          <span className="flex flex-wrap items-center gap-3">
+            {source && (
+              <a
+                href={source}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-accent hover:underline"
+              >
+                Official source <ExternalLink aria-hidden className="h-3 w-3" />
+              </a>
+            )}
+            <CopyLink />
+          </span>
         </div>
       </div>
 
-      <div className="mt-5 grid gap-4 lg:grid-cols-3">
-        <aside className="card h-fit space-y-4 p-4 lg:order-2">
+      {reg && reg.milestones.length > 0 && <MilestoneStrip milestones={reg.milestones} />}
+
+      <div className="mt-4 grid items-start gap-3 lg:grid-cols-3">
+        <div className="grid gap-3 lg:col-span-2">
+          <Panel title="Timeline: what changed" marker="changes" meta={e.events.length || undefined}>
+            {e.events.length === 0 ? (
+              <EmptyState title="No recorded changes yet" />
+            ) : (
+              <ol>
+                {e.events.map((ev) => (
+                  <li key={ev.id} className="flex gap-3 border-b border-bd-subtle px-3.5 py-2.5 last:border-b-0">
+                    <span className="w-12 shrink-0 pt-px">
+                      <DateCell date={ev.occurred_at} alwaysYear />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-detail text-tx-secondary">{ev.summary}</span>
+                      {ev.previous_value && ev.new_value && (
+                        <span className="num mt-0.5 block text-meta text-tx-muted">
+                          {ev.previous_value} → {ev.new_value}
+                        </span>
+                      )}
+                    </span>
+                    <span className="shrink-0">
+                      <EventChip type={ev.event_type} />
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </Panel>
+
+          {related.length > 0 && (
+            <Panel title="Collected items that mention it" marker="feed" meta={related.length}>
+              {related.map((item) => (
+                <ItemRow key={item.id} item={item} onOpen={setOpenItem} />
+              ))}
+            </Panel>
+          )}
+        </div>
+
+        <aside className="grid gap-3">
           {reg && (
-            <>
-              <div>
-                <h2 className="meta-label mb-2">Regulation record</h2>
-                <dl className="space-y-1.5 text-xs">
-                  {[
-                    ["Government level", titleCase(reg.government_level)],
-                    ["Status", reg.status_label ?? titleCase(reg.status)],
-                    ["Introduced", shortDate(reg.introduced_at)],
-                    ["Passed", shortDate(reg.passed_at)],
-                    ["Signed", shortDate(reg.signed_at)],
-                    ["Effective", shortDate(reg.effective_at)],
-                    ["Compliance deadline", shortDate(reg.compliance_deadline)],
-                    ["Last amended", shortDate(reg.last_amended_at)],
-                    ["Enforcement", reg.enforcement_authority ?? "—"],
-                  ].map(([k, v]) => (
-                    <div key={k} className="flex justify-between gap-3">
-                      <dt className="text-tx-muted">{k}</dt>
-                      <dd className="text-right text-tx-secondary">{v}</dd>
-                    </div>
+            <Panel title="The record" marker="laws" headingLevel={2}>
+              <dl className="px-3.5 py-2 text-detail">
+                <Field label="Government level" value={titleCase(reg.government_level)} />
+                <Field label="Status" value={reg.status_label ?? titleCase(reg.status)} />
+                <Field label="Introduced" value={absDate(reg.introduced_at)} />
+                <Field label="Passed" value={absDate(reg.passed_at)} />
+                <Field label="Signed" value={absDate(reg.signed_at)} />
+                <Field label="Effective" value={absDate(reg.effective_at)} />
+                <Field label="Compliance deadline" value={absDate(reg.compliance_deadline)} />
+                <Field label="Last amended" value={absDate(reg.last_amended_at)} />
+                <Field label="Enforcement" value={reg.enforcement_authority ?? "—"} />
+              </dl>
+              <SideText label="Penalties" text={reg.penalties} />
+              <SideText label="Covered entities" text={reg.covered_entities} />
+              <SideText label="Notes" text={reg.applicability_notes} />
+              {reg.confidence_notes.length > 0 && (
+                <div className="border-t border-bd-subtle px-3.5 py-3 text-detail text-sev-high">
+                  {reg.confidence_notes.map((note) => (
+                    <p key={note}>
+                      Confidence lowered from {reg.curated_confidence}: {note}
+                    </p>
                   ))}
-                </dl>
-              </div>
-              {reg.penalties && (
-                <div>
-                  <h3 className="meta-label mb-1">Penalties</h3>
-                  <p className="text-xs text-tx-secondary">{reg.penalties}</p>
                 </div>
               )}
-              {reg.covered_entities && (
-                <div>
-                  <h3 className="meta-label mb-1">Covered entities</h3>
-                  <p className="text-xs text-tx-secondary">{reg.covered_entities}</p>
-                </div>
-              )}
-              <div className="border-t border-bd-subtle pt-3">
-                <div className="flex items-center justify-between">
-                  <ConfidenceBadge confidence={reg.confidence} notes={reg.confidence_notes} />
-                  <span
-                    className={`font-mono text-meta ${
-                      verifiedAge !== null && verifiedAge > STALE_DAYS ? "text-sev-watch" : "text-tx-muted"
-                    }`}
-                    title="When the structured legal fields were last checked against official sources"
-                  >
-                    Verified {shortDate(reg.last_verified_at)}
-                    {verifiedAge !== null && verifiedAge > STALE_DAYS && " — may be stale"}
-                  </span>
-                </div>
-                {reg.confidence_notes.length > 0 && (
-                  <ul className="mt-2 space-y-1 text-meta text-sev-watch">
-                    {reg.confidence_notes.map((note) => (
-                      <li key={note}>Confidence lowered from {reg.curated_confidence}: {note}</li>
-                    ))}
-                  </ul>
-                )}
-                <a
-                  href={reg.official_source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 inline-flex items-center gap-1 text-xs text-accent hover:underline"
-                >
-                  Official source <ExternalLink aria-hidden className="h-3 w-3" />
-                </a>
-                {reg.applicability_notes && (
-                  <p className="mt-2 text-meta text-tx-muted">{reg.applicability_notes}</p>
-                )}
-              </div>
-            </>
+            </Panel>
           )}
 
           {std && (
-            <>
-              <div>
-                <h2 className="meta-label mb-2">Standard record</h2>
-                <dl className="space-y-1.5 text-xs">
-                  {[
-                    ["Publisher", std.publisher],
-                    ["Version", std.version ?? "—"],
-                    ["Status", titleCase(std.status)],
-                    ["Published", shortDate(std.published_at)],
-                    ["Last updated", shortDate(std.last_updated_at)],
-                    ["Change magnitude", std.change_magnitude ? titleCase(std.change_magnitude) : "—"],
-                  ].map(([k, v]) => (
-                    <div key={k} className="flex justify-between gap-3">
-                      <dt className="text-tx-muted">{k}</dt>
-                      <dd className="text-right text-tx-secondary">{v}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </div>
+            <Panel title="The record" marker="standards">
+              <dl className="px-3.5 py-2 text-detail">
+                <Field label="Publisher" value={std.publisher} />
+                <Field label="Version" value={std.version ?? "—"} />
+                <Field label="Status" value={titleCase(std.status)} />
+                <Field label="Published" value={absDate(std.published_at)} />
+                <Field label="Last updated" value={absDate(std.last_updated_at)} />
+              </dl>
               {std.related_framework_slugs.length > 0 && (
-                <div>
-                  <h3 className="meta-label mb-1">Related frameworks</h3>
-                  <ul className="space-y-1">
+                <div className="border-t border-bd-subtle px-3.5 py-3">
+                  <h3 className="text-xs font-semibold text-tx-secondary">Related frameworks</h3>
+                  <ul className="mt-1 space-y-0.5">
                     {std.related_framework_slugs.map((s) => (
                       <li key={s}>
-                        <Link to={`/entities/${s}`} className="text-xs text-accent hover:underline">
-                          {s.replace(/-/g, " ").toUpperCase()}
+                        <Link to={`/entities/${s}`} className="text-detail text-accent hover:underline">
+                          {shortName(s.replace(/-/g, " ").toUpperCase())}
                         </Link>
                       </li>
                     ))}
                   </ul>
                 </div>
               )}
-              <a
-                href={std.official_source_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 border-t border-bd-subtle pt-3 text-xs text-accent hover:underline"
-              >
-                Official source <ExternalLink aria-hidden className="h-3 w-3" />
-              </a>
-            </>
-          )}
-
-          {!reg && !std && e.official_url && (
-            <a
-              href={e.official_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-accent hover:underline"
-            >
-              Official source <ExternalLink aria-hidden className="h-3 w-3" />
-            </a>
+            </Panel>
           )}
         </aside>
-
-        <div className="space-y-4 lg:col-span-2 lg:order-1">
-          {/* Timeline (§5.3) */}
-          <section className="card p-5">
-            <h2 className="meta-label mb-4 !text-tx-secondary">Timeline — what changed</h2>
-            {e.events.length === 0 ? (
-              <EmptyState title="No recorded events yet" detail="Changes to this entity will appear here." />
-            ) : (
-              <ol className="relative space-y-5 border-l border-bd-strong pl-5">
-                {e.events.map((ev) => (
-                  <li key={ev.id} className="relative">
-                    <span
-                      aria-hidden
-                      className={`absolute -left-[26px] top-1 h-2.5 w-2.5 rounded-full border-2 border-bg-surface ${
-                        ev.event_type === "status_change" ? "bg-sev-critical" : "bg-accent"
-                      }`}
-                    />
-                    <p className="font-mono text-meta text-tx-muted">{shortDate(ev.occurred_at)}</p>
-                    <p className="mt-0.5 text-sm text-tx-primary">
-                      <span className="meta-label mr-2">{titleCase(ev.event_type)}</span>
-                      {ev.previous_value && ev.new_value && (
-                        <span className="font-mono text-xs text-tx-secondary">
-                          {ev.previous_value} → {ev.new_value}
-                        </span>
-                      )}
-                    </p>
-                    <p className="mt-0.5 text-xs text-tx-secondary">{ev.summary}</p>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </section>
-
-          {/* Linked evidence items */}
-          <section className="card overflow-hidden">
-            <header className="border-b border-bd-subtle px-4 py-2.5">
-              <h2 className="meta-label !text-tx-secondary">Related intelligence</h2>
-            </header>
-            {items.isPending ? (
-              <CardSkeleton rows={2} />
-            ) : items.data && items.data.items.length > 0 ? (
-              items.data.items.map((item) => <ItemRow key={item.id} item={item} onOpen={setOpenItem} />)
-            ) : (
-              <EmptyState title="No linked items yet" detail="Ingested items mentioning this entity will appear here." />
-            )}
-          </section>
-        </div>
       </div>
 
       <ItemDetailDrawer item={openItem} onClose={() => setOpenItem(null)} />

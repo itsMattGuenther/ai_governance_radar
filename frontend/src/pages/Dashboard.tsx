@@ -103,7 +103,8 @@ export default function Dashboard() {
 
   const recordsLoading = laws.isPending || standards.isPending;
   const recordsError = laws.isError ? laws : standards.isError ? standards : null;
-  const allSources = since ? `/items?${new URLSearchParams({ since })}` : "/items";
+  // The tile counts every tier, so it opens the All tab with the same window.
+  const allSources = since ? `/items?${new URLSearchParams({ since, tier: "all" })}` : "/items?tier=all";
   const others = summary.data
     ? [
         ...Object.entries(summary.data.others).map(([c, n]) => counted(n, c)),

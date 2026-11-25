@@ -1,25 +1,24 @@
-/** Incidents & Risks (§9): recent reports from monitored sources (timeliness) plus
- * curated, analyzed incident records (depth). Default ordering is recency. */
+/** Incidents: the curated write-ups first (the original analysis), then reports from
+ * incident databases, one row per incident with its reports a click away. */
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { ChevronDown, ExternalLink } from "lucide-react";
+import clsx from "clsx";
 
 import { ItemDetailDrawer } from "../components/items/ItemDetailDrawer";
-import { ItemRow } from "../components/items/ItemRow";
+import { itemDate } from "../components/items/ItemRow";
 import { PageHeader } from "../components/layout/PageHeader";
-import { ConfidenceBadge, DemoBadge, FactStatusBadge, SeverityBadge } from "../components/ui/Badge";
-import { IncidentIcon } from "../components/ui/IncidentIcon";
+import { DemoBadge, SeverityBadge } from "../components/ui/Badge";
 import { InfoTip } from "../components/ui/InfoTip";
+import { Panel, PanelLink } from "../components/ui/Panel";
+import { DateCell, Row } from "../components/ui/Row";
 import { CardSkeleton, EmptyState, ErrorState } from "../components/ui/States";
-import { useIncidents, useItems } from "../lib/api";
+import { useClusterMembers, useIncidents, useItems } from "../lib/api";
+import { CONFIDENCE_EXPLAINER, FACT_STATUS_DEFS, SEVERITY_DEFS } from "../lib/definitions";
 import { STATIC_MODE } from "../lib/env";
-import { CONFIDENCE_EXPLAINER, SEVERITY_DEFS } from "../lib/definitions";
-import { relativeTime, titleCase } from "../lib/format";
-import { T } from "../lib/tokens";
-
-const severityColor = (s: string) =>
-  s === "critical" ? T.critical : s === "high" ? T.high : s === "medium" ? T.watch : T.info;
-import type { ItemOut } from "../lib/types";
+import { absDate, categoryLabel, titleCase } from "../lib/format";
+import type { IncidentOut, ItemOut } from "../lib/types";
 
 const SEVERITIES = ["critical", "high", "medium", "low"];
 const CATEGORIES = [
@@ -27,10 +26,9 @@ const CATEGORIES = [
   "hallucination_harm", "excessive_agency", "agent_failure", "model_theft",
   "data_poisoning", "ai_cyberattack", "privacy", "other",
 ];
+const REPORTS_SHOWN = 10;
 
-const select = "rounded-ctl border border-bd-subtle bg-bg-surface px-2 py-1.5 text-xs text-tx-primary";
-
-function SeverityLegend() {
+function RatingsHelp() {
   return (
     <InfoTip
       align="right"
@@ -47,10 +45,96 @@ function SeverityLegend() {
         </span>
       }
     >
-      <span className="cursor-help text-[11px] text-tx-muted underline decoration-dotted underline-offset-2 hover:text-tx-secondary">
+      <span className="cursor-help text-xs text-tx-secondary underline decoration-dotted underline-offset-2 hover:text-tx-primary">
         What do these ratings mean?
       </span>
     </InfoTip>
+  );
+}
+
+/** Fact status as a word: quiet unless it warns (alleged, disputed). */
+function FactStatus({ status }: { status: string }) {
+  const warns = status === "alleged" || status === "disputed";
+  return (
+    <span title={FACT_STATUS_DEFS[status]} className={clsx(warns ? "font-medium text-sev-high" : "text-tx-secondary")}>
+      {warns && <span aria-hidden>▲ </span>}
+      {titleCase(status)}
+    </span>
+  );
+}
+
+/** "When it happened", or when it was reported if that is all the record has. */
+function incidentDate(inc: IncidentOut): { date: string; reported: boolean } {
+  return inc.occurred_at ? { date: inc.occurred_at, reported: false } : { date: inc.reported_at, reported: true };
+}
+
+function ReportRow({ item, onOpen }: { item: ItemOut; onOpen: (item: ItemOut) => void }) {
+  const [open, setOpen] = useState(false);
+  const members = useClusterMembers(open ? item.id : null);
+  const listId = useId();
+  return (
+    <li className="border-b border-bd-subtle last:border-b-0">
+      <div className="flex items-start gap-3 px-3.5 py-2.5">
+        <span className="w-12 shrink-0 pt-px">
+          <DateCell date={itemDate(item)} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <button
+            type="button"
+            onClick={() => onOpen(item)}
+            className="block text-left text-row font-medium text-tx-primary hover:text-accent"
+          >
+            {item.title}
+          </button>
+          <span className="mt-0.5 block text-detail text-tx-secondary">
+            {[item.source_name, item.categories[0] ? categoryLabel(item.categories[0]) : null].filter(Boolean).join(" · ")}
+          </span>
+        </span>
+        {item.is_demo ? (
+          <DemoBadge show />
+        ) : (
+          item.cluster_size > 1 && (
+            <button
+              type="button"
+              aria-expanded={open}
+              aria-controls={listId}
+              onClick={() => setOpen(!open)}
+              className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-ctl border border-bd-subtle px-[7px] py-1 text-meta font-medium leading-none text-tx-secondary hover:border-bd-strong hover:text-tx-primary"
+            >
+              {item.cluster_size} reports
+              <ChevronDown aria-hidden className={clsx("h-3 w-3 transition-transform", open && "rotate-180")} />
+            </button>
+          )
+        )}
+      </div>
+      {open && (
+        <div id={listId} className="border-t border-bd-subtle bg-bg-base/40 py-1 pl-[4.75rem] pr-3.5">
+          {members.isPending ? (
+            <CardSkeleton rows={2} />
+          ) : members.isError ? (
+            <ErrorState detail={String(members.error)} onRetry={() => members.refetch()} />
+          ) : (
+            <ul>
+              {[...(members.data ?? [])]
+                .sort((a, b) => itemDate(b).localeCompare(itemDate(a)))
+                .map((m) => (
+                  <li key={m.id} className="flex gap-3 py-1.5 text-detail">
+                    <span className="num w-24 shrink-0 whitespace-nowrap text-tx-muted">{absDate(itemDate(m))}</span>
+                    <a
+                      href={m.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="min-w-0 text-tx-secondary hover:text-accent"
+                    >
+                      {m.title} <ExternalLink aria-hidden className="inline h-3 w-3" />
+                    </a>
+                  </li>
+                ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </li>
   );
 }
 
@@ -62,14 +146,13 @@ export default function Incidents() {
   const category = params.get("category") ?? "";
   const sort = (params.get("sort") ?? "newest") as "newest" | "severity";
 
-  const incidents = useIncidents({
-    severity: severity || undefined,
-    category: category || undefined,
-    sort,
-  });
-  const reports = useItems({
-    category: "incident", sort: "newest", limit: 8, collapse_clusters: true,
-  });
+  const incidents = useIncidents({ severity: severity || undefined, category: category || undefined, sort });
+  // "Newest first" follows the date each row shows (when it happened, else reported).
+  const curated =
+    sort === "newest" && incidents.data
+      ? [...incidents.data].sort((a, b) => incidentDate(b).date.localeCompare(incidentDate(a).date))
+      : incidents.data;
+  const reports = useItems({ category: "incident", sort: "newest", limit: REPORTS_SHOWN, collapse_clusters: true });
 
   const setFilter = (key: string, value: string) => {
     const next = new URLSearchParams(params);
@@ -81,74 +164,49 @@ export default function Incidents() {
   return (
     <>
       <PageHeader
-        title="Incidents & Risks"
-        detail="Live reports from monitored incident sources, plus analyzed incident records. Fact status is always labelled; details are never fabricated."
-        actions={<SeverityLegend />}
+        title="Incidents"
+        detail="Curated write-ups with cited sources, then reports collected from incident databases. Fact status is always labelled."
+        actions={<RatingsHelp />}
       />
 
-      {/* Recent reports — the timeliness half */}
-      <section className="card mb-5">
-        <header className="flex items-center justify-between border-b border-bd-subtle px-4 py-2.5">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-tx-primary">
-            <span aria-hidden className="live-dot" />
-            Recent incident reports
-          </h2>
-          <Link to="/items?category=incident" className="text-xs text-accent hover:underline">
-            View all reports
-          </Link>
-        </header>
-        {reports.isPending ? (
-          <CardSkeleton rows={3} />
-        ) : reports.isError ? (
-          <ErrorState detail={String(reports.error)} onRetry={() => reports.refetch()} />
-        ) : reports.data.items.length === 0 ? (
-          <EmptyState
-            title="No incident reports collected yet"
-            detail={STATIC_MODE ? "No incident reports collected recently." : "Enable the AI Incident Database source in Settings, then run ingestion."}
-          />
-        ) : (
-          reports.data.items.map((item) => (
-            <ItemRow key={item.id} item={item} onOpen={setOpenItem} />
-          ))
-        )}
-      </section>
-
-      {/* Curated records — the depth half */}
-      <h2 className="mb-2 text-sm font-semibold text-tx-primary">Analyzed incident records</h2>
-      <p className="mb-3 text-xs text-tx-muted">
-        Curated write-ups with cited sources, governance and security analysis, mapped to frameworks.
-      </p>
-
-      <div className="mb-4 flex flex-wrap gap-2">
-        <label className="flex items-center gap-1.5 text-xs text-tx-secondary">
-          <span className="meta-label">Sort</span>
-          <select value={sort} onChange={(e) => setFilter("sort", e.target.value)} className={select}>
+      <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <label className="flex items-center gap-2 text-xs text-tx-secondary">
+          Sort
+          <select value={sort} onChange={(e) => setFilter("sort", e.target.value)} className="control">
             <option value="newest">Newest first</option>
             <option value="severity">Most severe first</option>
           </select>
         </label>
-        <label className="flex items-center gap-1.5 text-xs text-tx-secondary">
-          <span className="meta-label">Severity</span>
-          <select value={severity} onChange={(e) => setFilter("severity", e.target.value)} className={select}>
+        <label className="flex items-center gap-2 text-xs text-tx-secondary">
+          Severity
+          <select value={severity} onChange={(e) => setFilter("severity", e.target.value)} className="control">
             <option value="">All</option>
-            {SEVERITIES.map((s) => <option key={s} value={s}>{titleCase(s)}</option>)}
+            {SEVERITIES.map((s) => (
+              <option key={s} value={s}>
+                {titleCase(s)}
+              </option>
+            ))}
           </select>
         </label>
-        <label className="flex items-center gap-1.5 text-xs text-tx-secondary">
-          <span className="meta-label">Category</span>
-          <select value={category} onChange={(e) => setFilter("category", e.target.value)} className={select}>
+        <label className="flex items-center gap-2 text-xs text-tx-secondary">
+          Category
+          <select value={category} onChange={(e) => setFilter("category", e.target.value)} className="control">
             <option value="">All</option>
-            {CATEGORIES.map((c) => <option key={c} value={c}>{titleCase(c)}</option>)}
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {titleCase(c)}
+              </option>
+            ))}
           </select>
         </label>
       </div>
 
-      {incidents.isPending ? (
-        <div className="card"><CardSkeleton rows={5} /></div>
-      ) : incidents.isError ? (
-        <div className="card"><ErrorState detail={String(incidents.error)} onRetry={() => incidents.refetch()} /></div>
-      ) : incidents.data.length === 0 ? (
-        <div className="card">
+      <Panel title="Curated write-ups" marker="incidents" meta={incidents.data?.length} className="mb-3">
+        {incidents.isPending ? (
+          <CardSkeleton rows={5} />
+        ) : incidents.isError ? (
+          <ErrorState detail={String(incidents.error)} onRetry={() => incidents.refetch()} />
+        ) : incidents.data.length === 0 ? (
           <EmptyState
             title="No incidents match these filters"
             action={
@@ -157,36 +215,97 @@ export default function Incidents() {
               </button>
             }
           />
-        </div>
-      ) : (
-        <ul className="space-y-3">
-          {incidents.data.map((inc) => (
-            <li key={inc.id}>
-              <Link to={`/incidents/${inc.id}`} className="card hover-card flex gap-3.5 p-4">
-                <IncidentIcon category={inc.category} tone={severityColor(inc.severity)} size={34} />
-                <span className="min-w-0 flex-1">
-                  <span className="flex flex-wrap items-center gap-1.5">
-                    <SeverityBadge severity={inc.severity} />
-                    <FactStatusBadge status={inc.fact_status} />
-                    <ConfidenceBadge confidence={inc.confidence} />
-                    <DemoBadge show={inc.is_demo} />
-                    <span className="ml-auto font-mono text-meta text-tx-muted">
-                      {relativeTime(inc.reported_at)}
-                    </span>
-                  </span>
-                  <span className="mt-2 block text-sm font-semibold text-tx-primary">{inc.title}</span>
-                  <span className="mt-1 line-clamp-2 block text-xs text-tx-secondary">{inc.what_happened}</span>
-                  <span className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-meta text-tx-muted">
-                    <span>{titleCase(inc.category)}</span>
-                    {inc.system_vendor && <span>{inc.system_vendor}</span>}
-                    {inc.geography && <span>{inc.geography}</span>}
-                  </span>
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+        ) : (
+          <>
+            <table className="hidden w-full border-collapse text-left md:table">
+              <thead>
+                <tr className="border-b border-bd-subtle bg-bg-raised">
+                  {["Date", "Incident", "Severity", "Fact status"].map((h) => (
+                    <th key={h} scope="col" className="whitespace-nowrap px-3.5 py-2 text-xs font-semibold text-tx-secondary">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {curated!.map((inc) => {
+                  const when = incidentDate(inc);
+                  return (
+                    <tr key={inc.id} className="border-b border-bd-subtle align-top last:border-b-0 hover:bg-bg-raised">
+                      <td className="whitespace-nowrap px-3.5 py-2.5 text-detail">
+                        <span className="num text-tx-primary">{absDate(when.date)}</span>
+                        {when.reported && <span className="block text-meta text-tx-muted">reported</span>}
+                      </td>
+                      <td className="px-3.5 py-2.5">
+                        <Link to={`/incidents/${inc.id}`} className="text-row font-medium text-tx-primary hover:text-accent">
+                          {inc.title}
+                        </Link>
+                        <DemoBadge show={inc.is_demo} />
+                        <p className="mt-0.5 line-clamp-2 text-detail text-tx-secondary">{inc.what_happened}</p>
+                        <p className="mt-0.5 text-meta text-tx-muted">
+                          {[titleCase(inc.category), inc.system_vendor, inc.geography].filter(Boolean).join(" · ")}
+                        </p>
+                      </td>
+                      <td className="whitespace-nowrap px-3.5 py-2.5">
+                        <SeverityBadge severity={inc.severity} />
+                      </td>
+                      <td className="whitespace-nowrap px-3.5 py-2.5 text-detail">
+                        <FactStatus status={inc.fact_status} />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            <div className="md:hidden">
+              {curated!.map((inc) => {
+                const when = incidentDate(inc);
+                return (
+                  <Row
+                    key={inc.id}
+                    to={`/incidents/${inc.id}`}
+                    lead={<DateCell date={when.date} alwaysYear />}
+                    leadWidth="w-12"
+                    title={inc.title}
+                    detail={
+                      <>
+                        {titleCase(inc.category)} · <FactStatus status={inc.fact_status} />
+                        {when.reported && " · date reported"}
+                      </>
+                    }
+                    chip={<SeverityBadge severity={inc.severity} />}
+                    chipBelowOnPhone
+                  />
+                );
+              })}
+            </div>
+          </>
+        )}
+      </Panel>
+
+      <Panel
+        title="Reports from incident databases"
+        marker="feed"
+        meta={reports.data ? `${reports.data.items.length} of ${reports.data.total}` : undefined}
+        action={<PanelLink to="/items?tier=2&category=incident">All reports →</PanelLink>}
+      >
+        {reports.isPending ? (
+          <CardSkeleton rows={3} />
+        ) : reports.isError ? (
+          <ErrorState detail={String(reports.error)} onRetry={() => reports.refetch()} />
+        ) : reports.data.items.length === 0 ? (
+          <EmptyState
+            title="No incident reports collected yet"
+            detail={STATIC_MODE ? "Nothing collected recently." : "Enable the AI Incident Database source in Settings, then run ingestion."}
+          />
+        ) : (
+          <ul>
+            {reports.data.items.map((item) => (
+              <ReportRow key={item.id} item={item} onOpen={setOpenItem} />
+            ))}
+          </ul>
+        )}
+      </Panel>
 
       <ItemDetailDrawer item={openItem} onClose={() => setOpenItem(null)} />
     </>

@@ -370,7 +370,7 @@ error states + accessibility reviewed. Update this file and CHANGELOG.md as you 
   restore).
 
 ### T-035 Mobile layout pass
-- **Status:** TODO — folded into T-044 and T-046
+- **Status:** DONE 2026-11-25 — completed by T-044 and T-046
 - **Description:** KPI cards overflow a 390px viewport (≈9px horizontal scroll);
   Regulatory Radar hides Status and Effective columns on phones. Cards instead of the
   table below `sm`; KPI row that fits.
@@ -493,7 +493,7 @@ DESIGN_SYSTEM.md. T-035, T-036 and T-037 are folded in below.
   panel has loading, empty and error states; Home fits a phone without overlap.
 
 ### T-046 Page passes
-- **Status:** TODO
+- **Status:** DONE 2026-11-25 · Laws sorted by next date with Next date and Checked columns, Colorado SB 24-205 nested under SB 26-189, stacked phone rows, compact flat map; record page milestone strip, credentials beside the title, copy link; Standards table; Incidents write-ups first with expandable report groups; All Sources tier tabs (plus All, so Home's count equals its list) with impact and confidence columns
 - **Description:** **Laws:** sort by next date, then latest change; a Next date column
   with a day count; confidence shown only below high, with the checked date in its
   place; a superseded law nested under its successor; stacked rows on phones; the

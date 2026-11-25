@@ -1,23 +1,21 @@
-/** Grouped search results (§28). */
+/** Search results (§28), grouped: tracked records, incidents, then collected items. */
 
 import { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 import { ItemDetailDrawer } from "../components/items/ItemDetailDrawer";
 import { ItemRow } from "../components/items/ItemRow";
 import { PageHeader } from "../components/layout/PageHeader";
 import { SeverityBadge, StatusPill } from "../components/ui/Badge";
+import { Jurisdiction } from "../components/ui/Flag";
+import { Panel } from "../components/ui/Panel";
+import { DateCell, Row } from "../components/ui/Row";
 import { CardSkeleton, EmptyState, ErrorState } from "../components/ui/States";
 import { useSearch } from "../lib/api";
-import { titleCase } from "../lib/format";
+import { categoryLabel, titleCase } from "../lib/format";
 import type { ItemOut } from "../lib/types";
 
 const GROUP_ORDER = ["regulation", "standard", "incident", "security", "news", "event", "training", "research", "ranking"];
-const GROUP_LABELS: Record<string, string> = {
-  regulation: "REGULATIONS", standard: "STANDARDS", incident: "INCIDENTS",
-  security: "SECURITY", news: "NEWS", event: "EVENTS", training: "TRAINING",
-  research: "RESEARCH", ranking: "RANKINGS",
-};
 
 export default function SearchResults() {
   const [params] = useSearchParams();
@@ -27,94 +25,89 @@ export default function SearchResults() {
 
   if (!q) {
     return (
-      <div className="card">
-        <EmptyState title="Type a query in the search bar" detail="Search spans items, entities, and incidents." />
-      </div>
+      <>
+        <PageHeader title="Search" />
+        <div className="card">
+          <EmptyState title="Type a search above" detail="Press / anywhere to jump to the search box." />
+        </div>
+      </>
     );
   }
-  if (search.isPending) return <div className="card"><CardSkeleton rows={6} /></div>;
+  if (search.isPending)
+    return (
+      <div className="card">
+        <CardSkeleton rows={6} />
+      </div>
+    );
   if (search.isError)
-    return <div className="card"><ErrorState detail={String(search.error)} onRetry={() => search.refetch()} /></div>;
+    return (
+      <div className="card">
+        <ErrorState detail={String(search.error)} onRetry={() => search.refetch()} />
+      </div>
+    );
 
   const { items, entities, incidents } = search.data;
   const grouped = GROUP_ORDER.map((g) => ({
     key: g,
     items: items.filter((i) => (i.categories[0] ?? "news") === g),
   })).filter((g) => g.items.length > 0);
-
   const total = items.length + entities.length + incidents.length;
 
   return (
     <>
-      <PageHeader title={`Search: “${q}”`} detail={`${total} results`} />
+      <PageHeader title={`Search: “${q}”`} detail={`${total} result${total === 1 ? "" : "s"}`} />
 
       {total === 0 ? (
         <div className="card">
           <EmptyState
             title="No results"
-            detail="Try fewer or different terms — search covers titles, excerpts, entities, jurisdictions, and incidents."
+            detail="Try fewer or different words. Search covers titles, excerpts, records and incidents."
           />
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="grid gap-3">
           {entities.length > 0 && (
-            <section className="card overflow-hidden">
-              <header className="border-b border-bd-subtle px-4 py-2.5">
-                <h2 className="meta-label !text-tx-secondary">Tracked entities</h2>
-              </header>
-              <ul>
-                {entities.map((e) => (
-                  <li key={e.slug} className="border-b border-bd-subtle last:border-b-0">
-                    <Link
-                      to={`/entities/${e.slug}`}
-                      className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-bg-raised/50"
-                    >
-                      <div>
-                        <p className="text-sm font-medium text-tx-primary">{e.name}</p>
-                        <p className="mt-0.5 text-meta text-tx-muted">
-                          {titleCase(e.entity_type)}{e.jurisdiction_code ? ` · ${e.jurisdiction_code}` : ""}
-                        </p>
-                      </div>
-                      {e.current_status && (
-                        <StatusPill
-                          status={e.current_status}
-                          kind={e.entity_type === "regulation" ? "regulation" : "standard"}
-                        />
-                      )}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
+            <Panel title="Tracked records" marker="laws" meta={entities.length}>
+              {entities.map((e) => (
+                <Row
+                  key={e.slug}
+                  to={`/entities/${e.slug}`}
+                  leadWidth="w-[4.75rem]"
+                  lead={<Jurisdiction code={e.jurisdiction_code} />}
+                  title={e.name}
+                  detail={titleCase(e.entity_type)}
+                  chip={
+                    e.current_status ? (
+                      <StatusPill status={e.current_status} kind={e.entity_type === "regulation" ? "regulation" : "standard"} />
+                    ) : undefined
+                  }
+                />
+              ))}
+            </Panel>
           )}
 
           {incidents.length > 0 && (
-            <section className="card overflow-hidden">
-              <header className="border-b border-bd-subtle px-4 py-2.5">
-                <h2 className="meta-label !text-tx-secondary">Incidents</h2>
-              </header>
-              <ul>
-                {incidents.map((inc) => (
-                  <li key={inc.id} className="border-b border-bd-subtle last:border-b-0">
-                    <Link to={`/incidents/${inc.id}`} className="block px-4 py-3 transition-colors hover:bg-bg-raised/50">
-                      <div className="flex items-center gap-2">
-                        <SeverityBadge severity={inc.severity} />
-                        <p className="text-sm font-medium text-tx-primary">{inc.title}</p>
-                      </div>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
+            <Panel title="Incidents" marker="incidents" meta={incidents.length}>
+              {incidents.map((inc) => (
+                <Row
+                  key={inc.id}
+                  to={`/incidents/${inc.id}`}
+                  lead={<DateCell date={inc.occurred_at ?? inc.reported_at} alwaysYear />}
+                  leadWidth="w-12"
+                  title={inc.title}
+                  detail={titleCase(inc.category)}
+                  chip={<SeverityBadge severity={inc.severity} />}
+                />
+              ))}
+            </Panel>
           )}
 
           {grouped.map((g) => (
-            <section key={g.key} className="card overflow-hidden">
-              <header className="border-b border-bd-subtle px-4 py-2.5">
-                <h2 className="meta-label !text-tx-secondary">{GROUP_LABELS[g.key]}</h2>
-              </header>
-              {g.items.map((item) => <ItemRow key={item.id} item={item} onOpen={setOpenItem} />)}
-            </section>
+            <Panel key={g.key} title={`Collected: ${categoryLabel(g.key)}`} marker="feed" meta={g.items.length}>
+              {g.items.map((item) => (
+                <ItemRow key={item.id} item={item} onOpen={setOpenItem} />
+              ))}
+            </Panel>
           ))}
         </div>
       )}
