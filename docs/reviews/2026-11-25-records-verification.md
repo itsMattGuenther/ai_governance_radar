@@ -18,6 +18,11 @@ claim, and missing timeline events.
   articles were used only to find leads. A change marked *secondary* below has no
   primary confirmation and is proposed at lower confidence.
 - No reviewer edited the data. Every change below needs the owner's approval.
+- Three headline findings were re-read at the source by hand:
+  - NYC Legistar shows "Returned Unsigned by Mayor", enacted 12/11/2021.
+  - Colorado's bill page shows SB 26-189 signed 05/14/2026.
+  - The Commission's AI Act page gives 2 December 2027 and 2 August 2028 for
+    high-risk rules.
 
 ## Summary
 
@@ -29,7 +34,7 @@ claim, and missing timeline events.
 | NYC Local Law 144 | **Material** | `signed_at` is wrong: returned unsigned by the Mayor, enacted without signature |
 | Utah AI Policy Act | **Material** | 2024 disclosure duties replaced in 2025 (SB 226); amended again in 2026 (HB 320); repeal scheduled 2027-07-01 |
 | Texas TRAIGA | **Material** | Social-scoring and biometric bans apply to government entities only, not businesses |
-| Australia Voluntary AI Safety Standard | **Material** | Evolved into "Guidance for AI Adoption" (2025-10-21); the description of mandatory guardrails is out of date |
+| Australia Voluntary AI Safety Standard | **Material** | The government says "Guidance for AI Adoption" (2025-10-21) evolves it; the description of mandatory guardrails is out of date |
 | OWASP Top 10 for LLM Applications | **Material** | Current edition is 2026 (2026-08-03), not 2025 |
 | NYC MyCity chatbot (incident) | **Material** | Says the city kept it online; the city took it down 2026-02-04 |
 | California SB 53 | Minor | Penalties and covered entities can be stated precisely; add passage events |
@@ -80,6 +85,10 @@ session law https://leg.colorado.gov/laws/session-laws/SB26-189/131/download, do
 https://www.courtlistener.com/docket/73171074/x-ai-llc-v-weiser/, https://coag.gov/ai/
 - `status` signed → amended. `status_label` → "Repealed and reenacted by SB 26-189
   (effective Jan 1, 2027); AG enforcement stayed by stipulated court order".
+- `effective_at` 2026-06-30 → empty. The act became law on 2024-05-17. The duties
+  were set to start 2026-06-30, but whether they ever applied is unresolved (see
+  `applicability_notes`), so the record should not show an effective date. The
+  regulations table would otherwise read "Effective Jun 30, 2026" for a repealed law.
 - `introduced_at` 2024-04-04 → 2024-04-10. `last_amended_at` 2025-08-28 → 2026-05-14.
 - `penalties` → deceptive trade practice under the Colorado Consumer Protection Act, up
   to $20,000 per violation. *The figure comes from the fiscal note, not the statute.*
@@ -222,13 +231,15 @@ Source: https://capitol.texas.gov/tlodocs/89R/billtext/html/HB00149F.HTM
   (unsupported).
 - Verified as-is: signed 2025-06-22, effective 2026-01-01, enforced by the AG.
 
-### Australia Voluntary AI Safety Standard: material (medium confidence)
+### Australia Voluntary AI Safety Standard: material
 Sources: https://www.industry.gov.au/publications/voluntary-ai-safety-standard,
 https://www.industry.gov.au/publications/guidance-for-ai-adoption,
 https://www.industry.gov.au/publications/national-ai-plan/keep-australians-safe
 (read through Wayback snapshots because the department's site timed out)
-- `status` final → superseded. The department says the new guidance "evolves" the
-  standard; "replaces" appears only in a law-firm note.
+- Keep `status: final`. The department says the new guidance "evolves" the standard;
+  only a law-firm note says it "replaces" it. Standards carry no confidence field, so
+  "superseded" can't be marked as less certain. State the department's own wording in
+  the description instead.
 - `description`: remove "mandatory guardrails under consideration". The National AI
   Plan (2025-12-02) builds on existing laws and sets up an AI Safety Institute.
 - New events:
@@ -425,6 +436,9 @@ Source: https://github.com/mitre-atlas/atlas-data/releases/tag/v2026.10
 - **Dates have no precision.** A known month can't be stored without inventing a day.
 - **A regulation can't be marked repealed or superseded**, and can't link to its
   successor.
+- **Standards, frameworks and incidents have no `last_verified_at`.** Only regulations
+  record when they were checked, so the 90-day re-check rule (DEC-031) can't reach the
+  others.
 - **Evidence is per record, not per field.** Each record has one official source URL,
   but its facts come from several documents (statute, court docket, fiscal note).
   Publishing needs per-field evidence or a source list per record.
