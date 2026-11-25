@@ -154,5 +154,21 @@ cloud calls except ingestion of the user's enabled sources. The app runs airgapp
 - `summaries` / `embeddings` tables are created in Phase 2, not reserved now.
 - item_clusters is the future hook for multi-source intelligence events and the
   Governance Graph.
-- A future public demo = static SPA hosting (Netlify, frontend-only per §46) + a
-  read-only API instance, or fully static JSON snapshots. Nothing in V1 depends on it.
+- The public instance is the fully static option (DEC-029, see §9).
+
+## 9. Public static site (DEC-029)
+
+```
+GitHub Actions, every 6 h (.github/workflows/publish.yml)
+  restore radar.db ← radar-data branch (single force-pushed commit)
+  → radar seed (upserts curated records) → radar ingest --tolerate-source-errors
+  → radar backup → push radar-data            (saved before the build can fail)
+  → npm run build:static (VITE_STATIC_DATA=1, base /<repo>/)  → frontend/dist-static/
+  → radar export-static → dist-static/data/*.json   (no demo data, ≤ 3,000 items)
+  → 404.html + top-level .html shells → GitHub Pages
+```
+
+In static mode `lib/api.ts` routes every query to `lib/staticData.ts`, which loads
+the JSON once and applies the same filters, sorting, and search as the API. Write
+surfaces (ingest, source edits, import/export) are not rendered. Nothing runs
+server-side, so the public site has no attack surface beyond static files.

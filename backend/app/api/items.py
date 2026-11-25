@@ -10,12 +10,13 @@ from app.api.helpers import category_like, item_to_out
 from app.core.db import get_db
 from app.models import Item, ItemEntity, Source
 from app.schemas.models import ItemOut, PageOut
+from app.services.item_query import EVENT_TIME, is_cluster_primary, is_page_change
 
 router = APIRouter(prefix="/items", tags=["items"])
 
 SORTS = {
     # Timeliness first: fall back to collection time when a feed omits a date.
-    "newest": func.coalesce(Item.published_at, Item.first_seen_at).desc(),
+    "newest": EVENT_TIME.desc(),
     "impact": Item.impact_score.desc(),
     "first_seen": Item.first_seen_at.desc(),
 }
@@ -31,6 +32,7 @@ def _base_query(
     since: datetime | None = None,
     until: datetime | None = None,
     include_demo: bool = True,
+    include_page_changes: bool = True,
 ):
     q = select(Item)
     if category:
@@ -48,11 +50,13 @@ def _base_query(
             ItemEntity.entity_id == entity_id
         )
     if since:
-        q = q.where(Item.first_seen_at >= since)
+        q = q.where(EVENT_TIME >= since)
     if until:
-        q = q.where(Item.first_seen_at <= until)
+        q = q.where(EVENT_TIME <= until)
     if not include_demo:
         q = q.where(Item.is_demo.is_(False))
+    if not include_page_changes:
+        q = q.where(~is_page_change())
     return q
 
 
@@ -67,6 +71,7 @@ def list_items(
     since: datetime | None = None,
     until: datetime | None = None,
     include_demo: bool = True,
+    include_page_changes: bool = True,
     collapse_clusters: bool = False,
     sort: str = Query(default="newest", pattern="^(impact|newest|first_seen)$"),
     offset: int = Query(default=0, ge=0),
@@ -74,21 +79,17 @@ def list_items(
     db: Session = Depends(get_db),
 ) -> PageOut:
     q = _base_query(category, jurisdiction, min_impact, confidence, source_id,
-                    entity_id, since, until, include_demo)
+                    entity_id, since, until, include_demo, include_page_changes)
     if collapse_clusters:
-        # keep unclustered items + cluster primaries only
-        from app.models import ItemCluster
-
-        primary_ids = select(ItemCluster.primary_item_id)
-        q = q.where((Item.cluster_id.is_(None)) | (Item.id.in_(primary_ids)))
+        q = q.where(is_cluster_primary())
 
     total = db.execute(select(func.count()).select_from(q.subquery())).scalar_one()
-    rows = db.execute(
+    rows: list[Item] = list(db.execute(
         q.options(joinedload(Item.source),
                   joinedload(Item.entity_links).joinedload(ItemEntity.entity))
         .order_by(SORTS[sort], Item.id.desc())
         .offset(offset).limit(limit)
-    ).unique().scalars().all()
+    ).unique().scalars().all())
 
     # Pre-compute cluster sizes in one query
     cluster_ids = [r.cluster_id for r in rows if r.cluster_id is not None]
@@ -98,7 +99,8 @@ def list_items(
             select(Item.cluster_id, func.count(Item.id))
             .where(Item.cluster_id.in_(cluster_ids)).group_by(Item.cluster_id)
         ).all():
-            sizes[cid] = count
+            if cid is not None:
+                sizes[cid] = count
 
     return PageOut(
         items=[item_to_out(db, r, sizes) for r in rows],

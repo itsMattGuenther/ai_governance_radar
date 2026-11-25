@@ -3,13 +3,15 @@
 
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { X } from "lucide-react";
 
 import { ItemDetailDrawer } from "../components/items/ItemDetailDrawer";
 import { ItemRow } from "../components/items/ItemRow";
 import { PageHeader } from "../components/layout/PageHeader";
 import { CardSkeleton, EmptyState, ErrorState } from "../components/ui/States";
 import { useItems, useSources } from "../lib/api";
-import { categoryLabel } from "../lib/format";
+import { STATIC_MODE } from "../lib/env";
+import { categoryLabel, shortDate } from "../lib/format";
 import type { ItemOut } from "../lib/types";
 
 const CATEGORIES = ["regulation", "standard", "incident", "security", "research", "news"];
@@ -26,6 +28,8 @@ export default function Items() {
   const jurisdiction = params.get("jurisdiction") ?? "";
   const sort = (params.get("sort") ?? "newest") as "newest" | "impact" | "first_seen";
   const includeDemo = params.get("include_demo") !== "false";
+  const includePageChanges = params.get("include_page_changes") !== "false";
+  const since = params.get("since") ?? "";
   const offset = Number(params.get("offset") ?? 0);
 
   const sources = useSources();
@@ -36,6 +40,8 @@ export default function Items() {
     source_id: sourceId ? Number(sourceId) : undefined,
     jurisdiction: jurisdiction || undefined,
     include_demo: includeDemo,
+    include_page_changes: includePageChanges,
+    since: since || undefined,
     collapse_clusters: true,
     sort,
     offset,
@@ -108,7 +114,7 @@ export default function Items() {
             {sources.data?.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         </label>
-        <label className="flex cursor-pointer items-center gap-1.5 text-xs text-tx-secondary">
+        {!STATIC_MODE && <label className="flex cursor-pointer items-center gap-1.5 text-xs text-tx-secondary">
           <input
             type="checkbox"
             checked={includeDemo}
@@ -116,7 +122,26 @@ export default function Items() {
             className="accent-accent"
           />
           Include demo data
+        </label>}
+        <label className="flex cursor-pointer items-center gap-1.5 text-xs text-tx-secondary">
+          <input
+            type="checkbox"
+            checked={includePageChanges}
+            onChange={(e) => setFilter("include_page_changes", e.target.checked ? "" : "false")}
+            className="accent-accent"
+          />
+          Include page-change alerts
         </label>
+        {since && (
+          <button
+            onClick={() => setFilter("since", "")}
+            aria-label={`Remove date filter: published since ${shortDate(since)}`}
+            className="flex items-center gap-1 rounded-ctl border border-accent/40 bg-accent/10 px-2 py-1 text-xs text-accent transition-colors hover:bg-accent/20"
+          >
+            Since {shortDate(since)}
+            <X aria-hidden className="h-3 w-3" />
+          </button>
+        )}
       </div>
 
       <div className="card">
@@ -127,7 +152,7 @@ export default function Items() {
         ) : query.data.items.length === 0 ? (
           <EmptyState
             title="No items match these filters"
-            detail="Adjust filters, or run ingestion from Settings to collect fresh intelligence."
+            detail={STATIC_MODE ? "Adjust or clear the filters." : "Adjust filters, or run ingestion from Settings to collect fresh intelligence."}
             action={
               <button onClick={() => setParams({}, { replace: true })} className="text-xs text-accent hover:underline">
                 Clear filters

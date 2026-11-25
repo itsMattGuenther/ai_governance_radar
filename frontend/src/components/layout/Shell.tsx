@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
+  Activity,
   AlertTriangle,
   BookOpenCheck,
   ChevronsLeft,
@@ -17,6 +18,9 @@ import {
 } from "lucide-react";
 import clsx from "clsx";
 
+import { useSnapshotMeta } from "../../lib/api";
+import { STATIC_MODE } from "../../lib/env";
+import { relativeTime } from "../../lib/format";
 import { RadarLogo } from "../ui/RadarLogo";
 
 const NAV = [
@@ -25,7 +29,9 @@ const NAV = [
   { to: "/standards", label: "Standards", icon: BookOpenCheck },
   { to: "/incidents", label: "Incidents & Risks", icon: AlertTriangle },
   { to: "/items", label: "All Sources", icon: Newspaper },
-  { to: "/settings", label: "Settings", icon: Settings },
+  STATIC_MODE
+    ? { to: "/sources", label: "Source Health", icon: Activity }
+    : { to: "/settings", label: "Settings", icon: Settings },
 ];
 
 // Mobile priority (§56): Home, Regulatory, Incidents, All Sources
@@ -53,6 +59,24 @@ function GlobalSearch() {
         className="w-56 rounded-ctl border border-bd-subtle bg-bg-base py-1.5 pl-8 pr-3 text-xs text-tx-primary placeholder:text-tx-muted focus:border-accent md:w-72"
       />
     </form>
+  );
+}
+
+/** Local app: today's date. Static public site: how fresh the published data is. */
+function HeaderStamp() {
+  const meta = useSnapshotMeta();
+  if (!STATIC_MODE) {
+    return (
+      <span className="hidden font-mono text-[11px] text-tx-muted lg:block">
+        {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+      </span>
+    );
+  }
+  if (!meta.data) return null;
+  return (
+    <span className="hidden font-mono text-[11px] text-tx-muted sm:block">
+      Data updated {relativeTime(meta.data.generated_at)}
+    </span>
   );
 }
 
@@ -145,9 +169,7 @@ export function Shell() {
             <Menu className="h-5 w-5" />
           </button>
           <div className="ml-auto flex items-center gap-3">
-            <span className="hidden font-mono text-[11px] text-tx-muted lg:block">
-              {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
-            </span>
+            <HeaderStamp />
             <GlobalSearch />
           </div>
         </header>

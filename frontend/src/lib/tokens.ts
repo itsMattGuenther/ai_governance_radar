@@ -8,7 +8,7 @@ export const T = {
   bdStrong: "#2C3A4E",
   txPrimary: "#E8EDF5",
   txSecondary: "#8FA0B5",
-  txMuted: "#5C6B80",
+  txMuted: "#7A8BA3",
   accent: "#628BFF",
   critical: "#F2564D",
   high: "#F2913D",

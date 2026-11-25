@@ -10,6 +10,7 @@ from app.core.db import get_db
 from app.core.jurisdictions import JURISDICTIONS, country_of
 from app.models import Entity, Item
 from app.services import summary as summary_service
+from app.services.item_query import EVENT_TIME
 
 router = APIRouter(tags=["dashboard"])
 
@@ -49,7 +50,7 @@ def map_data(db: Session = Depends(get_db)) -> list[dict]:
     ).all()
     item_rows = db.execute(
         select(Item.jurisdiction_code, func.count(Item.id))
-        .where(Item.first_seen_at > recent_cutoff, Item.jurisdiction_code.is_not(None))
+        .where(EVENT_TIME > recent_cutoff, Item.jurisdiction_code.is_not(None))
         .group_by(Item.jurisdiction_code)
     ).all()
 

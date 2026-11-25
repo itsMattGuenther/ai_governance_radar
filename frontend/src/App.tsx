@@ -33,6 +33,7 @@ export default function App() {
           <Route path="entities/:slug" element={<EntityDetail />} />
           <Route path="search" element={<SearchResults />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="sources" element={<Settings />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

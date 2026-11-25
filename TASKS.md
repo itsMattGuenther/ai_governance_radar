@@ -345,8 +345,60 @@ error states + accessibility reviewed. Update this file and CHANGELOG.md as you 
   verbatim on a clean clone).
 - **Test strategy:** doc walkthrough; link check.
 
+## Public site (owner-approved 2026-09-29)
+
+### T-033 Dashboard honesty fixes
+- **Status:** DONE · DEC-030
+- **Description:** Publication-date windows; KPIs match their drill-downs; Top
+  Developments = last 30 days without page-change alerts or demo data; AA contrast for
+  `tx-muted`; UTC timestamp parsing.
+- **Acceptance:** KPI count equals the linked list's total; backlog collected today but
+  published weeks ago is not "new"; relative times correct in any timezone.
+- **Test strategy:** pytest window/page-change test; vitest timestamp tests in two
+  TZs; browser check of the dashboard and a KPI drill-down.
+
+### T-034 Static public site on GitHub Pages
+- **Status:** DONE (code) · first deploy pending owner go-ahead · DEC-029
+- **Description:** `radar export-static`, static SPA mode, read-only Source Health,
+  publish workflow with the database on the `radar-data` branch.
+- **Acceptance:** static site renders every page under a subpath with 404.html
+  fallback; static filters and search return the same results as the live API; no
+  demo data in the snapshot; a second run restores the database and the data branch
+  stays at one commit.
+- **Test strategy:** pytest export/backup tests; local Pages emulator + Playwright
+  parity check; local dry run of every `run:` step in publish.yml (fresh DB, then
+  restore).
+
+### T-035 Mobile layout pass
+- **Status:** TODO
+- **Description:** KPI cards overflow a 390px viewport (≈9px horizontal scroll);
+  Regulatory Radar hides Status and Effective columns on phones. Cards instead of the
+  table below `sm`; KPI row that fits.
+- **Acceptance:** no horizontal scroll at 360–430px on every page; status and
+  effective date visible for each regulation on a phone.
+
+### T-036 Page weight
+- **Status:** TODO
+- **Description:** 3.6 MB JS / 4.4 MB page. Use `countries-110m` (108 KB) instead of
+  `countries-50m` (756 KB); load US state flags on demand instead of bundling all 50.
+- **Acceptance:** initial JS under 1 MB uncompressed with no visual regression.
+
+### T-037 About & methodology page
+- **Status:** TODO
+- **Description:** What is tracked, how impact and confidence are scored (the dots and
+  rings), how curated records are verified, the last-verified policy, and the
+  not-legal-advice notice. Hover tooltips don't reach phone users.
+
+### T-038 Re-verify curated regulation records
+- **Status:** TODO (maintainer, not code)
+- **Description:** Records were last verified 2026-01-15. Re-check each against its
+  official source, update `data/seed/entities.json`, and bump `last_verified_at`.
+  Example: Colorado AI Act shows effective Jun 30, 2026, a date that has now passed.
+  Edits reach the public site on its next run (seeding upserts).
+
 ## Post-V1 (parked — do not start)
 Rankings page + snapshots (§12) · Training page (§13) · Events page (§14) · comparison
 view (§22) · LLM provider layer (§33–38) · agent workflows + evaluator (§39–42) ·
 notifications (§81) · reports/exports (§52) · MCP server (§82) · Governance Graph (§79) ·
-document-level diffing (§27) · light theme · Netlify demo instance (§46–47).
+document-level diffing (§27) · light theme. (The public demo instance, §46–47, was
+un-parked as T-034 / DEC-029.)

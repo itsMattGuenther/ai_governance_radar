@@ -232,3 +232,51 @@ def test_jurisdictions_reference(client):
 def test_demo_data_flagged(client):
     r = client.get("/api/items", params={"include_demo": False})
     assert all(not i["is_demo"] for i in r.json()["items"])
+
+
+def test_windows_use_publication_date_and_skip_page_changes(client, db):
+    """A backlog collected today but published weeks ago is not "new", and page-change
+    signals never count as high impact — in the KPI or in the list it links to."""
+    from datetime import UTC, datetime, timedelta
+
+    from app.models import Item, Source
+
+    now = datetime.now(UTC)
+    before = client.get("/api/dashboard/summary").json()
+    feed = Source(name="Window Test Feed", url="https://example.org/", source_type="rss")
+    watch = Source(name="Window Test Page", url="https://example.org/p", source_type="page_watch")
+    db.add_all([feed, watch])
+    db.flush()
+
+    def mk(source: Source, title: str, published: datetime) -> Item:
+        return Item(
+            source_id=source.id, url=f"https://example.org/{title}",
+            canonical_url=f"https://example.org/{title}", content_hash=title, title=title,
+            published_at=published, first_seen_at=now, last_seen_at=now,
+            categories=["news"], impact_score=80, confidence="medium",
+        )
+
+    rows = [mk(feed, "wt-backlog", now - timedelta(days=40)),
+            mk(feed, "wt-fresh", now - timedelta(days=1)),
+            mk(watch, "wt-page-change", now)]
+    db.add_all(rows)
+    db.commit()
+    try:
+        after = client.get("/api/dashboard/summary").json()
+        assert after["total_changes"] - before["total_changes"] == 2
+        assert after["high_impact"] - before["high_impact"] == 1
+
+        def titles(**params) -> set[str]:
+            body = client.get("/api/items", params={
+                "since": after["since"], "min_impact": 70, "limit": 100, **params,
+            }).json()
+            return {i["title"] for i in body["items"] if i["title"].startswith("wt-")}
+
+        assert titles() == {"wt-fresh", "wt-page-change"}
+        assert titles(include_page_changes="false") == {"wt-fresh"}
+    finally:
+        for row in rows:
+            db.delete(row)
+        db.delete(feed)
+        db.delete(watch)
+        db.commit()

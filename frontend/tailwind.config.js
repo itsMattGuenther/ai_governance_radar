@@ -7,7 +7,7 @@ export default {
       colors: {
         bg: { base: "#090C12", surface: "#10151E", raised: "#1A2230" },
         bd: { subtle: "#1E2836", strong: "#2C3A4E" },
-        tx: { primary: "#E8EDF5", secondary: "#8FA0B5", muted: "#5C6B80" },
+        tx: { primary: "#E8EDF5", secondary: "#8FA0B5", muted: "#7A8BA3" },
         accent: "#628BFF",
         sev: {
           critical: "#F2564D",

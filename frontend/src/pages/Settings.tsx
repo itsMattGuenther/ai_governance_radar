@@ -14,6 +14,7 @@ import {
   usePatchSource,
   useSources,
 } from "../lib/api";
+import { STATIC_MODE } from "../lib/env";
 import { relativeTime } from "../lib/format";
 
 function SourceHealth() {
@@ -31,21 +32,24 @@ function SourceHealth() {
   if (sources.isError)
     return <div className="card"><ErrorState detail={String(sources.error)} onRetry={() => sources.refetch()} /></div>;
 
+  // The public static site is read-only: it lists the feeds it collects from.
+  const shown = STATIC_MODE ? sources.data.filter((s) => s.enabled) : sources.data;
+
   return (
     <section className="card overflow-hidden">
       <header className="flex items-center justify-between border-b border-bd-subtle px-4 py-2.5">
         <h2 className="meta-label !text-tx-secondary">Data Sources</h2>
-        <button
+        {!STATIC_MODE && <button
           onClick={() => run()}
           disabled={ingesting !== null}
           className="inline-flex items-center gap-1.5 rounded-ctl border border-accent/50 px-2.5 py-1 text-xs text-accent transition-colors hover:bg-accent/10 disabled:opacity-50"
         >
           <Play aria-hidden className="h-3 w-3" />
           {ingesting === "all" ? "Ingesting…" : "Ingest all now"}
-        </button>
+        </button>}
       </header>
       <ul>
-        {sources.data.map((s) => {
+        {shown.map((s) => {
           const healthy = !s.last_error;
           return (
             <li key={s.id} className="border-b border-bd-subtle px-4 py-3 last:border-b-0">
@@ -59,7 +63,7 @@ function SourceHealth() {
                 <TierBadge tier={s.reliability_tier} />
                 <span className="meta-label">{s.source_type}</span>
                 <DemoBadge show={s.is_demo} />
-                <div className="ml-auto flex items-center gap-2">
+                {!STATIC_MODE && <div className="ml-auto flex items-center gap-2">
                   <button
                     onClick={() => run(s.id)}
                     disabled={ingesting !== null || !s.enabled}
@@ -76,7 +80,7 @@ function SourceHealth() {
                     />
                     Enabled
                   </label>
-                </div>
+                </div>}
               </div>
               <div className="mt-1 pl-6 text-meta text-tx-muted">
                 {s.last_success_at && <span>Last success {relativeTime(s.last_success_at)} · </span>}
@@ -87,8 +91,13 @@ function SourceHealth() {
                 <div className="mt-1.5 ml-6 rounded-ctl border border-sev-critical/30 bg-sev-critical/5 px-2.5 py-1.5 text-xs">
                   <p className="text-sev-critical">{s.last_error}</p>
                   <p className="mt-0.5 text-tx-muted">
-                    Last success: {s.last_success_at ? relativeTime(s.last_success_at) : "never"} ·{" "}
-                    <button onClick={() => run(s.id)} className="text-accent hover:underline">Retry</button>
+                    Last success: {s.last_success_at ? relativeTime(s.last_success_at) : "never"}
+                    {!STATIC_MODE && (
+                      <>
+                        {" · "}
+                        <button onClick={() => run(s.id)} className="text-accent hover:underline">Retry</button>
+                      </>
+                    )}
                   </p>
                 </div>
               )}
@@ -243,6 +252,17 @@ function ImportExport() {
 }
 
 export default function Settings() {
+  if (STATIC_MODE) {
+    return (
+      <>
+        <PageHeader
+          title="Source Health"
+          detail="Every feed this site collects from, and whether its most recent check succeeded. Data refreshes automatically several times a day."
+        />
+        <SourceHealth />
+      </>
+    );
+  }
   return (
     <>
       <PageHeader title="Settings" detail="Sources, ingestion, and data portability." />

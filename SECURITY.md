@@ -14,6 +14,11 @@ design (DECISIONS.md DEC-008):
   networks.** If you must host it, put it behind your own authenticating reverse proxy.
 - The Docker image listens on `0.0.0.0` *inside the container*; compose maps it to
   localhost only.
+- **To publish it for others, use the static site** (DECISIONS.md DEC-029): a
+  read-only snapshot on GitHub Pages with no server and no write endpoints. The
+  database persists on the public `radar-data` branch; it holds public feed content
+  (titles, ≤500-char excerpts, metadata) plus collection bookkeeping (run history,
+  page hashes), and no secrets.
 
 ## Built-in protections
 

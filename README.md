@@ -61,6 +61,15 @@ python -m app.cli serve
 Open **http://127.0.0.1:8000**. The app creates its database and loads starter
 content automatically the first time it runs.
 
+### 🌐 Option 3 — Publish it as a public website (no server needed)
+
+The repo includes a GitHub Actions workflow
+([`.github/workflows/publish.yml`](.github/workflows/publish.yml)) that collects the
+latest items every 6 hours and publishes a **read-only** copy of the dashboard to
+GitHub Pages. It's free, needs no server, and visitors can't change anything. To
+turn it on for your fork: **Settings ▸ Pages ▸ Source: GitHub Actions**, then run the
+"Publish site" workflow once from the Actions tab. Details: DECISIONS.md DEC-029.
+
 ### 📡 Pulling in fresh intelligence
 
 The starter content gets you oriented. To fetch the latest real items from NIST, the
@@ -125,7 +134,8 @@ Want the deep technical version? See [ARCHITECTURE.md](ARCHITECTURE.md),
 
 Designed for one person on their own machine: no login system, and the app only
 listens on your computer (localhost) unless you deliberately change that. Don't
-expose it to the open internet as-is. Details: [SECURITY.md](SECURITY.md).
+expose it to the open internet as-is. To share it publicly, use the read-only
+static site (Option 3) instead. Details: [SECURITY.md](SECURITY.md).
 
 ## 🤝 Contributing
 

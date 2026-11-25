@@ -308,6 +308,59 @@ means since the user *reviewed* the information, not since the process started.
 **Consequences:** Brief always has a day of content; watchlist statuses persist until
 actually viewed; frequent visitors see stable, truthful deltas.
 
+## DEC-030 — Dashboard windows use publication date; page-change alerts never rank
+**Decision:** (a) Time windows ("last 7 days") filter on publication date, falling
+back to collection time only when a feed omits one (`EVENT_TIME` in
+`services/item_query.py`), for KPIs, the `since`/`until` item filters, and the map's
+recent-activity counts. (b) Page-watch "page changed" signals are excluded from Top
+Developments and the High-impact KPI, and every KPI counts distinct developments
+(clusters collapsed). (c) Each KPI links to an All Sources view with the same window
+and filters, so the number on the card equals the list behind it. (d) Top
+Developments covers the last 30 days of real items; demo data appears there only as a
+first-run fallback when nothing real qualifies.
+**Alternatives:** keep collection-time windows; lower page_watch impact scores in
+`scoring.py` instead of filtering.
+**Rationale:** Found on 2026-09-29 after the app sat idle for seven weeks: one ingest
+made "195 changes, last 7 days" when 127 of those were published weeks earlier, and
+"100 incident reports" counted a backlog. Top Developments ranked all-time, so a DEMO
+item (77) and two content-free "Page changed" alerts held the top three slots
+indefinitely. Only five items had ever scored ≥70, and three of them were those.
+Page-change scores reflect the source's tier, not the change, so ranking them misleads.
+Filtering keeps scoring transparent and unchanged (DEC-014 factors still shown).
+**Consequences:** KPIs are lower and truthful; "High impact" is often 0 because real
+items rarely reach 70, which is a scoring-calibration question left open. Page-change
+alerts stay visible in the feed and All Sources, with a toggle to hide them.
+
+## DEC-029 — Public site = static snapshot on GitHub Pages, rebuilt every 6 hours
+**Decision:** The public instance is a static build of the SPA (`npm run
+build:static`) plus a JSON snapshot (`radar export-static`), rebuilt and deployed to
+GitHub Pages by `.github/workflows/publish.yml` every 6 hours and on pushes to main.
+The SQLite database persists between runs on the `radar-data` branch as a single
+force-pushed commit. Static mode hides every write surface (ingest, source edits,
+import/export, demo toggle), and Settings becomes a read-only Source Health page.
+Demo data is never published (`DEMO_DATA=false`; the exporter also filters
+`is_demo`). This un-parks the post-V1 "Netlify demo instance" (§46–47) at the owner's
+request, using a different mechanism.
+**Alternatives:** host the live FastAPI app (Fly.io, Render, or a VPS) behind a new
+read-only mode; static SPA on Netlify plus a separate read-only API (ARCHITECTURE.md
+§8); local-only distribution.
+**Rationale:** The owner's goal is a public resource that needs almost no
+maintenance. V1 has no auth (DEC-008), so the live API cannot be exposed without a
+read-only mode, and a server needs patching, uptime, and money. Data only changes when
+ingestion runs, so a periodic snapshot loses nothing: no server, no cost, no attack
+surface, and it scales to any traffic. GitHub Pages keeps everything in one repo.
+Client-side filters and search mirror the API; verified identical on 7 filter
+combinations and 5 search queries against the live app.
+**Consequences:** `items.json` holds the 3,000 most recent items (`ITEM_CAP`); older
+items stay in the database. Search uses token-prefix matching instead of FTS5 bm25, so
+it returns the same results in a different order. Deep links to detail pages are served
+by `404.html` (they work for people, but link unfurlers and crawlers see HTTP 404);
+top-level pages get `.html` shells and return 200. GitHub disables scheduled workflows
+on public repos after 60 days without repository activity. The per-run push to
+`radar-data` should count as activity (unverified); if the schedule is ever disabled,
+re-enable it in the Actions tab. Curated records (DEC-014) still need human
+re-verification, which automation cannot do. The local app is unchanged.
+
 ## DEC-028 — Morning Brief and Watchlist removed; feed renamed "All Sources"
 **Decision:** Remove the Morning Brief page and `/api/brief`, remove the Watchlist
 entirely (page, `watches` table, `changes.py`, `/api/watchlist*`, watch buttons,

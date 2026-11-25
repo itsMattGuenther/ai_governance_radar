@@ -6,6 +6,7 @@ from sqlalchemy import String, cast, func, select
 from sqlalchemy.orm import Session
 
 from app.models import Incident, Item, Source
+from app.services.item_query import EVENT_TIME, is_cluster_primary, is_page_change
 from app.services.scoring import HIGH_IMPACT_THRESHOLD
 
 DEFAULT_WINDOW_DAYS = 7
@@ -18,21 +19,28 @@ def _since(window_days: int | None) -> datetime:
 def _cat_count(db: Session, since: datetime, category: str) -> int:
     return db.execute(
         select(func.count(Item.id)).where(
-            Item.first_seen_at > since,
+            EVENT_TIME > since,
+            is_cluster_primary(),
             cast(Item.categories, String).like(f'%"{category}"%'),
         )
     ).scalar_one()
 
 
 def dashboard_summary(db: Session, window_days: int | None = None) -> dict:
+    """Windowed counts of distinct developments (duplicates collapsed). Each matches
+    the items list the dashboard links it to — same window, same filters — so a KPI
+    never disagrees with its drill-down."""
     since = _since(window_days)
     high_impact = db.execute(
         select(func.count(Item.id)).where(
-            Item.first_seen_at > since, Item.impact_score >= HIGH_IMPACT_THRESHOLD
+            EVENT_TIME > since,
+            Item.impact_score >= HIGH_IMPACT_THRESHOLD,
+            ~is_page_change(),
+            is_cluster_primary(),
         )
     ).scalar_one()
     total = db.execute(
-        select(func.count(Item.id)).where(Item.first_seen_at > since)
+        select(func.count(Item.id)).where(EVENT_TIME > since, is_cluster_primary())
     ).scalar_one()
 
     # Incident signal = newly reported incident records + freshly collected

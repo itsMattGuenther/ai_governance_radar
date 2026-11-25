@@ -30,7 +30,7 @@ Defined in `frontend/tailwind.config.js`, mirrored for inline/SVG use in
 | `bd-strong` | `#2C3A4E` | emphasis borders, micro-pill outlines |
 | `tx-primary` | `#E8EDF5` | headings, values |
 | `tx-secondary` | `#8FA0B5` | labels, metadata |
-| `tx-muted` | `#5C6B80` | timestamps, placeholders |
+| `tx-muted` | `#7A8BA3` | timestamps, placeholders — ≥ 4.6:1 on every surface (AA); was `#5C6B80` (2.9–3.6:1) until 2026-09-29 |
 | `accent` | `#628BFF` | links, active nav, focus ring, radar structure |
 
 Semantic status colors (§16) — meanings unchanged:

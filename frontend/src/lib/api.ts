@@ -2,6 +2,10 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { STATIC_MODE } from "./env";
+import { ApiError } from "./errors";
+import * as snapshot from "./staticData";
+
 import type {
   DashboardSummary,
   EntityOut,
@@ -15,13 +19,7 @@ import type {
   SourceRunOut,
 } from "./types";
 
-export class ApiError extends Error {
-  status: number;
-  constructor(status: number, message: string) {
-    super(message);
-    this.status = status;
-  }
-}
+export { ApiError };
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`/api${path}`, {
@@ -50,6 +48,10 @@ export type ItemFilters = {
   source_id?: number;
   entity_id?: number;
   include_demo?: boolean;
+  /** false = leave out page_watch "page changed" alerts (they carry no content). */
+  include_page_changes?: boolean;
+  /** ISO timestamp; filters on publication date (collection time if undated). */
+  since?: string;
   collapse_clusters?: boolean;
   sort?: "impact" | "newest" | "first_seen";
   offset?: number;
@@ -63,32 +65,38 @@ function qs(params: Record<string, unknown>): string {
   return parts.length ? `?${parts.join("&")}` : "";
 }
 
-/* ---------------- queries ---------------- */
+/* ---------------- queries ----------------
+ * In the static public build every query reads the published JSON snapshot
+ * instead of the API (lib/staticData.ts mirrors the backend's filters). */
 
-export const useItems = (filters: ItemFilters) =>
+export const useItems = (filters: ItemFilters, enabled = true) =>
   useQuery({
     queryKey: ["items", filters],
-    queryFn: () => request<PageOut>(`/items${qs(filters)}`),
+    queryFn: () =>
+      STATIC_MODE ? snapshot.items(filters) : request<PageOut>(`/items${qs(filters)}`),
+    enabled,
   });
 
 export const useItem = (id: number | null) =>
   useQuery({
     queryKey: ["item", id],
-    queryFn: () => request<ItemOut>(`/items/${id}`),
+    queryFn: () => (STATIC_MODE ? snapshot.item(id!) : request<ItemOut>(`/items/${id}`)),
     enabled: id !== null,
   });
 
 export const useClusterMembers = (id: number | null) =>
   useQuery({
     queryKey: ["cluster", id],
-    queryFn: () => request<ItemOut[]>(`/items/${id}/cluster`),
+    queryFn: () =>
+      STATIC_MODE ? snapshot.clusterMembers(id!) : request<ItemOut[]>(`/items/${id}/cluster`),
     enabled: id !== null,
   });
 
 export const useRegulations = (filters: { country?: string; status?: string; jurisdiction?: string } = {}) =>
   useQuery({
     queryKey: ["regulations", filters],
-    queryFn: () => request<EntityOut[]>(`/regulations${qs(filters)}`),
+    queryFn: () =>
+      STATIC_MODE ? snapshot.regulations(filters) : request<EntityOut[]>(`/regulations${qs(filters)}`),
   });
 
 export const useStandards = (
@@ -96,13 +104,14 @@ export const useStandards = (
 ) =>
   useQuery({
     queryKey: ["standards", filters],
-    queryFn: () => request<EntityOut[]>(`/standards${qs(filters)}`),
+    queryFn: () =>
+      STATIC_MODE ? snapshot.standards(filters) : request<EntityOut[]>(`/standards${qs(filters)}`),
   });
 
 export const useEntity = (slug: string | undefined) =>
   useQuery({
     queryKey: ["entity", slug],
-    queryFn: () => request<EntityOut>(`/entities/${slug}`),
+    queryFn: () => (STATIC_MODE ? snapshot.entity(slug!) : request<EntityOut>(`/entities/${slug}`)),
     enabled: !!slug,
   });
 
@@ -111,50 +120,65 @@ export const useIncidents = (
 ) =>
   useQuery({
     queryKey: ["incidents", filters],
-    queryFn: () => request<IncidentOut[]>(`/incidents${qs(filters)}`),
+    queryFn: () =>
+      STATIC_MODE ? snapshot.incidents(filters) : request<IncidentOut[]>(`/incidents${qs(filters)}`),
   });
 
 export const useIncident = (id: string | undefined) =>
   useQuery({
     queryKey: ["incident", id],
-    queryFn: () => request<IncidentOut>(`/incidents/${id}`),
+    queryFn: () => (STATIC_MODE ? snapshot.incident(id!) : request<IncidentOut>(`/incidents/${id}`)),
     enabled: !!id,
   });
 
 export const useDashboardSummary = (windowDays?: number) =>
   useQuery({
     queryKey: ["summary", windowDays],
-    queryFn: () => request<DashboardSummary>(`/dashboard/summary${qs({ window_days: windowDays })}`),
+    queryFn: () =>
+      STATIC_MODE
+        ? snapshot.summary()
+        : request<DashboardSummary>(`/dashboard/summary${qs({ window_days: windowDays })}`),
   });
 
 export const useMapData = () =>
-  useQuery({ queryKey: ["map"], queryFn: () => request<MapRow[]>("/dashboard/map") });
+  useQuery({
+    queryKey: ["map"],
+    queryFn: () => (STATIC_MODE ? snapshot.map() : request<MapRow[]>("/dashboard/map")),
+  });
 
 export const useSearch = (q: string) =>
   useQuery({
     queryKey: ["search", q],
-    queryFn: () => request<SearchOut>(`/search${qs({ q })}`),
+    queryFn: () => (STATIC_MODE ? snapshot.search(q) : request<SearchOut>(`/search${qs({ q })}`)),
     enabled: q.trim().length > 0,
   });
 
 export const useSources = () =>
-  useQuery({ queryKey: ["sources"], queryFn: () => request<SourceOut[]>("/sources") });
+  useQuery({
+    queryKey: ["sources"],
+    queryFn: () => (STATIC_MODE ? snapshot.sources() : request<SourceOut[]>("/sources")),
+  });
 
 export const useSourceRuns = (sourceId: number | null) =>
   useQuery({
     queryKey: ["source-runs", sourceId],
     queryFn: () => request<SourceRunOut[]>(`/sources/${sourceId}/runs`),
-    enabled: sourceId !== null,
+    enabled: sourceId !== null && !STATIC_MODE,
   });
 
 export const useJurisdictions = () =>
   useQuery({
     queryKey: ["jurisdictions"],
-    queryFn: () => request<JurisdictionOut[]>("/jurisdictions"),
+    queryFn: () =>
+      STATIC_MODE ? snapshot.jurisdictions() : request<JurisdictionOut[]>("/jurisdictions"),
     staleTime: Infinity,
   });
 
-/* ---------------- mutations ---------------- */
+/** When the published snapshot was generated (static build only). */
+export const useSnapshotMeta = () =>
+  useQuery({ queryKey: ["snapshot-meta"], queryFn: snapshot.meta, enabled: STATIC_MODE });
+
+/* ---------------- mutations (local app only; hidden in the static build) ---------------- */
 
 export function usePatchSource() {
   const qc = useQueryClient();

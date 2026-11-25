@@ -12,6 +12,7 @@ import { IncidentIcon } from "../components/ui/IncidentIcon";
 import { InfoTip } from "../components/ui/InfoTip";
 import { CardSkeleton, EmptyState, ErrorState } from "../components/ui/States";
 import { useIncidents, useItems } from "../lib/api";
+import { STATIC_MODE } from "../lib/env";
 import { CONFIDENCE_EXPLAINER, SEVERITY_DEFS } from "../lib/definitions";
 import { relativeTime, titleCase } from "../lib/format";
 import { severityColor } from "../lib/tokens";
@@ -100,7 +101,7 @@ export default function Incidents() {
         ) : reports.data.items.length === 0 ? (
           <EmptyState
             title="No incident reports collected yet"
-            detail="Enable the AI Incident Database source in Settings, then run ingestion."
+            detail={STATIC_MODE ? "No incident reports collected recently." : "Enable the AI Incident Database source in Settings, then run ingestion."}
           />
         ) : (
           reports.data.items.map((item) => (

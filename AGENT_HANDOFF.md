@@ -1,60 +1,66 @@
 # Agent Handoff
 
-_Last updated: 2026-08-11 (V2 design shipped)_
-
-> **Design note:** The production UI now uses the owner-approved "Refined
-> Intelligence Dashboard" system (DEC-025, DESIGN_SYSTEM.md): animated radar mark,
-> real flag/org iconography (`flag-icons`, `us-state-flags`), impact rings, tinted
-> KPI cards, glowing map markers. The design playground that drove the choice has
-> been deleted. Everything below about V1 functionality remains accurate.
+_Last updated: 2026-09-29 (dashboard honesty fixes + public static site)_
 
 ## Where the project stands
-**V1 is implemented, tested, QA-reviewed, and functional.** The app runs locally with
-real ingested data, all automated gates pass, and the independent QA pass
-([docs/reviews/V1-QA.md](docs/reviews/V1-QA.md)) found no P0/P1 issues; 5 of 6 P2/P3
-findings were fixed same-day, one accepted with rationale.
+- **V1 is implemented and working** (2026-08-11). Details in CHANGELOG.md [0.1.0] and
+  docs/reviews/V1-QA.md.
+- **2026-09-29 session** (CHANGELOG [Unreleased]):
+  - Dashboard numbers made honest (DEC-030): windows use publication date, and KPIs
+    match their drill-downs.
+  - Top Developments no longer pinned by demo items or "Page changed" alerts.
+  - AA contrast for muted text.
+  - UTC timestamp parsing fix.
+  - Built the **public read-only static site** (DEC-029, T-034).
+  - All gates green: backend 69 tests, ruff, mypy; frontend 16 tests, eslint, tsc,
+    build.
+- **Not yet deployed.** The publish workflow was dry-run locally (every `run:` step,
+  fresh start + restore) but has never run on GitHub. Going live needs the owner to:
+  1. Commit and push.
+  2. Enable Pages (Settings ▸ Pages ▸ Source: GitHub Actions).
+  3. Run "Publish site" once.
+
+  The expected URL is https://matthewguenther.github.io/ai_governance_radar/.
 
 ## How to run it
 ```bash
-cd frontend && npm install && npm run build && cd ..      # UI (once)
-cd backend && python -m venv .venv && .venv\Scripts\pip install -e .
-.venv\Scripts\python -m app.cli serve                     # http://127.0.0.1:8000
-.venv\Scripts\python -m app.cli ingest --force            # pull real sources
+cd frontend && npm install && npm run build && cd ..             # UI (once)
+cd backend && python -m venv venv && venv/bin/pip install -e .   # Windows: venv\Scripts\...
+venv/bin/python -m app.cli serve                                 # http://127.0.0.1:8000
+venv/bin/python -m app.cli ingest --force                        # pull real sources
 ```
-Dev mode: `python -m app.cli serve --reload` + `npm run dev` (Vite on :5173, /api proxied).
-Gates: backend `ruff check app tests && mypy app && pytest` · frontend
-`npm run lint && npm run typecheck && npm test && npm run build`.
+This repo is used on two machines. `backend/.venv` is a Windows venv; on the Linux
+machine the working venv is `backend/venv` (both are gitignored). `frontend/node_modules`
+is platform-specific, so run `npm ci` after switching OS.
 
-## What exists (beyond the planning artifacts)
-- `backend/` — FastAPI app: 12-table SQLite schema, SafeFetcher, ingestion pipeline
-  (rss/atom/json_api/page_watch), scoring/dedupe/changes/brief/search services,
-  full REST API, `radar` CLI, 60 offline tests.
-- `frontend/` — React SPA with the full design system and all V1 pages; 11 tests.
-- `data/` — verified source registry (see SOURCE_CATALOG.md outcomes) + curated seed
-  (7 regulations, 7 standards, 7 incidents, flagged demo items).
-- `Dockerfile` + `docker-compose.yml` + `.github/workflows/ci.yml` (see caveats).
-- `docs/reviews/V1-QA.md` — independent QA report + fix outcomes.
+Static site locally:
+```bash
+cd frontend && npm run build:static
+cd ../backend && venv/bin/python -m app.cli export-static --out ../frontend/dist-static/data
+```
+Then serve `frontend/dist-static` with any static server.
 
-## Known limitations / first things a next session should check
-1. **CI and Docker have never executed** — no Docker on the dev machine and the repo
-   hasn't been pushed. First push exercises both (CI includes a docker build + smoke
-   job). Expect possible small CI environment fixes.
-2. Automated axe accessibility scan deferred (manual a11y review done).
-3. 10k-item performance smoke not run (trivial at current volumes).
-4. OWASP page_watch source shows occasional dynamic-content hash churn (capped at
-   one signal item/day by design).
-5. Regulation facts were verified as of **2026-01-15** (knowledge-based curation);
-   `last_verified_at` staleness is surfaced in the UI. A maintainer should re-verify
-   against official sources and bump the timestamps.
-6. Incident evidence deep-links were not all live-verified; QA checked structure, not
-   every URL's liveness.
+## Next steps (TASKS.md "Public site")
+1. **T-038: re-verify curated regulation records.** This is maintainer work, not code.
+   Records were last verified 2026-01-15, and some dates have passed (e.g., Colorado
+   AI Act "effective Jun 30, 2026"). This matters most once the site is public.
+2. **T-035: mobile layout.** KPI cards overflow at 390px, and the regulations table
+   hides Status and Effective date on phones.
+3. **T-036: page weight.** 3.6 MB JS, mostly the 50m world map and all US state flags.
+4. **T-037: About/methodology page.**
+5. Open question: impact scoring rarely reaches the 70 "high impact" threshold for
+   real items, so the High-impact KPI is usually 0. Calibrate or relabel.
 
-## Next milestones (post-V1, all parked in TASKS.md)
-Phase 2: LLM provider abstraction (see ARCHITECTURE.md §8 for the prompt-injection
-contract), semantic search, summaries. Post-V1 pages: Rankings, Training, Events.
-Alembic baseline migration at first tagged release (DEC-021).
+## Known limitations
+- Static site: detail-page deep links return HTTP 404 (served by 404.html). They work
+  for people but not for link unfurlers or crawlers. Top-level pages return 200.
+- GitHub disables scheduled workflows after 60 days without repo activity. The
+  per-run `radar-data` push should count as activity (unverified).
+- `.github/workflows/ci.yml` still pins older action majors (checkout@v4 etc.);
+  publish.yml uses current ones (v7 / pages v5).
+- Automated axe scan and the 10k-item performance smoke are still deferred (V1 caveats).
 
 ## How to resume a session
-Read CLAUDE.md → this file → TASKS.md (post-V1 list) → DECISIONS.md (DEC-001…024).
-Keep the hard rules: curated legal facts only, SafeFetcher for all outbound HTTP,
-no LLM code in core, attribution everywhere, demo data always flagged.
+Read CLAUDE.md → this file → TASKS.md → DECISIONS.md (DEC-001…030). Keep the hard
+rules: curated legal facts only, SafeFetcher for all outbound HTTP, no LLM code in
+core, attribution everywhere, demo data always flagged and never published.

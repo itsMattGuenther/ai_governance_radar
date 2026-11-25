@@ -2,6 +2,42 @@
 
 All notable changes to this project. Dates are UTC.
 
+## [Unreleased] — 2026-09-29
+
+### Added
+- **Public read-only site** (DEC-029): `radar export-static --out DIR` writes the
+  JSON snapshot; `npm run build:static` builds the SPA in static mode (to
+  `frontend/dist-static/`); `.github/workflows/publish.yml` collects, saves the
+  database to the `radar-data` branch, builds, and deploys to GitHub Pages every 6
+  hours. The static data layer (`frontend/src/lib/staticData.ts`) mirrors the API's
+  filters, sorting, and search. Static mode shows a read-only Source Health page and a
+  "Data updated …" stamp, and hides all write actions.
+- `radar backup PATH`: consistent single-file database copy (`VACUUM INTO`); never
+  overwrites.
+- `radar ingest --tolerate-source-errors`: exit 0 when individual feeds fail
+  (failures are still recorded); unexpected errors still exit non-zero.
+- All Sources: removable "Since …" date chip and an "Include page-change alerts"
+  toggle (`since` / `include_page_changes` query params, also on `GET /api/items`).
+
+### Changed
+- Dashboard (DEC-030): windows use publication date, not collection time; KPIs count
+  distinct developments and link to lists with identical filters; Top Developments
+  covers the last 30 days and excludes page-change alerts and demo data (demo is a
+  first-run fallback only).
+- `tx-muted` `#5C6B80` → `#7A8BA3`: timestamps and meta text now meet WCAG AA
+  (≥ 4.6:1 on every surface; was 2.9–3.6:1).
+
+### Fixed
+- Timestamps are parsed as UTC. The API sends offset-less UTC and browsers read it
+  as local time, which skewed every relative time by the viewer's UTC offset (US
+  viewers saw "just now" for items hours old). Calendar dates render in UTC so they
+  never shift a day.
+- mypy errors in `api/items.py` reported by current mypy.
+
+### Tests
+- Backend 66 → 69 (window/page-change semantics, static export without demo data,
+  backup); frontend 11 → 16 (timestamp parsing across timezones).
+
 ## [0.1.0] — 2026-08-11 — V1 implementation
 
 ### Added

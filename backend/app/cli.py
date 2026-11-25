@@ -1,4 +1,4 @@
-"""`radar` CLI: serve | ingest | seed | status | reindex."""
+"""`radar` CLI: serve | ingest | seed | status | rescore | reindex | export-static | backup."""
 
 import argparse
 import sys
@@ -27,7 +27,9 @@ def cmd_ingest(args: argparse.Namespace) -> int:
             print(f"[{run.status:7}] {src}: found={run.items_found} "
                   f"new={run.items_new} updated={run.items_updated}"
                   + (f" error={run.error_message}" if run.error_message else ""))
-        return 0 if all(r.status == "success" for r in runs) else 1
+        if all(r.status == "success" for r in runs) or args.tolerate_source_errors:
+            return 0
+        return 1
     finally:
         db.close()
 
@@ -154,6 +156,44 @@ def cmd_reindex(args: argparse.Namespace) -> int:
         db.close()
 
 
+def cmd_export_static(args: argparse.Namespace) -> int:
+    from pathlib import Path
+
+    from app.core.db import SessionLocal, init_db
+    from app.services.static_export import export_static
+
+    init_db()
+    db = SessionLocal()
+    try:
+        meta = export_static(db, Path(args.out))
+        print(f"Exported {meta['items_exported']} of {meta['items_total']} items "
+              f"to {args.out}")
+        return 0
+    finally:
+        db.close()
+
+
+def cmd_backup(args: argparse.Namespace) -> int:
+    """Write a consistent single-file copy of the live database. Copying radar.db by
+    hand can miss recent writes still sitting in the WAL file; VACUUM INTO can't."""
+    from pathlib import Path
+
+    from sqlalchemy import text
+
+    from app.core.db import engine, init_db
+
+    target = Path(args.path).resolve()
+    if target.exists():
+        print(f"Refusing to overwrite existing file: {target}", file=sys.stderr)
+        return 1
+    target.parent.mkdir(parents=True, exist_ok=True)
+    init_db()
+    with engine.connect() as conn:
+        conn.execute(text("VACUUM INTO :path"), {"path": str(target)})
+    print(f"Backed up database to {target}")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(prog="radar", description="AI Governance Radar")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -167,6 +207,10 @@ def main() -> int:
     p_ingest = sub.add_parser("ingest", help="Run ingestion for due (or all) sources")
     p_ingest.add_argument("--source", type=int, default=None, help="Only this source id")
     p_ingest.add_argument("--force", action="store_true", help="Ignore polling intervals")
+    p_ingest.add_argument(
+        "--tolerate-source-errors", action="store_true",
+        help="Exit 0 even if individual sources fail (failures are still recorded in "
+             "source health); unexpected errors still exit non-zero")
     p_ingest.set_defaults(func=cmd_ingest)
 
     p_seed = sub.add_parser("seed", help="Load source registry + curated seed data")
@@ -185,6 +229,15 @@ def main() -> int:
 
     p_reindex = sub.add_parser("reindex", help="Rebuild the search index")
     p_reindex.set_defaults(func=cmd_reindex)
+
+    p_export = sub.add_parser(
+        "export-static", help="Write a read-only JSON snapshot for the static public site")
+    p_export.add_argument("--out", required=True, help="Output directory")
+    p_export.set_defaults(func=cmd_export_static)
+
+    p_backup = sub.add_parser("backup", help="Write a consistent copy of the database")
+    p_backup.add_argument("path", help="Destination file (must not exist)")
+    p_backup.set_defaults(func=cmd_backup)
 
     args = parser.parse_args()
     return args.func(args)

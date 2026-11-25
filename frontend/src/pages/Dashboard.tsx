@@ -23,14 +23,17 @@ import {
   useRegulations,
   useStandards,
 } from "../lib/api";
-import { shortDate } from "../lib/format";
+import { STATIC_MODE } from "../lib/env";
+import { parseTimestamp, shortDate } from "../lib/format";
 import { T } from "../lib/tokens";
 import type { ItemOut } from "../lib/types";
 
 const WINDOW_DAYS = 7;
+const TOP_WINDOW_DAYS = 30;
 
 function Card({
   title,
+  sub,
   tick,
   linkTo,
   linkLabel,
@@ -38,6 +41,7 @@ function Card({
   children,
 }: {
   title: string;
+  sub?: string;
   tick: string;
   linkTo?: string;
   linkLabel?: string;
@@ -50,6 +54,7 @@ function Card({
         <h2 className="flex items-center gap-2 text-sm font-semibold text-tx-primary">
           <span aria-hidden className="head-tick" style={{ background: tick }} />
           {title}
+          {sub && <span className="text-xs font-normal text-tx-muted">· {sub}</span>}
         </h2>
         {headRight ??
           (linkTo && (
@@ -68,7 +73,7 @@ function sparkSeries(items: ItemOut[], days = 14): number[] {
   const counts = new Array(days).fill(0);
   const now = Date.now();
   items.forEach((i) => {
-    const t = new Date(i.published_at ?? i.first_seen_at).getTime();
+    const t = parseTimestamp(i.published_at ?? i.first_seen_at).getTime();
     const age = Math.floor((now - t) / 86400000);
     if (age >= 0 && age < days) counts[days - 1 - age] += 1;
   });
@@ -77,7 +82,29 @@ function sparkSeries(items: ItemOut[], days = 14): number[] {
 
 export default function Dashboard() {
   const summary = useDashboardSummary(WINDOW_DAYS);
-  const top = useItems({ min_impact: 50, sort: "impact", limit: 5, collapse_clusters: true });
+  // Top developments: highest-impact real items published recently. Page-change
+  // alerts are excluded (their score reflects the source, not the change), and demo
+  // data appears only on a fresh install with nothing real to rank yet.
+  // Fixed at mount so the query key stays stable across renders.
+  const [topSince] = useState(() =>
+    new Date(Date.now() - TOP_WINDOW_DAYS * 86_400_000).toISOString(),
+  );
+  const topReal = useItems({
+    min_impact: 50, sort: "impact", limit: 5, collapse_clusters: true,
+    include_demo: false, include_page_changes: false, since: topSince,
+  });
+  const noRealTop = topReal.data?.items.length === 0;
+  const topDemo = useItems(
+    { min_impact: 50, sort: "impact", limit: 5, collapse_clusters: true },
+    noRealTop,
+  );
+  const top = noRealTop ? topDemo : topReal;
+  const topLink = noRealTop
+    ? "/items?sort=impact&min_impact=50"
+    : `/items?${new URLSearchParams({
+        sort: "impact", min_impact: "50", include_demo: "false",
+        include_page_changes: "false", since: topSince,
+      })}`;
   const feed = useItems({ sort: "newest", limit: 6, collapse_clusters: true });
   // Wider sample purely for the KPI sparklines — six rows is not a trend.
   const activity = useItems({ sort: "newest", limit: 100, collapse_clusters: true });
@@ -90,6 +117,10 @@ export default function Dashboard() {
   const [openItem, setOpenItem] = useState<ItemOut | null>(null);
 
   const spark = useMemo(() => sparkSeries(activity.data?.items ?? []), [activity.data]);
+
+  // KPI drill-downs carry the same window and filters as the count on the card.
+  const windowLink = (params: Record<string, string> = {}) =>
+    summary.data ? `/items?${new URLSearchParams({ since: summary.data.since, ...params })}` : "/items";
 
   const stdSegments = useMemo(() => {
     const rows = standards.data ?? [];
@@ -116,7 +147,7 @@ export default function Dashboard() {
           label="High impact"
           value={summary.data?.high_impact ?? "—"}
           loading={summary.isPending}
-          to="/items?min_impact=70"
+          to={windowLink({ min_impact: "70", include_page_changes: "false" })}
           tone="critical"
           icon={ShieldAlert}
           spark={spark}
@@ -126,7 +157,7 @@ export default function Dashboard() {
           label="Total changes"
           value={summary.data?.total_changes ?? "—"}
           loading={summary.isPending}
-          to="/items"
+          to={windowLink()}
           tone="accent"
           icon={Activity}
           spark={spark}
@@ -136,7 +167,7 @@ export default function Dashboard() {
           label="Incident reports"
           value={summary.data?.new_incidents ?? "—"}
           loading={summary.isPending}
-          to="/items?category=incident"
+          to={windowLink({ category: "incident" })}
           tone="high"
           icon={AlertTriangle}
           spark={spark}
@@ -148,7 +179,7 @@ export default function Dashboard() {
             summary.data ? `${summary.data.sources_ok}/${summary.data.sources_total}` : "—"
           }
           loading={summary.isPending}
-          to="/settings"
+          to={STATIC_MODE ? "/sources" : "/settings"}
           tone={
             summary.data && summary.data.sources_ok < summary.data.sources_total
               ? "high"
@@ -162,7 +193,12 @@ export default function Dashboard() {
       <div className="mt-3.5 grid gap-3.5 xl:grid-cols-12">
         {/* Top developments (§20) */}
         <div className="xl:col-span-5">
-          <Card title="Top Developments" tick={T.critical} linkTo="/items?min_impact=50">
+          <Card
+            title="Top Developments"
+            sub={noRealTop ? undefined : `last ${TOP_WINDOW_DAYS} days`}
+            tick={T.critical}
+            linkTo={topLink}
+          >
             {top.isPending ? (
               <CardSkeleton rows={4} />
             ) : top.isError ? (
@@ -170,7 +206,7 @@ export default function Dashboard() {
             ) : top.data.items.length === 0 ? (
               <EmptyState
                 title="No high-signal developments"
-                detail="Nothing above the impact threshold in this window. Run ingestion or widen the window."
+                detail={`Nothing scored 50+ in the last ${TOP_WINDOW_DAYS} days.${STATIC_MODE ? "" : " Run ingestion to collect fresh intelligence."}`}
               />
             ) : (
               top.data.items.map((item) => <ItemRow key={item.id} item={item} onOpen={setOpenItem} />)
@@ -212,7 +248,7 @@ export default function Dashboard() {
           ) : incidentReports.data.items.length === 0 ? (
             <EmptyState
               title="No incident reports collected"
-              detail="Enable the AI Incident Database source in Settings to monitor reported AI harms."
+              detail={STATIC_MODE ? "No incident reports collected recently." : "Enable the AI Incident Database source in Settings to monitor reported AI harms."}
             />
           ) : (
             incidentReports.data.items.map((item) => (
@@ -324,7 +360,7 @@ export default function Dashboard() {
           ) : feed.data.items.length === 0 ? (
             <EmptyState
               title="No collected items yet"
-              detail="Run ingestion from Settings to pull the latest from your sources."
+              detail={STATIC_MODE ? "Nothing collected yet." : "Run ingestion from Settings to pull the latest from your sources."}
             />
           ) : (
             <div className="grid md:grid-cols-2">

@@ -18,20 +18,22 @@ The original long-form spec is `AI_Governance_Radar_Product_Design_Development_S
 (present locally, currently gitignored — see DEC-011). §NN references point there.
 
 ## Current state
-**Planning/bootstrap phase (architecture review done 2026-08-11, DEC-016…022). No
-application code exists yet.** Stack (decided): Python 3.12 + FastAPI + SQLAlchemy +
-SQLite-only backend in `backend/`; React + TS + Vite + Tailwind + shadcn/ui frontend in
-`frontend/`; production = ONE process serving API + built SPA (DEC-017). Commands below
-become real as T-001/T-003 land — keep this section updated.
+**V1 shipped (2026-08-11); public static site built (2026-09-29, DEC-029/030).**
+Python 3.12+ FastAPI + SQLAlchemy + SQLite backend in `backend/`; React + TS + Vite +
+Tailwind frontend (hand-rolled primitives, DEC-023) in `frontend/`. Local production =
+ONE process serving API + built SPA (DEC-017). Public = static snapshot on GitHub
+Pages rebuilt every 6 h by `.github/workflows/publish.yml`. See AGENT_HANDOFF.md.
 
 ```bash
-# Backend (once T-001 exists)
-cd backend && uvicorn app.main:app --reload   # http://127.0.0.1:8000, docs at /docs
-pytest && ruff check . && mypy .
+# Backend (venv: backend/.venv on Windows; on the Linux machine use backend/venv)
+cd backend && python -m app.cli serve          # http://127.0.0.1:8000, docs at /api/docs
+python -m app.cli ingest --force               # pull real sources
+ruff check app tests && mypy app && pytest
 
-# Frontend (once T-003 exists)
+# Frontend
 cd frontend && npm run dev                     # http://localhost:5173, /api proxied
-npm run test && npm run lint && npm run typecheck && npm run build
+npm run lint && npm run typecheck && npm test && npm run build
+npm run build:static                           # static public build → dist-static/
 ```
 
 ## Hard rules (non-negotiable)
