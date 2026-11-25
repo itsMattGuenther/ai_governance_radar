@@ -402,13 +402,15 @@ error states + accessibility reviewed. Update this file and CHANGELOG.md as you 
   2027-01-01, rules pending, xAI suit pending) and Brazil (Chamber report pending).
 
 ### T-039 Public site on Cloudflare at aigov.mattguenther.com
-- **Status:** IN PROGRESS · DEC-032
+- **Status:** DONE 2026-11-25 · DEC-032
 - **Description:** The owner chose to go public directly (2026-11-25) at
   aigov.mattguenther.com. publish.yml deploys with `wrangler deploy` (assets-only
   Worker); SPA fallback returns 200 for deep links; `_headers` sets CSP and security
   headers. Verified locally with `wrangler dev`: deep links 200, headers present, no
-  CSP violations. Remaining: the owner adds the `CLOUDFLARE_API_TOKEN` and
-  `CLOUDFLARE_ACCOUNT_ID` repository secrets so the 6-hourly runs can deploy.
+  CSP violations. Repository secrets `CLOUDFLARE_API_TOKEN` (token "ai-governance-radar
+  deploy (GitHub Actions)": Workers template, account itsmattguenther, zone
+  mattguenther.com, no expiry) and `CLOUDFLARE_ACCOUNT_ID` set; the first push-triggered
+  run collected, saved `radar-data` and deployed in 59 s.
 - **Acceptance:** site live on the custom domain; refreshes every 6 hours; no
   deep-link 404s.
 

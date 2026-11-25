@@ -30,14 +30,14 @@ _Last updated: 2026-11-25 (records verified; confidence aging; feeds cleaned up)
     Checked in a browser: dashboard, regulations table, Colorado detail, the
     "confidence lowered" notice, and incidents with blank dates.
 - **Public site: https://aigov.mattguenther.com** (DEC-032), an assets-only Cloudflare
-  Worker. publish.yml deploys it every 6 hours once the owner adds the
-  `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets.
+  Worker, deployed every 6 hours and on pushes to main by publish.yml. The first run
+  succeeded on 2026-11-25. The repo moved to `itsMattGuenther/ai_governance_radar`, and
+  the local `origin` points there.
 
 ## Next steps
-1. **T-039: finish the CI deploy.** The owner adds the Cloudflare repository secrets.
-   The owner chose to go public on 2026-11-25. The "human-verified" wording was
-   changed to "checked against official sources", because the checks were done by AI
-   agents and approved by the owner.
+1. **The owner is doing a UI/UX sweep** (with Fable, from 2026-11-25). Priorities:
+   T-035 mobile, T-037 About/methodology page, T-036 page weight, the "High impact" KPI
+   that almost always reads 0, and the map's share of the home screen.
 2. **Link it from mattguenther.com.** That is a Netlify site, so a production deploy
    costs 15 credits: ask first. That is a Netlify site, so a production deploy costs 15 credits:
    ask first.
@@ -70,6 +70,8 @@ cd ../backend && venv/bin/python -m app.cli export-static --out ../frontend/dist
 Then serve `frontend/dist-static` with any static server.
 
 ## Known limitations
+- `cloudflare/wrangler-action@v3` runs on deprecated Node 20, and GitHub forces it to
+  Node 24 with a warning. Move to a newer major when one exists.
 - Several official sites refuse automated readers: EUR-Lex, California leginfo, CanLII,
   and Colorado's legislature without browser headers. ilga.gov serves an incomplete TLS
   certificate chain. Page-watch sources on these may fail.
