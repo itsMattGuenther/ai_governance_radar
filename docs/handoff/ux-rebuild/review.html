@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Governance Radar UX Review</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600&display=swap">
+<style>
+/* Layout: one 70ch reading column; evidence plates and the mock-up run full width.
+   Single dark look by choice, to match the product under review. */
+:root {
+  color-scheme: dark;
+  --ground: #0C1013; --panel: #12171B; --raised: #1A2025;
+  --line: #263037; --line-2: #3A464F;
+  --ink: #E4E9EC; --ink-2: #A8B3BA; --ink-3: #7F8B93;
+  --signal: #5FC3D7; --amber: #E3A63A; --red: #EC5B56; --green: #4FB477;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --cond: "IBM Plex Sans Condensed", "IBM Plex Sans", "Arial Narrow", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+body { background: var(--ground); color: var(--ink); font: 400 15px/1.6 var(--sans); }
+a { color: var(--signal); }
+a:focus-visible, summary:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin-inline: auto; padding-block: 0 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.prose { max-width: 70ch; }
+.prose p { margin: 0 0 14px; color: var(--ink-2); }
+.prose p strong, li strong { color: var(--ink); font-weight: 600; }
+code { font: 400 12.5px var(--mono); color: var(--ink); background: var(--raised); padding: 1px 5px; border: 1px solid var(--line); overflow-wrap: anywhere; }
+
+.strip { display: flex; flex-wrap: wrap; gap: 4px 18px; padding-block: 9px; border-bottom: 1px solid var(--line);
+  font: 500 11px/1.4 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.strip b { color: var(--ink-2); font-weight: 500; }
+h1 { font: 600 clamp(28px, 4.6vw, 42px)/1.1 var(--cond); letter-spacing: .01em; text-transform: uppercase; margin: 40px 0 8px; text-wrap: balance; }
+.sub { color: var(--ink-2); max-width: 62ch; margin: 0 0 28px; }
+h2 { font: 600 20px/1.2 var(--cond); letter-spacing: .06em; text-transform: uppercase; margin: 64px 0 6px; padding-top: 18px; border-top: 1px solid var(--line-2); text-wrap: balance; }
+h3 { font: 600 15px/1.35 var(--sans); margin: 28px 0 6px; }
+.lede { color: var(--ink-2); max-width: 70ch; margin: 0 0 20px; }
+.label { font: 500 11px/1.4 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+
+.bluf { border: 1px solid var(--line-2); border-left: 3px solid var(--signal); background: var(--panel); padding: 18px 20px; max-width: 78ch; }
+.bluf p { margin: 8px 0 0; color: var(--ink); }
+.bluf p + p { color: var(--ink-2); }
+
+.scroll { overflow-x: auto; border: 1px solid var(--line); background: var(--panel); }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th { font: 500 11px/1.3 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line-2); white-space: nowrap; }
+td { padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; color: var(--ink-2); }
+tr:last-child td { border-bottom: 0; }
+td.k { color: var(--ink); font-weight: 500; white-space: nowrap; }
+.v { font: 500 11.5px/1.5 var(--mono); letter-spacing: .06em; white-space: nowrap; }
+.v.g { color: var(--green); } .v.a { color: var(--amber); } .v.r { color: var(--red); } .v.n { color: var(--ink-2); }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) {
+  table:not(.keep) thead { display: none; }
+  table:not(.keep), table:not(.keep) tbody, table:not(.keep) tr, table:not(.keep) td { display: block; }
+  table:not(.keep) tr { padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  table:not(.keep) tr:last-child { border-bottom: 0; }
+  table:not(.keep) td { padding: 2px 0; border: 0; white-space: normal; }
+  .tok td:nth-child(2)::before { content: "Now: "; color: var(--ink-3); }
+  .tok td:nth-child(3)::before { content: "Flat console: "; color: var(--ink-3); }
+  .tok td:nth-child(4)::before { content: "Balanced: "; color: var(--ink-3); }
+}
+
+.findings { display: grid; gap: 0; border: 1px solid var(--line); background: var(--panel); }
+.f { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 0 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.f:last-child { border-bottom: 0; }
+.f .id { font: 500 12px/1.7 var(--mono); color: var(--amber); }
+.f h4 { margin: 0 0 4px; font: 600 14.5px/1.4 var(--sans); }
+.f p { margin: 0 0 6px; color: var(--ink-2); font-size: 14px; max-width: 78ch; }
+.f .where { font: 400 12px/1.5 var(--mono); color: var(--ink-3); overflow-wrap: anywhere; }
+
+figure { margin: 22px 0; }
+figcaption { font-size: 13px; color: var(--ink-3); margin-top: 8px; max-width: 78ch; }
+.shot { position: relative; border: 1px solid var(--line-2); background: var(--panel); line-height: 0; }
+.shot img { display: block; width: 100%; height: auto; }
+.pin { position: absolute; transform: translate(-50%, -50%); min-width: 22px; height: 22px; padding: 0 5px; display: grid; place-items: center;
+  background: var(--amber); color: #14110A; font: 600 12px/1 var(--mono); border: 1px solid #14110A; }
+.keys { list-style: none; margin: 12px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 8px 24px; font-size: 13.5px; color: var(--ink-2); }
+.keys li { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 8px; }
+.keys b { display: grid; place-items: center; height: 20px; background: var(--amber); color: #14110A; font: 600 11px/1 var(--mono); }
+.phones { display: flex; flex-wrap: wrap; gap: 16px; }
+.phones figure { margin: 0; flex: 1 1 200px; max-width: 280px; }
+
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.panel { border: 1px solid var(--line); background: var(--panel); padding: 16px; min-width: 0; }
+.panel h3 { margin-top: 0; }
+.panel ul { margin: 6px 0 0; padding-left: 18px; color: var(--ink-2); font-size: 14px; }
+.panel li { margin-bottom: 5px; }
+.stat { font: 500 30px/1.1 var(--mono); font-variant-numeric: tabular-nums; }
+.stat small { font: 400 13px var(--sans); color: var(--ink-3); margin-left: 6px; }
+.bar { display: flex; height: 14px; margin: 12px 0 8px; gap: 2px; }
+.bar i { display: block; height: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12.5px; color: var(--ink-2); }
+.legend i { display: inline-block; width: 9px; height: 9px; margin-right: 6px; }
+
+#chart { position: relative; }
+#chart svg { display: block; width: 100%; height: auto; }
+#chart text { font: 400 11px var(--mono); fill: var(--ink-3); }
+#chart text.em { fill: var(--ink); }
+#tip { position: absolute; pointer-events: none; background: var(--raised); border: 1px solid var(--line-2); padding: 4px 8px; font: 400 12px var(--mono); color: var(--ink); white-space: nowrap; transform: translate(-50%, -130%); }
+details { margin-top: 10px; font-size: 13px; color: var(--ink-2); }
+summary { cursor: pointer; color: var(--signal); }
+
+/* ---- console sample (first proposal), kept for the comparison ---- */
+.mock { border: 1px solid var(--line-2); background: var(--ground); font-size: 12.5px; line-height: 1.45; }
+.m-h { display: flex; justify-content: space-between; gap: 10px; padding: 7px 14px; border-bottom: 1px solid var(--line); font: 600 11.5px var(--cond); letter-spacing: .12em; text-transform: uppercase; }
+.m-h span { font: 400 10.5px var(--mono); color: var(--ink-3); letter-spacing: .04em; }
+.m-r { display: grid; gap: 2px 10px; padding: 6px 14px; border-bottom: 1px solid var(--line); align-items: baseline; }
+.m-r:last-child { border-bottom: 0; }
+.m-r.lc { grid-template-columns: 54px minmax(0, 1fr) 62px; }
+.m-r .c { font-family: var(--mono); color: var(--ink-3); white-space: nowrap; }
+.m-r b { font-weight: 500; color: var(--ink); }
+.m-r .st { font: 400 10.5px var(--mono); letter-spacing: .05em; color: var(--ink-3); text-transform: uppercase; }
+.trk { --n: 1; width: 58px; height: 8px; align-self: center; background: linear-gradient(90deg, var(--green) calc(var(--n) * 20%), var(--line-2) 0);
+  -webkit-mask: repeating-linear-gradient(90deg, #000 0 10px, transparent 10px 12px); mask: repeating-linear-gradient(90deg, #000 0 10px, transparent 10px 12px); }
+.trk.pend { background: linear-gradient(90deg, var(--amber) calc(var(--n) * 20%), var(--line-2) 0); }
+
+/* ---- mock-up of the proposed home (revised, balanced direction) ---- */
+.wb { --w-ground: #0B0F13; --w-panel: #131A20; --w-head: #19222B; --w-line: #26323C; --violet: #A78BFA; --blue: #6AA8E8;
+  border: 1px solid var(--line-2); border-radius: 8px; overflow: hidden; background: var(--w-ground); font-size: 13px; line-height: 1.45; }
+.w-ban { text-align: center; padding: 4px 8px; background: #2B2412; color: var(--amber); font: 500 10.5px/1.4 var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+.w-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; padding: 10px 16px; background: var(--w-panel); border-bottom: 1px solid var(--w-line); }
+.w-brand { display: inline-flex; align-items: center; gap: 9px; font: 600 14px var(--sans); }
+.w-brand b { font: 500 10.5px var(--mono); letter-spacing: .3em; color: var(--signal); }
+.w-radar { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--signal); background: conic-gradient(transparent 0 70%, rgba(79,229,143,.8)); animation: w-spin 5s linear infinite; flex: none; }
+@keyframes w-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .w-radar { animation: none; } }
+.w-nav { display: flex; flex-wrap: wrap; gap: 4px; font: 500 13px var(--sans); color: var(--ink-2); }
+.w-nav span, .w-nav b { padding: 4px 10px; border-radius: 4px; }
+.w-nav b { color: var(--ink); font-weight: 600; background: color-mix(in srgb, var(--signal) 14%, transparent); }
+.w-find { margin-left: auto; border: 1px solid var(--w-line); border-radius: 4px; padding: 4px 12px; color: var(--ink-3); font-size: 12.5px; background: var(--w-ground); }
+.w-status { display: flex; flex-wrap: wrap; gap: 3px 20px; padding: 6px 16px; border-bottom: 1px solid var(--w-line); font: 400 11px/1.5 var(--mono); color: var(--ink-3); }
+.w-status b { color: var(--ink-2); font-weight: 500; } .w-status .ok { color: var(--green); }
+.w-body { padding: 12px; display: grid; gap: 12px; }
+.w-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.w-tile { background: var(--w-panel); border: 1px solid var(--w-line); border-radius: 6px; padding: 12px 14px; min-width: 0; }
+.w-tile.hot { background: color-mix(in srgb, var(--amber) 9%, var(--w-panel)); border-color: color-mix(in srgb, var(--amber) 40%, var(--w-line)); }
+.w-tile .l { font-size: 12px; color: var(--ink-2); font-weight: 500; }
+.w-tile .n { font: 500 30px/1.15 var(--mono); font-variant-numeric: tabular-nums; margin-top: 2px; }
+.w-tile .n small { font: 400 13px var(--sans); color: var(--ink-2); margin-left: 5px; }
+.w-tile.hot .n { color: var(--amber); }
+.w-tile .d { font-size: 12.5px; color: var(--ink-2); margin-top: 2px; }
+.w-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
+@media (max-width: 760px) { .w-grid { grid-template-columns: minmax(0, 1fr); } }
+.w-p { background: var(--w-panel); border: 1px solid var(--w-line); border-radius: 6px; overflow: hidden; min-width: 0; }
+.w-h { display: flex; align-items: center; gap: 9px; padding: 9px 14px; background: var(--w-head); border-bottom: 1px solid var(--w-line); font: 600 13px var(--sans); }
+.w-h i { width: 8px; height: 8px; border-radius: 2px; background: var(--mk, var(--signal)); flex: none; }
+.w-h span { margin-left: auto; font: 400 11px var(--mono); color: var(--ink-3); }
+.w-r { display: grid; gap: 2px 12px; padding: 10px 14px; border-bottom: 1px solid var(--w-line); align-items: start; }
+.w-r:last-child { border-bottom: 0; }
+.w-r.soon { background: color-mix(in srgb, var(--amber) 6%, transparent); }
+.w-r.dl { grid-template-columns: 58px minmax(0, 1fr) auto; }
+.w-r.ch { grid-template-columns: 48px 56px minmax(0, 1fr); }
+.w-r.lc { grid-template-columns: 56px minmax(0, 1fr) auto; align-items: center; }
+.w-dt { font: 500 12px/1.3 var(--mono); color: var(--ink); font-variant-numeric: tabular-nums; }
+.w-dt small { display: block; font-size: 11px; color: var(--ink-3); font-weight: 400; }
+.w-t { font-weight: 500; color: var(--ink); font-size: 13.5px; }
+.w-s { color: var(--ink-2); font-size: 12.5px; }
+.w-code { display: block; text-align: center; font: 500 10.5px/1 var(--mono); color: var(--ink-2); background: var(--raised); border: 1px solid var(--w-line); border-radius: 3px; padding: 4px 0; }
+.w-chip { display: inline-block; font: 600 11px/1 var(--sans); padding: 4px 7px; border-radius: 4px; white-space: nowrap; color: var(--c, var(--ink-2));
+  background: color-mix(in srgb, var(--c, var(--ink-3)) 15%, transparent); border: 1px solid color-mix(in srgb, var(--c, var(--ink-3)) 38%, transparent); }
+.w-chip.q { background: none; border-color: var(--w-line); color: var(--ink-2); font-weight: 500; }
+.w-stage { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 6px 10px; }
+.w-trk { display: flex; gap: 2px; }
+.w-trk i { width: 11px; height: 6px; border-radius: 1.5px; background: var(--line-2); }
+.w-trk i.on { background: var(--c, var(--green)); }
+.w-foot { padding: 9px 14px; color: var(--ink-3); border-top: 1px solid var(--w-line); font-size: 12.5px; }
+.w-r sup, .w-tile sup { color: var(--amber); font-family: var(--mono); }
+
+/* ---- now vs proposed sample ---- */
+.cmp { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; align-items: start; }
+.cmp > div { min-width: 0; }
+.now { border-radius: 12px; border: 1px solid #1E2836; background: linear-gradient(180deg, #131A26, #0F141D); box-shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.045); overflow: hidden; font-family: Inter, system-ui, sans-serif; }
+.now .h { display: flex; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid #1E2836; font-size: 13px; font-weight: 600; color: #E8EDF5; }
+.now .h i { display: inline-block; width: 3px; height: 14px; background: #A78BFA; border-radius: 2px; margin-right: 8px; vertical-align: -2px; }
+.now .h a { color: #628BFF; font-weight: 400; font-size: 12px; text-decoration: none; }
+.now .r { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid #1E2836; }
+.now .r:last-child { border-bottom: 0; }
+.now .fl { width: 24px; height: 24px; border-radius: 50%; flex: none; background: #2C3A4E; display: grid; place-items: center; font: 500 8px var(--mono); color: #8FA0B5; }
+.now .nm { flex: 1; min-width: 0; font-size: 14px; font-weight: 500; color: #E8EDF5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.now .nm small { display: block; font: 400 9.5px var(--mono); color: #7A8BA3; }
+.now .pl { font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 8px; flex: none; }
+.pl.i { color: #5B9BD8; background: rgba(91,155,216,.15); border: 1px solid rgba(91,155,216,.4); }
+.pl.e { color: #3FBF77; background: rgba(63,191,119,.15); border: 1px solid rgba(63,191,119,.4); }
+.pl.s { color: #F2913D; background: rgba(242,145,61,.15); border: 1px solid rgba(242,145,61,.4); }
+.new { border: 1px solid var(--line-2); background: var(--panel); }
+
+.steps { counter-reset: s; list-style: none; padding: 0; margin: 0; border: 1px solid var(--line); background: var(--panel); }
+.steps > li { counter-increment: s; display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 0 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.steps > li:last-child { border-bottom: 0; }
+.steps > li::before { content: "P" counter(s); font: 500 12px/1.8 var(--mono); color: var(--signal); }
+.steps h4 { margin: 0 0 4px; font: 600 14.5px/1.4 var(--sans); }
+.steps p { margin: 0; color: var(--ink-2); font-size: 14px; max-width: 78ch; }
+.size { font: 500 11px var(--mono); color: var(--ink-3); letter-spacing: .08em; margin-left: 8px; }
+</style>
+
+<div class="wrap">
+
+<div class="strip"><span><b>UX / UI review</b></span><span>aigov.mattguenther.com</span><span>Reviewed 25 Nov 2026</span><span>Against site build 15:13Z</span><span>Review only, no code changed</span><span><b>Rev 2: visual direction revised after feedback</b></span></div>
+
+<h1>Governance Radar: a skeptic's UX review</h1>
+<p class="sub">Every page of the live site at laptop size (1440×900), and the main ones at phone size (390×844), checked against the code and the published data. Findings first, then a proposed home screen and a visual direction that keeps the ops-console discipline without losing the page's character.</p>
+
+<div class="bluf">
+  <div class="label">Bottom line</div>
+  <p><strong>The valuable part of this product is the 23 hand-checked records, and the home page mostly shows something else.</strong> Four of its seven modules, including the first thing on the page and its whole left column, are driven by the automated feed. This week that feed is 55 items, of which 3 came from a government source. The curated laws sit in the third row, cut off on a laptop, sorted A to Z.</p>
+  <p>The site's nearest legal date is 7 days out. It exists only as a sentence of grey 11px note text on one detail page. The first thing the home page shows instead is a red "High impact" counter. It reads 0 today, and once it moves it will count how many government notices arrived, whatever they say.</p>
+  <p>The build quality is good and the detail pages are strong. I would keep the page structure, fix nine defects, rebuild Home around dates and record changes, and restyle the site to sit between today's polished SaaS look and a flat console: flatter and tighter, with colour and separation kept where they help you skim. Colour, corners and type are quick to change because they live in a token file. Density and the row clutter need a pass over each page.</p>
+</div>
+
+<h2>Status by surface</h2>
+<p class="lede">One line per page. Detail and evidence follow.</p>
+<div class="scroll"><table>
+<thead><tr><th>Surface</th><th>Verdict</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td class="k">Home</td><td><span class="v r">■ REWORK</span></td><td>Answers "what did the collectors pick up", when the question is "what do I need to know or do".</td></tr>
+<tr><td class="k">Regulatory Radar</td><td><span class="v a">▲ FIX</span></td><td>Best content on the site. Sorted alphabetically, no next-date column, and the phone view hides status and dates.</td></tr>
+<tr><td class="k">Record detail</td><td><span class="v g">● KEEP</span></td><td>The strongest page. Its upcoming dates are buried in a notes paragraph.</td></tr>
+<tr><td class="k">Standards</td><td><span class="v a">▲ FIX</span></td><td>Twelve records shown as twelve tall cards. Three of five counters read zero.</td></tr>
+<tr><td class="k">Incidents &amp; Risks</td><td><span class="v a">▲ FIX</span></td><td>The automated feed sits above the curated write-ups, and one outage fills five of its eight rows.</td></tr>
+<tr><td class="k">All Sources</td><td><span class="v a">▲ FIX</span></td><td>Fine as a firehose. Press items about shopping and funding rounds sit level with government notices.</td></tr>
+<tr><td class="k">Source Health</td><td><span class="v n">▼ DEMOTE</span></td><td>A nav slot for a page that says "13 of 13 fine". Belongs in a status strip.</td></tr>
+<tr><td class="k">Search</td><td><span class="v g">● KEEP</span></td><td>Works. Add a keyboard shortcut.</td></tr>
+<tr><td class="k">Phone layout</td><td><span class="v r">■ BROKEN</span></td><td>Counter cards overlap, table columns are off-screen, the legal notice is hidden.</td></tr>
+<tr><td class="k">About / methodology</td><td><span class="v r">○ MISSING</span></td><td>A public portfolio piece with no author, no repo link and no explanation of its scores.</td></tr>
+</tbody></table></div>
+
+<h2>Defects to fix whatever direction you choose</h2>
+<p class="lede">None of these needs a design decision. File pointers are relative to <code>frontend/src</code> unless marked.</p>
+<div class="findings">
+  <div class="f"><div class="id">D1</div><div><h4>"High impact" counts arrivals, not importance</h4>
+    <p>The threshold is 70. An item reaches exactly 70 when it is tagged regulation (30), comes from a government source (20), is new (5) and is collected within 48 hours of publication (15). The score is set once, at collection, and never revisited. The counter reads 0 today only because the public database was first filled this morning, when everything was already older than 48 hours, so the top score is 63. From the next run on, almost every government notice will be collected in time, score 70 and keep it. The UK care-paperwork guidance would have qualified. The red counter will then show how many government notices arrived this week, whatever they say.</p>
+    <div class="where">backend/app/services/scoring.py · backend/app/ingestion/pipeline.py (scored once) · pages/Dashboard.tsx (first KpiCard)</div></div></div>
+  <div class="f"><div class="id">D2</div><div><h4>Three counters draw the same sparkline</h4>
+    <p>High impact, Total changes and Incident reports all receive one shared series and tint it red, blue and orange. They read as three trends. There is one.</p>
+    <div class="where">pages/Dashboard.tsx · spark={spark} passed to three cards</div></div></div>
+  <div class="f"><div class="id">D3</div><div><h4>Regulatory Pulse shows the first five laws alphabetically</h4>
+    <p>Brazil, California, China, Colorado, Colorado. The EU AI Act, the largest record on the site, never appears on Home.</p>
+    <div class="where">pages/Dashboard.tsx · regulations.data.slice(0, 5)</div></div></div>
+  <div class="f"><div class="id">D4</div><div><h4>"LIVE" with a pulsing red dot on data that refreshes every six hours</h4>
+    <p>The claim is untrue, and red is the site's own colour for critical. The design document specifies green for this dot.</p>
+    <div class="where">pages/Dashboard.tsx (feed header) · styles/index.css .live-dot</div></div></div>
+  <div class="f"><div class="id">D5</div><div><h4>Counter cards collide at phone width</h4>
+    <p>The sparkline runs through the label, labels wrap to four lines and the last card's icon is clipped. Already logged as T-035.</p>
+    <div class="where">components/ui/KpiCard.tsx · fixed 64px sparkline in a non-wrapping row</div></div></div>
+  <div class="f"><div class="id">D6</div><div><h4>The phone view of the law table hides status, dates and confidence</h4>
+    <p>The table has a fixed 760px minimum inside a scrolling box, with no cue that it scrolls. A phone reader sees a list of names. T-035.</p>
+    <div class="where">pages/Regulations.tsx · table min-w-[760px] in overflow-x-auto</div></div></div>
+  <div class="f"><div class="id">D7</div><div><h4>The not-legal-advice notice is hidden on phones</h4>
+    <p>The footer that carries it only renders from tablet width up.</p>
+    <div class="where">components/layout/Shell.tsx · footer "hidden md:block"</div></div></div>
+  <div class="f"><div class="id">D8</div><div><h4>One event fills the incident list</h4>
+    <p>The data holds ten separate rows about a single NSA network outage. Five of the eight rows on the Incidents page are that story. Grouping only compares items from different sources, and all ten come from the same one, so each report gets its own row.</p>
+    <div class="where">backend/app/services/dedupe.py · assign_cluster skips items from the same source</div></div></div>
+  <div class="f"><div class="id">D9</div><div><h4>Small ones</h4>
+    <p>A title shows a raw <code>&amp;amp;</code>. "Last update" on the law table falls back to the introduction date, so Brazil shows May 3, 2023 although its timeline runs to 2025. Curated incidents are dated "1y ago" and "2y ago" where a citable date belongs. The phone tab bar has no Standards entry. The page has no description or share-preview tags, so a link posted anywhere shows a bare title.</p>
+    <div class="where">ingestion title cleaning · pages/Regulations.tsx (lastUpdate) · pages/Incidents.tsx · Shell.tsx MOBILE_NAV · index.html</div></div></div>
+</div>
+
+<div class="phones" style="margin-top:22px">
+  <figure><div class="shot"><img src="shots/home-390.webp" width="390" height="844" alt="Home page on a phone: four counter cards with sparklines overlapping their labels"></div><figcaption>D5. Counters at 390px.</figcaption></figure>
+  <figure><div class="shot"><img src="shots/reg-390.webp" width="390" height="844" alt="Regulatory Radar on a phone showing only jurisdiction and name columns"></div><figcaption>D6. Status, dates and confidence are off-screen.</figcaption></figure>
+  <figure><div class="shot"><img src="shots/inc-390.webp" width="390" height="844" alt="Incidents page on a phone listing several near-identical reports"></div><figcaption>D8. Every row has the same badge, score and tags.</figcaption></figure>
+</div>
+
+<h2>The home page answers the wrong question</h2>
+<div class="prose">
+<p>The site holds two kinds of content. There are <strong>23 curated records</strong> (11 laws, 12 standards and frameworks), each checked against official sources on 25 Nov. They are scarce, trustworthy and the reason anyone would cite this site. Then there is the <strong>automated feed</strong>: plentiful, cheap and mostly noise.</p>
+<p>Home gives the feed four of its seven modules, including the counters that open the page and the whole left column. This is what a 1440×900 laptop shows before any scrolling.</p>
+</div>
+
+<figure>
+  <div class="shot">
+    <img src="shots/home-1440.webp" width="1280" height="800" alt="The live home page at laptop size">
+    <span class="pin" style="left:23%;top:13.2%">1</span>
+    <span class="pin" style="left:52%;top:13.2%">2</span>
+    <span class="pin" style="left:40%;top:28.2%">3</span>
+    <span class="pin" style="left:75%;top:58%">4</span>
+    <span class="pin" style="left:48%;top:3%">5</span>
+    <span class="pin" style="left:85%;top:95%">6</span>
+    <span class="pin" style="left:8%;top:62%">7</span>
+  </div>
+  <ul class="keys">
+    <li><b>1</b><span>The first thing read is a zero in the red slot. When it moves it will count notices, not importance. See D1.</span></li>
+    <li><b>2</b><span>"55 total changes" counts collected articles. Nothing in the law changed 55 times.</span></li>
+    <li><b>3</b><span>The top development of the month is UK guidance on cutting care paperwork. Two of the five are research preprints.</span></li>
+    <li><b>4</b><span>The map takes about a third of the content area to restate 23 records as dots. Its caption has to explain that it is not a ranking.</span></li>
+    <li><b>5</b><span>The header carries a search box and one faint timestamp. This is where a console shows its state.</span></li>
+    <li><b>6</b><span>The curated laws start here, below the fold.</span></li>
+    <li><b>7</b><span>A 240px rail for six links. Most of it is empty.</span></li>
+  </ul>
+</figure>
+
+<h3>Why the ranking is weak</h3>
+<div class="prose"><p>The impact score adds points for category, source type and freshness. It never reads the content. Most items therefore land on a handful of identical scores, and "top developments" becomes "newest items from a government feed". The feed's own detail drawer explains this honestly, which is to its credit. The problem is giving that number the top-left of the home page.</p></div>
+
+<div class="two">
+  <div class="panel">
+    <div class="label">Impact scores of all 163 collected items</div>
+    <div id="chart" role="img" aria-label="Histogram of impact scores. 78 items score exactly 42 and 28 score exactly 50. The highest is 63. The high-impact threshold is 70."></div>
+    <details><summary>Show as a table</summary>
+      <div class="scroll" style="margin-top:8px"><table class="keep"><thead><tr><th>Score</th><th>Items</th></tr></thead><tbody id="chart-table"></tbody></table></div>
+    </details>
+  </div>
+  <div class="panel">
+    <div class="label">Collected in the last 7 days, by source</div>
+    <div class="stat">3 <small>of 55 from a government source</small></div>
+    <div class="bar" aria-hidden="true">
+      <i style="flex:20;background:var(--ink-2)"></i><i style="flex:17;background:#6F7B84"></i><i style="flex:15;background:#4A555D"></i><i style="flex:3;background:var(--signal)"></i>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--ink-2)"></i>Incident database reports 20</span>
+      <span><i style="background:#6F7B84"></i>Research preprints 17</span>
+      <span><i style="background:#4A555D"></i>Tech press 15</span>
+      <span><i style="background:var(--signal)"></i>Government 3</span>
+    </div>
+    <ul>
+      <li>Across everything collected, 100 of 163 items come from one source.</li>
+      <li>Today's "Latest" strip leads with a retailer's Black Friday shopping agent and a company's share price.</li>
+      <li>142 of 163 items carry the same confidence level, so the three dots on every row say almost nothing.</li>
+    </ul>
+  </div>
+</div>
+
+<h3>What is missing from the screen</h3>
+<div class="prose">
+<p>The EU AI Act record says new prohibitions and an Article 50(2) deadline apply from <strong>2 Dec 2026</strong>, seven days after this review. That date appears once, inside a paragraph of small grey text at the bottom of the record's side panel. Colorado SB 26-189 takes effect on <strong>1 Jan 2027</strong>, 37 days out. Home shows it as "eff. Jan 1, 2027" in 9.5px type, level with laws that took effect years ago.</p>
+<p>For a person who has to keep up with compliance dates, those two lines are the product. They should be the largest things on the page.</p>
+</div>
+
+<h2>Proposed home: a watch board</h2>
+<p class="lede">Dates first, then what changed in the records, then the state of every law, then the feed, filtered to primary sources. Every row below is a real record from today's build. The map leaves Home. This version is drawn in the revised visual direction described in the next section.</p>
+
+<figure>
+<div class="wb">
+  <div class="w-ban">Open-source data · Not legal advice · Verify against the linked official source</div>
+  <div class="w-top">
+    <span class="w-brand"><i class="w-radar"></i>AI Governance <b>RADAR</b></span>
+    <span class="w-nav"><b>Watch</b><span>Laws</span><span>Standards</span><span>Incidents</span><span>All sources</span><span>About</span></span>
+    <span class="w-find">/ Search</span>
+  </div>
+  <div class="w-status"><span>DATA AS OF <b>25 NOV 2026 15:13Z</b></span><span>REFRESHES EVERY 6 H</span><span>SOURCES <b class="ok">● 13/13 OK</b></span><span>RECORDS CHECKED <b>25 NOV 2026</b></span><span>NEXT CHECK DUE <b>23 FEB 2027</b></span></div>
+  <div class="w-body">
+    <div class="w-tiles">
+      <div class="w-tile hot"><div class="l">Next date</div><div class="n">7<small>days</small></div><div class="d">EU AI Act · 2 Dec 2026 <sup>†</sup></div></div>
+      <div class="w-tile hot"><div class="l">Then</div><div class="n">37<small>days</small></div><div class="d">Colorado SB 26-189 in force</div></div>
+      <div class="w-tile"><div class="l">Record changes, 30 days</div><div class="n">4</div><div class="d">2 laws · 2 standards</div></div>
+      <div class="w-tile"><div class="l">Records tracked</div><div class="n">23</div><div class="d">11 laws · 12 standards</div></div>
+      <div class="w-tile"><div class="l">Collected, 7 days</div><div class="n">55</div><div class="d">3 from government sources</div></div>
+    </div>
+    <div class="w-grid">
+      <div class="w-p">
+      <div class="w-h" style="--mk:var(--amber)"><i></i>Dates ahead<span>next 5</span></div>
+      <div class="w-r dl soon"><span class="w-dt">02 DEC<small>2026</small></span><div><div class="w-t">EU AI Act <sup>†</sup></div><div class="w-s">New prohibitions on generating intimate imagery and CSAM apply. Article 50(2) deadline for generative systems already on the market.</div></div><span class="w-chip" style="--c:var(--amber)">7 days</span></div>
+      <div class="w-r dl soon"><span class="w-dt">01 JAN<small>2027</small></span><div><div class="w-t">Colorado SB 26-189</div><div class="w-s">Takes effect. Applies to decisions made on or after this date.</div></div><span class="w-chip" style="--c:var(--amber)">37 days</span></div>
+      <div class="w-r dl"><span class="w-dt">02 AUG<small>2027</small></span><div><div class="w-t">EU AI Act <sup>†</sup></div><div class="w-s">National sandboxes due.</div></div><span class="w-chip q">250 days</span></div>
+      <div class="w-r dl"><span class="w-dt">02 DEC<small>2027</small></span><div><div class="w-t">EU AI Act</div><div class="w-s">Annex III high-risk obligations apply.</div></div><span class="w-chip q">372 days</span></div>
+      <div class="w-r dl"><span class="w-dt">02 AUG<small>2028</small></span><div><div class="w-t">EU AI Act <sup>†</sup></div><div class="w-s">Annex I (regulated products) obligations apply.</div></div><span class="w-chip q">616 days</span></div>
+      </div>
+      <div class="w-p">
+      <div class="w-h" style="--mk:var(--signal)"><i></i>Record changes<span>last 30 days</span></div>
+      <div class="w-r ch"><span class="w-dt">19 NOV</span><span class="w-code">US-CO</span><div><div class="w-t">Colorado SB 26-189 <span class="w-chip" style="--c:var(--blue);margin-left:4px">Note</span></div><div class="w-s">The Attorney General's department adopted ADMT and chatbot safety rules; an AG opinion and Secretary of State filing are pending.</div></div></div>
+      <div class="w-r ch"><span class="w-dt">16 NOV</span><span class="w-code">US-CA</span><div><div class="w-t">California SB 53 <span class="w-chip" style="--c:var(--blue);margin-left:4px">Note</span></div><div class="w-s">The Attorney General sued OpenAI under unfair-competition and public-nuisance law, citing the Act only as public policy.</div></div></div>
+      <div class="w-r ch"><span class="w-dt">10 NOV</span><span class="w-code">OWASP</span><div><div class="w-t">Agentic AI Security <span class="w-chip" style="--c:var(--violet);margin-left:4px">Updated</span></div><div class="w-s">Securing Agentic Applications V2 guide published.</div></div></div>
+      <div class="w-r ch"><span class="w-dt">28 OCT</span><span class="w-code">MITRE</span><div><div class="w-t">ATLAS <span class="w-chip" style="--c:var(--violet);margin-left:4px">Updated</span></div><div class="w-s">v2026.10: 16 tactics, 129 techniques, 92 sub-techniques, 77 case studies.</div></div></div>
+      </div>
+      <div class="w-p">
+      <div class="w-h" style="--mk:var(--violet)"><i></i>Laws by stage<span>11</span></div>
+      <div class="w-r lc"><span class="w-code">BR</span><div><div class="w-t">Brazil AI Bill (PL 2338/2023)</div><div class="w-s">Passed Senate, pending in Chamber</div></div><span class="w-stage" style="--c:var(--blue)"><span class="w-chip">Introduced</span><span class="w-trk"><i class="on"></i><i></i><i></i><i></i><i></i></span></span></div>
+      <div class="w-r lc"><span class="w-code">US-CO</span><div><div class="w-t">Colorado SB 26-189</div><div class="w-s">In force 1 Jan 2027</div></div><span class="w-stage" style="--c:var(--amber)"><span class="w-chip">Signed</span><span class="w-trk"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></span></div>
+      <div class="w-r lc"><span class="w-code">EU</span><div><div class="w-t">EU AI Act</div><div class="w-s">Phased to 2 Aug 2028</div></div><span class="w-stage" style="--c:var(--green)"><span class="w-chip">In force</span><span class="w-trk"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></span></div>
+      <div class="w-r lc"><span class="w-code">US-CA</span><div><div class="w-t">California SB 53</div></div><span class="w-stage" style="--c:var(--green)"><span class="w-chip">In force</span><span class="w-trk"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></span></div>
+      <div class="w-r lc"><span class="w-code">US-TX</span><div><div class="w-t">Texas Responsible AI Governance Act</div></div><span class="w-stage" style="--c:var(--green)"><span class="w-chip">In force</span><span class="w-trk"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></span></div>
+      <div class="w-r lc"><span class="w-code">US-IL</span><div><div class="w-t">Illinois HB 3773</div></div><span class="w-stage" style="--c:var(--green)"><span class="w-chip">In force</span><span class="w-trk"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></span></div>
+      <div class="w-r lc"><span class="w-code">KR</span><div><div class="w-t">South Korea AI Framework Act</div></div><span class="w-stage" style="--c:var(--green)"><span class="w-chip">In force</span><span class="w-trk"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></span></div>
+      <div class="w-r lc"><span class="w-code">US-UT</span><div><div class="w-t">Utah AI Policy Act</div></div><span class="w-stage" style="--c:var(--green)"><span class="w-chip">In force</span><span class="w-trk"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></span></div>
+      <div class="w-r lc"><span class="w-code">CN</span><div><div class="w-t">China Interim Measures for Generative AI</div></div><span class="w-stage" style="--c:var(--green)"><span class="w-chip">In force</span><span class="w-trk"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></span></div>
+      <div class="w-r lc"><span class="w-code">US-NYC</span><div><div class="w-t">NYC Local Law 144</div></div><span class="w-stage" style="--c:var(--green)"><span class="w-chip">Enforced</span><span class="w-trk"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></span></div>
+      <div class="w-r lc"><span class="w-code">US-CO</span><div><div class="w-t">Colorado AI Act (SB 24-205)</div><div class="w-s">Replaced by SB 26-189</div></div><span class="w-stage"><span class="w-chip q">✕ Superseded</span><span class="w-trk"><i></i><i></i><i></i><i></i><i></i></span></span></div>
+      </div>
+      <div class="w-p">
+      <div class="w-h" style="--mk:var(--green)"><i></i>From government sources<span>last 7 days</span></div>
+      <div class="w-r ch"><span class="w-dt">23 NOV</span><span class="w-code">GOV.UK</span><div class="w-t">Sovereign AI and National Security Strategic Investment Fund backing British autonomous defence systems firm</div></div>
+      <div class="w-r ch"><span class="w-dt">20 NOV</span><span class="w-code">GOV.UK</span><div class="w-t">New AI guidance to cut paperwork and free more time for care</div></div>
+      <div class="w-r ch"><span class="w-dt">19 NOV</span><span class="w-code">FED REG</span><div class="w-t">Policies on the Use of Generative Super Intelligence in Agency Adjudication; Request for Comments</div></div>
+      <div class="w-foot">Also collected: 20 incident reports · 17 research preprints · 15 press items. Open All sources →</div>
+      </div>
+    </div>
+  </div>
+</div>
+<figcaption><sup style="color:var(--amber)">†</sup> Today this date exists only in the record's notes text. The board must read dates from curated fields, never from parsed prose, so these three rows need a milestones field on each record first (task T-040). Without it the board has two rows: Colorado on 1 Jan 2027 and the EU's 2 Dec 2027 deadline. The grey code tiles stand in for the flags, which stay.</figcaption>
+</figure>
+
+<div class="two">
+  <div class="panel"><h3>What moved and why</h3><ul>
+    <li><strong>Dates ahead</strong> takes the top-left. It is the one module that tells you to do something.</li>
+    <li><strong>Record changes</strong> is the existing Timeline view from the Regulatory page, with standards included. It replaces "Top Developments" as the answer to "what changed".</li>
+    <li><strong>Laws by stage</strong> replaces both the map and Regulatory Pulse. All eleven laws fit, and the two that are still moving stand out by position and colour.</li>
+    <li><strong>The feed</strong> keeps one panel, limited to government and standards-body sources, with the rest one click away.</li>
+    <li><strong>The status strip</strong> absorbs the Source Health page and the hidden footer notice.</li>
+  </ul></div>
+  <div class="panel"><h3>What this is not</h3><ul>
+    <li>It is not the Morning Brief coming back. That page was removed (DEC-028) because it repeated the dashboard. This changes what the dashboard leads with and adds no new page.</li>
+    <li>It is not a watchlist. With 23 records the whole set fits on one screen, which was the reason for removing it.</li>
+    <li>The map is not deleted. It can sit at the top of the Laws page at a third of its current size, where "which jurisdictions are covered" is the actual question.</li>
+    <li>Top tabs in place of the side rail is a suggestion. Six links fit, and it returns 240px to the tables.</li>
+  </ul></div>
+</div>
+
+<h2>Visual direction, revised: console discipline with hierarchy</h2>
+<div class="prose">
+<p>The first version of this section proposed a fully flat console. Your objection to it is fair. It removed the fluff, and with it the cues that let an eye find its place: separated panels, coloured status, a bright title over quiet detail. Dense text at one weight is hard to skim however tidy it is. It also overshot the references: Palantir and Anduril interfaces are flat and dense, but they still use coloured status, shaded panel headers and clear panel edges.</p>
+<p>The current site has the opposite problem. It has plenty of cues, but many of them carry nothing: gradients, glow, a score ring that reads nearly the same on every row. The revised direction sits between the two. <strong>Colour, shape and size stay wherever they encode something</strong>, such as how close a date is, what stage a law has reached, or which panel you are in. They go where they only decorate.</p>
+<p>The same three laws in all three languages:</p>
+</div>
+
+<div class="cmp">
+  <div>
+    <div class="label" style="margin-bottom:8px">Now</div>
+    <div class="now">
+      <div class="h"><span><i></i>Regulatory Pulse</span><a>View all</a></div>
+      <div class="r"><span class="fl">BR</span><span class="nm">Brazil AI Bill (PL 2338/2023)<small>BR · eff. —</small></span><span class="pl i">Introduced</span></div>
+      <div class="r"><span class="fl">CO</span><span class="nm">Colorado SB 26-189 (Automated Decisio…<small>US-CO · eff. Jan 1, 2027</small></span><span class="pl s">Signed</span></div>
+      <div class="r"><span class="fl">EU</span><span class="nm">EU AI Act<small>EU · eff. Aug 1, 2024</small></span><span class="pl e">Effective</span></div>
+    </div>
+  </div>
+  <div>
+    <div class="label" style="margin-bottom:8px">Flat console (first proposal)</div>
+    <div class="mock">
+      <div class="m-h">Laws by stage <span>11</span></div>
+      <div class="m-r lc"><span class="c">BR</span><span><b>Brazil AI Bill (PL 2338/2023)</b> <span class="st">introduced</span></span><span class="trk pend" style="--n:1"></span></div>
+      <div class="m-r lc"><span class="c">US-CO</span><span><b>Colorado SB 26-189</b> <span class="st">signed · in force 1 Jan 2027 · T-37</span></span><span class="trk pend" style="--n:3"></span></div>
+      <div class="m-r lc"><span class="c">EU</span><span><b>EU AI Act</b> <span class="st">in force · next date 2 Dec 2026 · T-7</span></span><span class="trk" style="--n:4"></span></div>
+    </div>
+  </div>
+  <div>
+    <div class="label" style="margin-bottom:8px">Balanced (recommended)</div>
+    <div class="wb"><div class="w-p" style="border:0;border-radius:0">
+      <div class="w-h" style="--mk:var(--violet)"><i></i>Laws by stage<span>11</span></div>
+      <div class="w-r lc"><span class="w-code">BR</span><div><div class="w-t">Brazil AI Bill (PL 2338/2023)</div><div class="w-s">Pending in Chamber</div></div><span class="w-stage" style="--c:var(--blue)"><span class="w-chip">Introduced</span></span></div>
+      <div class="w-r lc"><span class="w-code">US-CO</span><div><div class="w-t">Colorado SB 26-189</div><div class="w-s">In force 1 Jan 2027 · 37 days</div></div><span class="w-stage" style="--c:var(--amber)"><span class="w-chip">Signed</span></span></div>
+      <div class="w-r lc"><span class="w-code">EU</span><div><div class="w-t">EU AI Act</div><div class="w-s">Next date 2 Dec 2026 · 7 days</div></div><span class="w-stage" style="--c:var(--green)"><span class="w-chip">In force</span></span></div>
+    </div></div>
+  </div>
+</div>
+
+<div class="two" style="margin-top:16px">
+  <div class="panel"><h3>Kept from the console</h3><ul>
+    <li>Flat fills. No gradients, drop shadows or glow.</li>
+    <li>Small corners: 6px on panels and 4px on chips, down from 12 and 8.</li>
+    <li>Real dates and day counts in place of "2d ago".</li>
+    <li>The status strip and the notice banner.</li>
+    <li>Monospace for dates, codes and numbers, and only for those.</li>
+    <li>Rows tighter than today's, and nothing that pulses.</li>
+  </ul></div>
+  <div class="panel"><h3>Brought back for skimming and character</h3><ul>
+    <li>Gaps between panels, so each one reads as a separate object.</li>
+    <li>A shaded header on every panel with a coloured marker for its subject.</li>
+    <li>Filled, coloured status chips. One per row, so they still stand out.</li>
+    <li>Titles in normal-case sans, brighter and larger than the detail under them.</li>
+    <li>Large tinted tiles for the two nearest dates, and a tinted row for anything inside 60 days.</li>
+    <li>Flags beside the jurisdiction codes.</li>
+    <li>The radar mark with its sweep, as the one thing on the page that moves.</li>
+  </ul></div>
+</div>
+
+<h3>What changes, element by element</h3>
+<div class="scroll"><table class="tok">
+<thead><tr><th>Element</th><th>Now</th><th>Flat console</th><th>Balanced</th></tr></thead>
+<tbody>
+<tr><td class="k">Corners</td><td>12px cards, 8px pills</td><td>2px or square</td><td>6px panels, 4px chips</td></tr>
+<tr><td class="k">Surfaces</td><td>Gradient, drop shadow, inner highlight, radial wash</td><td>One flat fill, hairlines only</td><td>Flat fills at three levels: page, panel, panel header</td></tr>
+<tr><td class="k">Separation</td><td>Floating cards with wide gaps</td><td>Shared 1px lines, no gaps</td><td>Separate panels with 12px gaps</td></tr>
+<tr><td class="k">Status</td><td>Tinted pill, plus ring, dots and tags on the same row</td><td>Uppercase mono word</td><td>One filled chip per row, plus the stage track for laws</td></tr>
+<tr><td class="k">Row text</td><td>Title and metadata close in weight</td><td>Everything small, much of it uppercase mono</td><td>Bright 13.5px title, quieter detail line, mono date column</td></tr>
+<tr><td class="k">Scores</td><td>Impact ring and confidence dots on every row</td><td>Drawer only</td><td>Drawer only</td></tr>
+<tr><td class="k">Jurisdiction</td><td>24px circular flag</td><td>Code only</td><td>Small square-cornered flag with the code</td></tr>
+<tr><td class="k">Colour</td><td>Blue accent used for links, nav, map and charts</td><td>Status colours only</td><td>Status colours, one link colour, and a marker colour per panel</td></tr>
+<tr><td class="k">Key numbers</td><td>Four tinted counter cards with sparklines</td><td>Plain cells</td><td>Tiles, tinted only when a date is close</td></tr>
+<tr><td class="k">Time</td><td>"2d ago", "1y ago"</td><td>Dates and T-minus codes</td><td>Dates and plain day counts ("37 days")</td></tr>
+<tr><td class="k">Row height</td><td>40 to 60px</td><td>28 to 34px</td><td>36 to 48px</td></tr>
+<tr><td class="k">Motion</td><td>Rotating logo, pulsing dot, hover lift</td><td>None</td><td>Logo sweep only</td></tr>
+</tbody></table></div>
+
+<div class="two" style="margin-top:16px">
+  <div class="panel"><h3>Guardrails</h3><ul>
+    <li><strong>One coloured object per row.</strong> The current rows have four or five, which is why none of them stands out.</li>
+    <li><strong>No real markings.</strong> Borrow the banner's shape and nothing else. No classification wording, agency seals or insignia on a public site, least of all given your line of work.</li>
+    <li><strong>Keep the accessibility rules.</strong> AA contrast, and a word beside every colour.</li>
+    <li><strong>One theme.</strong> A light theme is parked and should stay parked.</li>
+  </ul></div>
+  <div class="panel"><h3>What it costs</h3><ul>
+    <li>Colours, radii, shadows and fonts live in <code>tailwind.config.js</code>, <code>lib/tokens.ts</code> and <code>styles/index.css</code>. That part is quick.</li>
+    <li>Row height and the rings, dots and pills are set in six shared components (Badge, KpiCard, ItemRow, FlagChip, OrgAvatar, the dashboard Card) and in classes on each page. That part is a page-by-page pass.</li>
+    <li>This revises the direction approved on 11 Aug, so it needs a new decision entry and an updated DESIGN_SYSTEM.md. It keeps more of that direction than the first proposal did: flags, chips, panel markers and the logo all stay.</li>
+    <li>The superseded "Ink &amp; Signal" study in the repo already argued for smaller corners, a status strip, absolute time and no glow. That research still stands.</li>
+  </ul></div>
+</div>
+
+<h2>Page by page</h2>
+<div class="two">
+  <div class="panel"><h3>Regulatory Radar</h3><ul>
+    <li>Sort by next date, then by most recent change. Alphabetical helps nobody.</li>
+    <li>Add a <strong>Next date</strong> column with a countdown. Replace "Last update" with the date of the latest timeline event.</li>
+    <li>The Confidence column reads "Conf High" on 7 of 11 rows. Show a mark only when confidence is below high, and show the checked date instead.</li>
+    <li>Nest the superseded Colorado act under its successor.</li>
+    <li>On phones, switch to stacked rows: name, stage, next date.</li>
+    <li>Eleven rows leave half the page empty. The smaller map fits above the table.</li>
+  </ul></div>
+  <div class="panel"><h3>Record detail</h3><ul>
+    <li>Put a milestone strip under the title: past dates, a today marker, dates ahead.</li>
+    <li>Break the notes paragraph into a dated list. The EU record packs nine dates into three sentences.</li>
+    <li>Move "Checked 25 Nov 2026" and the official source link up beside the title. They are the page's credentials.</li>
+    <li>Hide "Related intelligence" when it is empty. An empty box on a law's page reads as a gap in the record.</li>
+    <li>Add a copy-link control for citing a record.</li>
+  </ul></div>
+  <div class="panel"><h3>Standards</h3><ul>
+    <li>Use a table: publisher, name, version, status, last updated. It shows the same twelve in far less height and lets you compare versions and dates down a column.</li>
+    <li>Drop the counters that read zero (Draft, Public comment, Withdrawn) until they are not zero.</li>
+    <li>"Change magnitude: Major" appears on most cards with no explanation. Define it or remove it.</li>
+  </ul></div>
+  <div class="panel"><h3>Incidents &amp; Risks</h3><ul>
+    <li>Lead with the curated write-ups. They are the original work, and on a laptop the first one only just reaches the bottom of the first screen.</li>
+    <li>Group the report feed by incident: one row, "10 reports", expandable.</li>
+    <li>Show severity and fact status as columns, and real dates.</li>
+    <li>Rows in the feed carry the same badge, the same tags and nearly the same score. Remove what never varies.</li>
+  </ul></div>
+  <div class="panel"><h3>All Sources</h3><ul>
+    <li>Add three tabs by source type: government and standards bodies, research and incident databases, press. Open on the first.</li>
+    <li>Lay it out as a table with date, source and title columns.</li>
+    <li>Keep the drawer's points breakdown as it is. It is the best piece of explanation on the site.</li>
+  </ul></div>
+  <div class="panel"><h3>Shell and Source Health</h3><ul>
+    <li>Fold source health into the status strip, with the full list on the About page. Give the nav slot to About.</li>
+    <li>Replace "Your command center for AI governance, risk, and policy developments" with what the page is: a date and a count.</li>
+    <li>Add <code>/</code> to focus search. It suits the console and you will use it daily.</li>
+    <li>Add a description and share-preview tags so links look right on LinkedIn and your own site.</li>
+  </ul></div>
+</div>
+
+<figure>
+  <div class="shot"><img src="shots/reg-1440.webp" width="1280" height="800" alt="Regulatory Radar at laptop size: an eleven-row table sorted alphabetically with the lower half of the page empty"></div>
+  <figcaption>Regulatory Radar today. Alphabetical order, a green "Conf High" pill on most rows, no column for what comes next, and the lower half of the page unused.</figcaption>
+</figure>
+
+<h2>Suggestions beyond the interface</h2>
+<div class="scroll"><table>
+<thead><tr><th>Idea</th><th>Call</th><th>Reason</th></tr></thead>
+<tbody>
+<tr><td class="k">Milestones on each record</td><td><span class="v g">● DO FIRST</span></td><td>A dated list per law in place of a single "compliance deadline". It unlocks the date board, countdowns and the calendar feed. Part of T-040.</td></tr>
+<tr><td class="k">About and methodology page</td><td><span class="v g">● DO</span></td><td>Who built it, the repo, how scores work, how records are checked, the corrections made on 25 Nov. Phone users get no hover tooltips, so this is their only explanation. T-037.</td></tr>
+<tr><td class="k">Calendar and change feeds</td><td><span class="v g">● DO</span></td><td>A <code>.ics</code> file of dates ahead and an RSS or JSON feed of record changes, written by the existing export. People and agents can subscribe, and it needs no server.</td></tr>
+<tr><td class="k">Corrections log</td><td><span class="v g">● DO</span></td><td>A public list of what changed in the records and when. Sites that show their corrections are trusted more.</td></tr>
+<tr><td class="k">Smaller page</td><td><span class="v a">▲ SOON</span></td><td>3.6 MB of script, much of it map data and flag artwork. Load only the flags the records use, and a lighter map file. T-036.</td></tr>
+<tr><td class="k">Group reports by incident</td><td><span class="v a">▲ SOON</span></td><td>Needs the incident database's own incident number, if the feed carries it. Check before designing around it.</td></tr>
+<tr><td class="k">Retune the impact score</td><td><span class="v n">▼ LATER</span></td><td>Once Home stops leading with it, the score only orders the feed. Moving the threshold would change how often the counter moves without making it mean more.</td></tr>
+<tr><td class="k">Watchlist, brief page, light theme, more map</td><td><span class="v r">✕ SKIP</span></td><td>All previously removed or parked for reasons that still hold at 23 records.</td></tr>
+</tbody></table></div>
+
+<h2>Suggested order of work</h2>
+<ol class="steps">
+  <li><div><h4>Defects D1 to D9 <span class="size">SMALL</span></h4><p>No decisions needed. For D1, remove the counter now; it gets replaced in pass 3. This pass alone makes the phone view presentable.</p></div></li>
+  <li><div><h4>Milestones field and seed data <span class="size">MEDIUM</span></h4><p>Add the dated list to the record model and fill it for the eleven laws from the notes already verified on 25 Nov. Each milestone needs its source, under the same rule as every other legal fact.</p></div></li>
+  <li><div><h4>New Home and the Regulatory sort <span class="size">MEDIUM</span></h4><p>Date board, record changes, laws by stage, primary-source feed, status strip. Record the decision.</p></div></li>
+  <li><div><h4>Reskin <span class="size">MEDIUM</span></h4><p>Tokens first, then the six components, then a pass over each page at 1440 and 390 wide. Rewrite DESIGN_SYSTEM.md to match.</p></div></li>
+  <li><div><h4>About page, feeds, share tags <span class="size">SMALL</span></h4><p>Then link it from mattguenther.com.</p></div></li>
+</ol>
+
+<h2>Five calls for you</h2>
+<div class="scroll"><table>
+<thead><tr><th>Decision</th><th>My recommendation</th></tr></thead>
+<tbody>
+<tr><td class="k">Revise the approved "alive" direction?</td><td>Yes, to the balanced version above. It drops the fluff and keeps the character.</td></tr>
+<tr><td class="k">Side rail or top tabs?</td><td>Top tabs. Six links, and the tables want the width.</td></tr>
+<tr><td class="k">Accent colour</td><td>The cool cyan used here for links, with amber reserved for dates that are close. Amber as the accent would blur that meaning.</td></tr>
+<tr><td class="k">Map</td><td>Off Home, smaller, onto the Laws page.</td></tr>
+<tr><td class="k">Flags and monograms</td><td>Keep the flags, smaller and square-cornered, beside the code. Replace the coloured source monograms with plain code tiles.</td></tr>
+</tbody></table></div>
+
+</div>
+
+<script>
+(function () {
+  var data = [[19,4],[21,1],[23,1],[25,7],[31,1],[34,12],[37,2],[38,1],[42,78],[45,4],[46,1],[47,2],[50,28],[52,4],[55,12],[57,2],[63,3]];
+  var W = 560, H = 250, L = 34, R = 14, T = 26, B = 46, pw = W - L - R, ph = H - T - B, max = 80;
+  var x = function (s) { return L + s / 100 * pw; }, y = function (c) { return T + ph - c / max * ph; };
+  var ns = "http://www.w3.org/2000/svg", host = document.getElementById("chart");
+  var svg = document.createElementNS(ns, "svg"); svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+  function el(tag, attrs, text) { var e = document.createElementNS(ns, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; svg.appendChild(e); return e; }
+  [0, 20, 40, 60, 80].forEach(function (c) {
+    el("line", { x1: L, x2: W - R, y1: y(c), y2: y(c), stroke: "var(--line)", "stroke-width": 1 });
+    el("text", { x: L - 6, y: y(c) + 4, "text-anchor": "end" }, c);
+  });
+  [0, 30, 50, 70, 100].forEach(function (s) {
+    el("line", { x1: x(s), x2: x(s), y1: T + ph, y2: T + ph + 5, stroke: "var(--line-2)", "stroke-width": 1 });
+    el("text", { x: x(s), y: T + ph + 17, "text-anchor": "middle" }, s);
+  });
+  [["Info", 15], ["Watch", 40], ["Elevated", 60], ["High", 85]].forEach(function (b) { el("text", { x: x(b[1]), y: T + ph + 34, "text-anchor": "middle" }, b[0]); });
+  el("line", { x1: x(70), x2: x(70), y1: T - 8, y2: T + ph, stroke: "var(--amber)", "stroke-width": 1.5, "stroke-dasharray": "4 3" });
+  el("text", { x: x(70) + 6, y: T, "class": "em" }, "threshold 70");
+  el("text", { x: x(70) + 6, y: T + 14 }, "0 items above");
+  var tip = document.createElement("div"); tip.id = "tip"; tip.hidden = true;
+  var tbody = document.getElementById("chart-table");
+  data.forEach(function (d) {
+    var bx = x(d[0]) - 2.5, by = y(d[1]), h = T + ph - by;
+    el("rect", { x: bx, y: by, width: 5, height: h, rx: Math.min(2, h / 2), fill: "var(--signal)" });
+    var hit = el("rect", { x: bx - 3, y: T, width: 11, height: ph, fill: "transparent" });
+    hit.addEventListener("mouseenter", function () {
+      tip.textContent = "score " + d[0] + ": " + d[1] + (d[1] === 1 ? " item" : " items");
+      tip.style.left = (x(d[0]) / W * 100) + "%"; tip.style.top = (by / H * 100) + "%"; tip.hidden = false;
+    });
+    hit.addEventListener("mouseleave", function () { tip.hidden = true; });
+    var tr = document.createElement("tr"); tr.innerHTML = '<td class="num">' + d[0] + '</td><td class="num">' + d[1] + "</td>"; tbody.appendChild(tr);
+  });
+  el("text", { x: x(42) - 8, y: y(78) + 10, "text-anchor": "end", "class": "em" }, "78 items at 42");
+  el("text", { x: x(50) + 8, y: y(28) - 4, "class": "em" }, "28 at 50");
+  el("text", { x: x(63), y: y(3) - 6, "text-anchor": "middle" }, "top: 63");
+  host.appendChild(svg); host.appendChild(tip);
+})();
+</script>
+
+</body>
+</html>

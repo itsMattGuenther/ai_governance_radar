@@ -21,8 +21,9 @@ The original long-form spec is `AI_Governance_Radar_Product_Design_Development_S
 **V1 shipped (2026-08-11); public static site built (2026-09-29, DEC-029/030).**
 Python 3.12+ FastAPI + SQLAlchemy + SQLite backend in `backend/`; React + TS + Vite +
 Tailwind frontend (hand-rolled primitives, DEC-023) in `frontend/`. Local production =
-ONE process serving API + built SPA (DEC-017). Public = static snapshot on GitHub
-Pages rebuilt every 6 h by `.github/workflows/publish.yml`. See AGENT_HANDOFF.md.
+ONE process serving API + built SPA (DEC-017). Public = static snapshot at
+aigov.mattguenther.com (Cloudflare, DEC-032), rebuilt every 6 h and on pushes to main
+by `.github/workflows/publish.yml`. See AGENT_HANDOFF.md.
 
 ```bash
 # Backend (venv: backend/.venv on Windows; on the Linux machine use backend/venv)

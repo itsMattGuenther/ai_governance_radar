@@ -1,6 +1,6 @@
 # Agent Handoff
 
-_Last updated: 2026-11-25 (records verified; confidence aging; feeds cleaned up)_
+_Last updated: 2026-11-25 (records verified; public site live; Watch Board rebuild approved, not yet built)_
 
 ## Where the project stands
 - **V1 is implemented and working** (2026-08-11). Details in CHANGELOG.md [0.1.0] and
@@ -35,19 +35,19 @@ _Last updated: 2026-11-25 (records verified; confidence aging; feeds cleaned up)
   the local `origin` points there.
 
 ## Next steps
-1. **The owner is doing a UI/UX sweep** (with Fable, from 2026-11-25). Priorities:
-   T-035 mobile, T-037 About/methodology page, T-036 page weight, the "High impact" KPI
-   that almost always reads 0, and the map's share of the home screen.
-2. **Link it from mattguenther.com.** That is a Netlify site, so a production deploy
-   costs 15 credits: ask first. That is a Netlify site, so a production deploy costs 15 credits:
-   ask first.
-3. T-041 new records, T-040 data-model gaps, T-035 mobile, T-036 page weight, T-037
-   About page.
-4. Open question: real items almost never reach the 70 "high impact" threshold, so
-   that KPI usually reads 0. Calibrate it or relabel it.
-5. **Re-check records by 2027-02-23** (90 days; DEC-031 lowers confidence after that).
+1. **Build the Watch Board rebuild** (DEC-033, approved by the owner on 2026-11-25
+   after a UX review). Start with `docs/handoff/ux-rebuild/BUILD_BRIEF.md`, then work
+   T-042 to T-048 in TASKS.md on the `ux-rebuild` branch. Nothing is built yet: the
+   branch holds the decision, the new DESIGN_SYSTEM.md, the tasks, the review and the
+   curated milestone dates (`regulation.milestones` in `data/seed/entities.json`).
+   Main and the public site still show the previous design.
+2. **Link it from mattguenther.com** once the rebuild is merged. That is a Netlify
+   site, so a production deploy costs 15 credits: ask first.
+3. T-041 new records, and the rest of T-040 (date precision, evidence per field,
+   `last_verified_at` on standards and incidents).
+4. **Re-check records by 2027-02-23** (90 days; DEC-031 lowers confidence after that).
    Re-check sooner for Colorado SB 26-189 (effective 2027-01-01, rules and the xAI suit
-   pending) and Brazil.
+   pending) and Brazil. Milestones are legal dates and are part of every re-check.
 
 ## How to run it
 ```bash
@@ -82,6 +82,6 @@ Then serve `frontend/dist-static` with any static server.
 - Automated axe scan and the 10k-item performance smoke are still deferred (V1 caveats).
 
 ## How to resume a session
-Read CLAUDE.md → this file → TASKS.md → DECISIONS.md (DEC-001…031). Keep the hard
+Read CLAUDE.md → this file → TASKS.md → DECISIONS.md (DEC-001…033). Keep the hard
 rules: curated legal facts only, SafeFetcher for all outbound HTTP, no LLM code in
 core, attribution everywhere, demo data always flagged and never published.

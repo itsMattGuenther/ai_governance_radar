@@ -4,6 +4,16 @@ All notable changes to this project. Dates are UTC.
 
 ## [Unreleased] — 2026-09-29 to 2026-11-25
 
+### Planned (2026-11-25)
+- **Watch Board rebuild approved** (DEC-033) after a UX review of the public site:
+  Home will lead with legal dates and record changes, and the visual system changes
+  (DESIGN_SYSTEM.md). Tasks T-042 to T-048. Not built yet.
+
+### Added (2026-11-25)
+- Curated **milestones** on four laws (EU AI Act, Colorado SB 26-189, California SB 53,
+  Utah AI Policy Act) and `superseded_by` on Colorado SB 24-205, in the seed file only,
+  with shape checks in `backend/tests/test_seed_data.py`. Nothing reads them yet.
+
 ### Changed (2026-11-25)
 - **Public site moves to Cloudflare at aigov.mattguenther.com** (DEC-032): assets-only
   Worker deployed by `wrangler deploy` from publish.yml, replacing GitHub Pages. Deep

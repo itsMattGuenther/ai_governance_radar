@@ -308,6 +308,37 @@ means since the user *reviewed* the information, not since the process started.
 **Consequences:** Brief always has a day of content; watchlist statuses persist until
 actually viewed; frequent visitors see stable, truthful deltas.
 
+## DEC-033 — "Watch Board": home leads with dates and record changes; visual system revised (supersedes DEC-025)
+**Decision:** (1) Home becomes a watch board built on the curated records: tiles for
+the nearest dates, then Dates ahead, Record changes, Laws by stage and a feed panel
+limited to government sources. The counter row, Top Developments, the map, Standards
+Watch, Regulatory Pulse and the "Latest" strip leave Home; the map moves to the Laws
+page. (2) Laws carry curated **milestones** (dated phases and deadlines) and an
+optional `superseded_by` link. Every list of upcoming dates reads milestones only.
+(3) The visual system changes to "Watch Board" (DESIGN_SYSTEM.md): flat fills, 6px and
+4px corners, separate panels with shaded headers, one coloured chip per row, real
+dates and day counts, a status strip, a notice banner and top tabs in place of the
+side rail. Impact rings and confidence dots leave list rows. (4) Source Health folds
+into a new About page. (5) The static export also writes a calendar file of
+milestones ahead and a feed of record changes; this un-parks that one slice of
+"reports/exports".
+**Alternatives:** keep DEC-025's "alive" system and only fix defects; a fully flat
+console with hairlines, uppercase mono labels and no chips (mocked first and rejected
+by the owner as hard to skim and short on character).
+**Rationale:** A review of the public site on 2026-11-25 found that four of Home's
+seven modules were driven by the automated feed (55 items that week, 3 from a
+government source) while the 23 checked records sat below the fold. The nearest legal
+date existed only in a record's notes text. The impact score never reads content
+(78 of 163 items scored exactly 42), so it cannot rank a home page. The owner judged
+the DEC-025 look to be generic SaaS with too much spacing, asked for the feel of
+defence and operations software, and chose the version that keeps colour and panel
+separation.
+**Consequences:** New curated data to maintain: milestones are legal dates and follow
+DEC-014 and DEC-031 like any other structured field. `flag-icons` and
+`us-state-flags` stay; the fonts change to IBM Plex Sans and Mono. This is not the
+Morning Brief or the Watchlist returning (DEC-028 stands): no new page duplicates the
+dashboard, and nothing is per-user.
+
 ## DEC-032 — Public site served from Cloudflare at aigov.mattguenther.com (supersedes DEC-029's hosting)
 **Decision:** The static public site (DEC-029, unchanged in every other respect) is
 deployed by `wrangler deploy` as an assets-only Cloudflare Worker (`wrangler.jsonc`)
@@ -478,6 +509,8 @@ is general AI/developer/security events, not AI-governance-only — stated on th
 Curated events remain possible later for governance-specific gatherings.
 
 ## DEC-025 — Production design: "Refined Intelligence Dashboard" (Direction A rev 2)
+> **Superseded by DEC-033** (2026-11-25): the visual system is now "Watch Board".
+
 **Decision:** Ship Direction A rev 2 as the production visual system: refined
 navy/blue palette with tone-tinted KPI cards, animated radar brand mark (blue
 structure, green sweep/blips), real flag + organization iconography, impact rings,

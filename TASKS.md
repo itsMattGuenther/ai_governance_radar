@@ -370,7 +370,7 @@ error states + accessibility reviewed. Update this file and CHANGELOG.md as you 
   restore).
 
 ### T-035 Mobile layout pass
-- **Status:** TODO
+- **Status:** TODO — folded into T-044 and T-046
 - **Description:** KPI cards overflow a 390px viewport (≈9px horizontal scroll);
   Regulatory Radar hides Status and Effective columns on phones. Cards instead of the
   table below `sm`; KPI row that fits.
@@ -378,13 +378,13 @@ error states + accessibility reviewed. Update this file and CHANGELOG.md as you 
   effective date visible for each regulation on a phone.
 
 ### T-036 Page weight
-- **Status:** TODO
+- **Status:** TODO — folded into T-047
 - **Description:** 3.6 MB JS / 4.4 MB page. Use `countries-110m` (108 KB) instead of
   `countries-50m` (756 KB); load US state flags on demand instead of bundling all 50.
 - **Acceptance:** initial JS under 1 MB uncompressed with no visual regression.
 
 ### T-037 About & methodology page
-- **Status:** TODO
+- **Status:** TODO — folded into T-047
 - **Description:** What is tracked, how impact and confidence are scored (the dots and
   rings), how curated records are verified, the last-verified policy, and the
   not-legal-advice notice. Hover tooltips don't reach phone users.
@@ -416,7 +416,8 @@ error states + accessibility reviewed. Update this file and CHANGELOG.md as you 
 
 ### T-040 Data-model gaps found by the verification
 - **Status:** TODO
-- **Description:** (a) dates have no precision, so month-only facts are left empty and
+- **Description:** Milestones and the successor link are handled by T-043. (a) dates
+  have no precision, so month-only facts are left empty and
   stated in text; (b) regulations can't be marked repealed or superseded or link to a
   successor (Colorado uses status_label); (c) evidence is one URL per record, not per
   field; (d) standards, frameworks and incidents have no `last_verified_at`, so DEC-031
@@ -428,6 +429,116 @@ error states + accessibility reviewed. Update this file and CHANGELOG.md as you 
   Governance Framework for Agentic AI (v1.5); Australia Guidance for AI Adoption; OWASP
   Top 10 for Agentic Applications (or re-scope `owasp-agentic`). Verify each against
   primary sources first.
+
+## UX rebuild (owner-approved 2026-11-25, DEC-033)
+
+Work these in order on the `ux-rebuild` branch. The look is specified in
+DESIGN_SYSTEM.md. T-035, T-036 and T-037 are folded in below.
+
+### T-042 Defects that do not depend on the redesign
+- **Status:** TODO
+- **Description:** (a) Titles and excerpts show raw HTML entities ("&amp;"): decode
+  at ingestion and repair stored rows. (b) "Last update" on the laws table falls back
+  to the introduction date; use the date of the latest timeline event. (c) Ten
+  reports of one outage appear as ten rows, because `dedupe.assign_cluster` only
+  compares items from different sources. If the AI Incident Database feed exposes its
+  incident number, group reports by it (one row, a count, expandable). If it does not,
+  leave grouping alone and record that in AGENT_HANDOFF.md; do not invent a
+  heuristic. (d) `frontend/index.html` has no description, canonical link or
+  share-preview tags.
+- **Acceptance:** tests for (a) to (c); a pasted link to the site shows a title,
+  description and image.
+
+### T-043 Milestones and successor links: model, API, export
+- **Status:** TODO
+- **Description:** `data/seed/entities.json` already carries `regulation.milestones`
+  (`date`, `kind`, `label`) for four laws and `superseded_by` on Colorado SB 24-205,
+  guarded by `backend/tests/test_seed_data.py`. They were taken from record text
+  verified on 2026-11-25. **Do not add, change or infer any date.** If one looks
+  missing, list it in AGENT_HANDOFF.md for the owner. Build the storage, the seeder
+  (mirror the file, as events do), `RegulationOut.milestones` and `superseded_by`,
+  the static export and the frontend types. The public database persists between runs
+  on the `radar-data` branch and `create_all()` adds tables but not columns, so use a
+  new table or handle the column explicitly, and test against a database created
+  before the change. Update DATA_MODEL.md. Covers part of T-040 (b).
+- **Acceptance:** the API and the static export return every milestone in the seed
+  file, in date order; re-seeding after an edit replaces them; an old database
+  upgrades without manual steps.
+
+### T-044 Watch Board foundation: tokens, type, shell, primitives
+- **Status:** TODO
+- **Description:** Apply DESIGN_SYSTEM.md §2 to §6: token values, IBM Plex Sans and
+  Mono in place of Inter and JetBrains Mono, flat surfaces, 6px and 4px radii, no
+  shadows or glow. Build the primitives (Panel and header, Tile, Chip, day count,
+  stage track, code tile, row) with render tests. Rebuild the shell: notice banner,
+  top bar with tabs, status strip, `/` to focus search, phone tab bar that includes
+  Standards. The notice must show at every width (it is hidden on phones today).
+- **Acceptance:** every existing page still works at 1440×900 and 390×844; no
+  horizontal body scroll from 360 to 430px; AA contrast holds.
+
+### T-045 Home becomes the watch board
+- **Status:** TODO
+- **Description:** Per DESIGN_SYSTEM.md §6 and the mock-up. Tiles: the next two
+  dates, record changes in the last 30 days, records tracked, items collected in 7
+  days with the count from government sources. Panels: **Dates ahead** (milestones
+  only, next five), **Record changes** (events across laws and standards, newest
+  first), **Laws by stage** (every law; those not yet in force first, superseded
+  last), **From government sources** (tier 1 items from the last 7 days, with a
+  footer counting the rest by type and linking to All sources). Remove the counter
+  row, Top Developments, the map, Standards Watch, Regulatory Pulse, the "Latest"
+  strip and the LIVE dot, and anything in the API, export and tests that only they
+  used. Fixes the "High impact" counter, the shared sparkline and the alphabetical
+  Regulatory Pulse by removing them.
+- **Acceptance:** the two nearest dates are the largest things on the page; every
+  panel has loading, empty and error states; Home fits a phone without overlap.
+
+### T-046 Page passes
+- **Status:** TODO
+- **Description:** **Laws:** sort by next date, then latest change; a Next date column
+  with a day count; confidence shown only below high, with the checked date in its
+  place; a superseded law nested under its successor; stacked rows on phones; the
+  smaller flat map above the table (DESIGN_SYSTEM.md §9). **Record page:** a milestone
+  strip under the title (past dates, today, dates ahead); the checked date and
+  official source beside the title; no "Related intelligence" box when it is empty; a
+  copy-link control. **Standards:** a table (publisher, name, version, status, last
+  updated); no counters that read zero; define "Change magnitude" or remove it.
+  **Incidents:** curated write-ups first, the report feed second; severity and fact
+  status as columns; real dates. **All sources:** three tabs by source tier
+  (government and standards bodies, research and incident databases, press), opening
+  on the first; a table layout; impact and confidence as columns and filters; the
+  drawer's points breakdown unchanged. Completes T-035.
+- **Acceptance:** on a phone every law shows its stage and next date; no list row
+  carries a ring, dots or more than one chip.
+
+### T-047 About page, feeds, page weight
+- **Status:** TODO
+- **Description:** **/about:** what the site is and who built it (Matt Guenther,
+  mattguenther.com, the repository); what is tracked; how impact and confidence are
+  computed (`lib/definitions.ts`); how records are checked, when they were last
+  checked and when the next check is due; a link to
+  docs/reviews/2026-11-25-records-verification.md as the corrections log; the source
+  list with health (replacing the Source Health page; `/sources` redirects); the
+  not-legal-advice notice. **Feeds**, written by `export-static` and linked from
+  About: an `.ics` calendar of milestones ahead and an RSS or Atom feed of record
+  changes (un-parked by the owner, DEC-033; other reports and exports stay parked). **Weight** (T-036): `countries-110m`, flags loaded on demand, only the font
+  files in use. Completes T-036 and T-037.
+- **Acceptance:** the calendar file imports into a calendar app and contains exactly
+  the future milestones; initial JS under 1 MB uncompressed.
+
+### T-048 Clean up and hand back
+- **Status:** TODO
+- **Description:** Leave nothing behind that only existed for this build. Delete
+  `docs/handoff/ux-rebuild/` and every reference to it. Remove components, styles,
+  tokens, hooks, endpoints, export fields, tests and packages that nothing uses any
+  more. Bring README, ARCHITECTURE, DATA_MODEL, PRODUCT_SPEC, TEST_PLAN and CLAUDE.md's
+  "Current state" in line with what shipped, set DESIGN_SYSTEM.md's status to SHIPPED,
+  and rewrite AGENT_HANDOFF.md as the current state with no build instructions left
+  in it. Add the CHANGELOG entry. No scratch screenshots, temp scripts, commented-out
+  code or stray TODOs; dev servers stopped; `git status` clean. Then push the branch
+  and open one pull request to main. Do not merge it: merging deploys the public site.
+- **Acceptance:** all gates in TEST_PLAN.md §2 pass; no file mentions the handoff
+  folder or the branch (reword this section's own lines as the last step); the pull
+  request is open.
 
 ## Post-V1 (parked — do not start)
 Rankings page + snapshots (§12) · Training page (§13) · Events page (§14) · comparison
