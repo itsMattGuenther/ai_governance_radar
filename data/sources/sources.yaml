@@ -11,6 +11,10 @@
   category: standard
   polling_interval_minutes: 360
   enabled: true
+  config:
+    # About 4 in 5 NIST news items are not about AI (quantum sensors, construction
+    # safety, manufacturing grants); keep only the AI ones.
+    require_ai_relevance: true
 
 # CISA blocks non-browser clients (HTTP 403 as of 2026-08-11 verification). We use an
 # honest User-Agent and do not spoof browsers. Disabled by default; enable if CISA
@@ -27,7 +31,10 @@
 
 - name: Federal Register — Artificial Intelligence
   url: https://www.federalregister.gov/
-  feed_url: https://www.federalregister.gov/api/v1/documents.json?conditions%5Bterm%5D=artificial+intelligence&per_page=20&order=newest
+  # The API's term search matches anywhere in a document's full text (Medicare rules,
+  # stock-exchange filings), so fetch a wider page and keep only documents whose title
+  # or abstract is about AI: roughly 1 in 4 on 2026-11-25.
+  feed_url: https://www.federalregister.gov/api/v1/documents.json?conditions%5Bterm%5D=artificial+intelligence&per_page=100&order=newest
   type: json_api
   tier: 1
   jurisdiction: US
@@ -35,6 +42,7 @@
   polling_interval_minutes: 720
   enabled: true
   config:
+    require_ai_relevance: true
     mapping:
       items_path: results
       url: html_url
@@ -70,6 +78,8 @@
   attribution: "AI Incident Database (Responsible AI Collaborative), CC BY-SA."
 
 # --- AI governance / policy press (Tier 3) ---------------------------------
+# Disabled 2026-11-25: mostly general tech news with an AI angle (desktop proposals,
+# vendor earnings, mushroom-hunting apps), with little governance signal.
 - name: The Register — AI/ML
   url: https://www.theregister.com/software/ai_ml/
   feed_url: https://www.theregister.com/software/ai_ml/headlines.atom
@@ -77,7 +87,7 @@
   tier: 3
   category: news
   polling_interval_minutes: 360
-  enabled: true
+  enabled: false
 
 - name: MIT Technology Review — AI
   url: https://www.technologyreview.com/topic/artificial-intelligence/

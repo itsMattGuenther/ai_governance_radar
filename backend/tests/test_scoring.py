@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime, timedelta
 
-from app.services.scoring import confidence_for, score_item
+from app.services.scoring import confidence_for, regulation_confidence, score_item
 
 NOW = datetime(2026, 8, 11, tzinfo=UTC)
 
@@ -65,6 +65,9 @@ def test_ai_relevance_detection():
     assert is_ai_relevant("Anthropic model behaviour study", None)
     assert not is_ai_relevant("PM starts roll out of everyday fixes on cost of living", None)
     assert not is_ai_relevant("Applications open for Chevening Scholarships", None)
+    # Biometrics count only in their AI senses, not as a visa fee.
+    assert is_ai_relevant("Limits on remote biometric identification in public spaces", None)
+    assert not is_ai_relevant("9-11 Response and Biometric Entry-Exit Fee for H-1B Visas", None)
 
 
 def test_classifier_precision_on_common_false_positives():
@@ -86,3 +89,32 @@ def test_classifier_precision_on_common_false_positives():
     # Genuine incidents still classify.
     cats, _ = classify("Court revives lawsuit claiming AI software fueled harm", None, None, None)
     assert "incident" in cats
+
+
+def test_regulation_confidence_holds_while_verification_is_fresh():
+    conf, notes = regulation_confidence(
+        "high", datetime(2026, 7, 1, tzinfo=UTC),
+        {"Effective date": datetime(2027, 1, 1, tzinfo=UTC)}, now=NOW)
+    assert (conf, notes) == ("high", [])
+
+
+def test_regulation_confidence_drops_when_a_key_date_passes_after_the_check():
+    """The Colorado case: verified in January, effective in June, still 'high' in August."""
+    conf, notes = regulation_confidence(
+        "high", datetime(2026, 6, 1, tzinfo=UTC),
+        {"Effective date": datetime(2026, 6, 30, tzinfo=UTC), "Compliance deadline": None},
+        now=NOW)
+    assert conf == "medium"
+    assert notes == ["Effective date (Jun 30, 2026) has passed since the last check "
+                     "(Jun 1, 2026); the status may have changed."]
+
+
+def test_regulation_confidence_drops_once_per_reason_and_bottoms_out():
+    verified = datetime(2026, 1, 15, tzinfo=UTC)  # 208 days before NOW
+    passed = {"Effective date": datetime(2026, 6, 30, tzinfo=UTC)}
+    assert regulation_confidence("high", verified, passed, now=NOW)[0] == "low"
+    assert regulation_confidence("medium", verified, passed, now=NOW)[0] == "low"
+    # A date that passed before the check was already known to the verifier.
+    conf, notes = regulation_confidence(
+        "high", verified, {"Effective date": datetime(2025, 1, 1, tzinfo=UTC)}, now=NOW)
+    assert conf == "medium" and len(notes) == 1 and "208 days" in notes[0]

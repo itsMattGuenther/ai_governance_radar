@@ -56,6 +56,12 @@ def test_regulations_have_provenance(client):
         assert reg["regulation"]["official_source_url"].startswith("http")
         assert reg["regulation"]["last_verified_at"]
         assert reg["regulation"]["confidence"] in ("high", "medium", "low")
+        assert reg["regulation"]["curated_confidence"] in ("high", "medium", "low")
+        # Displayed confidence never exceeds the curated value, and any drop is explained.
+        order = ["low", "medium", "high"]
+        shown, curated = reg["regulation"]["confidence"], reg["regulation"]["curated_confidence"]
+        assert order.index(shown) <= order.index(curated)
+        assert (shown != curated) == bool(reg["regulation"]["confidence_notes"])
 
 
 def test_regulations_filters(client):

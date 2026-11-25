@@ -103,3 +103,50 @@ def confidence_for(reliability_tier: int, corroborating_sources: int = 0,
     if reliability_tier == 3:
         return "medium" if corroborating_sources >= 1 else "medium"
     return "medium" if corroborating_sources >= 2 else "low"
+
+
+# Curated regulation records are re-verified at least this often (DEC-031); the
+# frontend's "may be stale" warning uses the same threshold.
+REVERIFY_DAYS = 90
+
+_CONFIDENCE_LEVELS = ["low", "medium", "high"]
+
+
+def _day(d: datetime) -> str:
+    return f"{d:%b} {d.day}, {d.year}"  # strftime's %-d is not portable to Windows
+
+
+def regulation_confidence(
+    curated: str,
+    last_verified_at: datetime,
+    key_dates: dict[str, datetime | None],
+    now: datetime | None = None,
+) -> tuple[str, list[str]]:
+    """Confidence to display for a curated regulation record (DEC-031).
+
+    The curated value holds only as long as the verification behind it is fresh:
+    each condition below lowers it one level, never below "low". A key date that
+    passed after the last check means the status may have moved on (Colorado's
+    June 30, 2026 effective date stayed "Conf High" for months while the law was
+    replaced). Returns (confidence, reasons); no reasons means unchanged.
+    """
+    now = now or datetime.now(UTC)
+    verified = last_verified_at if last_verified_at.tzinfo else last_verified_at.replace(tzinfo=UTC)
+    reasons: list[str] = []
+    for label, when in key_dates.items():
+        if when is None:
+            continue
+        when = when if when.tzinfo else when.replace(tzinfo=UTC)
+        if verified < when <= now:
+            reasons.append(
+                f"{label} ({_day(when)}) has passed since the last check "
+                f"({_day(verified)}); the status may have changed."
+            )
+    age_days = (now - verified).days
+    if age_days > REVERIFY_DAYS:
+        reasons.append(
+            f"Last checked {age_days} days ago; records are re-checked every "
+            f"{REVERIFY_DAYS} days."
+        )
+    level = _CONFIDENCE_LEVELS.index(curated) if curated in _CONFIDENCE_LEVELS else 0
+    return _CONFIDENCE_LEVELS[max(level - len(reasons), 0)], reasons

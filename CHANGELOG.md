@@ -2,7 +2,19 @@
 
 All notable changes to this project. Dates are UTC.
 
-## [Unreleased] — 2026-09-29
+## [Unreleased] — 2026-09-29 to 2026-11-25
+
+### Changed (2026-11-25)
+- Regulation confidence ages with its verification (DEC-031): lowered one level when
+  the effective date or compliance deadline passed after the last check, and one more
+  when the check is over 90 days old. `curated_confidence` and `confidence_notes`
+  added to the regulation API; the reasons show on the badge and the detail page.
+- Sources: NIST News and the Federal Register keep only AI-related items (about 1 in
+  5 and 1 in 4 of what they publish); the Federal Register fetches 100 documents per
+  poll to compensate. The Register — AI/ML disabled (little governance signal).
+- AI-relevance keywords: bare "biometric" no longer counts (it matched a DHS visa
+  fee rule that then ranked as the top "high impact" item); biometric
+  identification, categorisation, recognition and surveillance still do.
 
 ### Added
 - **Public read-only site** (DEC-029): `radar export-static --out DIR` writes the

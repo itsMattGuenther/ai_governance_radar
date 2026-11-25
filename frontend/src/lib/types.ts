@@ -104,8 +104,12 @@ export interface RegulationOut {
   risk_classification: string | null;
   applicability_notes: string | null;
   official_source_url: string;
+  /** Curated confidence, lowered when verification is overdue or a key date has passed (DEC-031). */
   confidence: Confidence;
   last_verified_at: string;
+  curated_confidence: Confidence | null;
+  /** Why `confidence` is lower than the curated value; empty when it isn't. */
+  confidence_notes: string[];
 }
 
 export interface StandardOut {

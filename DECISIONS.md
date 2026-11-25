@@ -308,6 +308,28 @@ means since the user *reviewed* the information, not since the process started.
 **Consequences:** Brief always has a day of content; watchlist statuses persist until
 actually viewed; frequent visitors see stable, truthful deltas.
 
+## DEC-031 — Displayed regulation confidence ages with its verification
+**Decision:** The API and static export report a regulation's `confidence` as the
+curated value, lowered one level (never below `low`) for each of: (a) the effective
+date or compliance deadline has passed since `last_verified_at`; (b) the record was
+last verified more than 90 days ago (`REVERIFY_DAYS`, the same threshold as the UI's
+"may be stale" warning). The curated value is kept as `curated_confidence`, and
+`confidence_notes` says why it was lowered; the regulation table's badge tooltip and
+the detail page show the reasons. Rule: `regulation_confidence()` in
+`services/scoring.py`.
+**Alternatives:** a UI-only warning (already existed and was not enough); a separate
+`effective_confidence` field (readers and future agents would pick the wrong one).
+**Rationale:** The skeptic review of 2026-10-29 found Colorado shown as "Signed,
+effective Jun 30, 2026, Conf High" four months after that date passed, while the law
+had reportedly been replaced, and the EU AI Act still showing the Aug 2, 2026
+high-risk deadline. A record nobody has re-checked must not keep claiming high
+confidence, and anything that reads `confidence`, people or agents, should get the
+conservative value by default. Derived at read time, so it never writes curated data
+(DEC-014).
+**Consequences:** Re-verifying a record means updating `last_verified_at` in
+`data/seed/entities.json`. Every record needs a check at least every 90 days to keep
+its curated confidence.
+
 ## DEC-030 — Dashboard windows use publication date; page-change alerts never rank
 **Decision:** (a) Time windows ("last 7 days") filter on publication date, falling
 back to collection time only when a feed omits one (`EVENT_TIME` in

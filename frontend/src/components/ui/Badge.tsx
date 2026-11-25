@@ -92,10 +92,11 @@ export function SeverityBadge({ severity }: { severity: string }) {
   return <Pill tone={tone} title={SEVERITY_DEFS[severity] ?? `Severity: ${severity}`}>{severity}</Pill>;
 }
 
-export function ConfidenceBadge({ confidence }: { confidence: string }) {
+export function ConfidenceBadge({ confidence, notes }: { confidence: string; notes?: string[] }) {
   const tone: Severity = confidence === "high" ? "positive" : confidence === "medium" ? "watch" : "critical";
+  const def = CONFIDENCE_DEFS[confidence] ?? `Confidence: ${confidence}`;
   return (
-    <Pill tone={tone} title={CONFIDENCE_DEFS[confidence] ?? `Confidence: ${confidence}`}>
+    <Pill tone={tone} title={notes?.length ? `Lowered: ${notes.join(" ")}` : def}>
       Conf {confidence === "medium" ? "med" : confidence}
     </Pill>
   );

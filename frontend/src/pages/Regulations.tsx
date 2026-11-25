@@ -145,7 +145,7 @@ export default function Regulations() {
                     <td className="whitespace-nowrap px-3 py-2.5"><StatusPill status={r.status} kind="regulation" /></td>
                     <td className="whitespace-nowrap px-3 py-2.5 text-xs text-tx-secondary">{shortDate(lastUpdate)}</td>
                     <td className="whitespace-nowrap px-3 py-2.5 text-xs text-tx-secondary">{shortDate(r.effective_at)}</td>
-                    <td className="whitespace-nowrap px-3 py-2.5"><ConfidenceBadge confidence={r.confidence} /></td>
+                    <td className="whitespace-nowrap px-3 py-2.5"><ConfidenceBadge confidence={r.confidence} notes={r.confidence_notes} /></td>
                   </tr>
                 );
               })}

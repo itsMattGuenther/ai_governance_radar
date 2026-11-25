@@ -104,7 +104,7 @@ export default function EntityDetail() {
               )}
               <div className="border-t border-bd-subtle pt-3">
                 <div className="flex items-center justify-between">
-                  <ConfidenceBadge confidence={reg.confidence} />
+                  <ConfidenceBadge confidence={reg.confidence} notes={reg.confidence_notes} />
                   <span
                     className={`font-mono text-meta ${
                       verifiedAge !== null && verifiedAge > STALE_DAYS ? "text-sev-watch" : "text-tx-muted"
@@ -115,6 +115,13 @@ export default function EntityDetail() {
                     {verifiedAge !== null && verifiedAge > STALE_DAYS && " — may be stale"}
                   </span>
                 </div>
+                {reg.confidence_notes.length > 0 && (
+                  <ul className="mt-2 space-y-1 text-meta text-sev-watch">
+                    {reg.confidence_notes.map((note) => (
+                      <li key={note}>Confidence lowered from {reg.curated_confidence}: {note}</li>
+                    ))}
+                  </ul>
+                )}
                 <a
                   href={reg.official_source_url}
                   target="_blank"

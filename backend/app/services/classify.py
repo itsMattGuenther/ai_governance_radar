@@ -63,7 +63,9 @@ AI_RELEVANCE = re.compile(
     r"a\.i\.|\bai\b|artificial intelligence|machine learning|\bml\b|"
     r"llm|large language model|foundation model|frontier model|"
     r"generative ai|genai|chatbot|deepfake|neural network|deep learning|"
-    r"algorithmic|automated decision|facial recognition|biometric|"
+    r"algorithmic|automated decision|facial recognition|"
+    # Bare "biometric" matched visa fees ("Biometric Entry-Exit Fee"); keep the AI uses.
+    r"biometric (identification|categori[sz]ation|recognition|surveillance)|"
     r"agentic|autonomous (system|agent|vehicle)|"
     r"chatgpt|openai|anthropic|claude|gemini|copilot|llama|mistral"
     r")\b",

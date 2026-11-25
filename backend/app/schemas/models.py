@@ -2,7 +2,9 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from app.services.scoring import regulation_confidence
 
 
 class ORMModel(BaseModel):
@@ -126,6 +128,22 @@ class RegulationOut(ORMModel):
     official_source_url: str
     confidence: str
     last_verified_at: datetime
+    # `confidence` is what readers should rely on: the curated value, lowered when the
+    # verification is overdue or a key date has passed since it (DEC-031).
+    curated_confidence: str | None = None
+    confidence_notes: list[str] = []
+
+    @model_validator(mode="after")
+    def _age_confidence(self) -> "RegulationOut":
+        if self.curated_confidence is None:
+            self.curated_confidence = self.confidence
+            self.confidence, self.confidence_notes = regulation_confidence(
+                self.confidence,
+                self.last_verified_at,
+                {"Effective date": self.effective_at,
+                 "Compliance deadline": self.compliance_deadline},
+            )
+        return self
 
 
 class StandardOut(ORMModel):
