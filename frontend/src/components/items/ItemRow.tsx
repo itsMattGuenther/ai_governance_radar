@@ -19,12 +19,10 @@ export function reportCount(item: ItemOut): string | null {
 export function ItemRow({
   item,
   onOpen,
-  showSource = true,
   showDetail = true,
 }: {
   item: ItemOut;
   onOpen: (item: ItemOut) => void;
-  showSource?: boolean;
   /** Off where the panel already says what kind of items these are; phones, which
    * hide the source code tile, still get the source name. */
   showDetail?: boolean;
@@ -47,9 +45,7 @@ export function ItemRow({
           <span className="w-12">
             <DateCell date={itemDate(item)} />
           </span>
-          {showSource && (
-            <CodeTile code={sourceCode(item.source_name)} title={item.source_name} className="hidden w-16 sm:inline-block" />
-          )}
+          <CodeTile code={sourceCode(item.source_name)} title={item.source_name} className="hidden w-16 sm:inline-block" />
         </span>
       }
       title={<span className="line-clamp-2">{item.title}</span>}

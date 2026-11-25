@@ -18,9 +18,12 @@ The original long-form spec is `AI_Governance_Radar_Product_Design_Development_S
 (present locally, currently gitignored — see DEC-011). §NN references point there.
 
 ## Current state
-**V1 shipped (2026-08-11); public static site built (2026-09-29, DEC-029/030).**
+**V1 shipped (2026-08-11); public static site built (2026-09-29, DEC-029/030); "Watch
+Board" rebuild shipped (2026-11-25, DEC-033): Home leads with legal dates and record
+changes, laws carry curated milestones.**
 Python 3.12+ FastAPI + SQLAlchemy + SQLite backend in `backend/`; React + TS + Vite +
-Tailwind frontend (hand-rolled primitives, DEC-023) in `frontend/`. Local production =
+Tailwind frontend (hand-rolled primitives, DEC-023; look in DESIGN_SYSTEM.md) in
+`frontend/`. Local production =
 ONE process serving API + built SPA (DEC-017). Public = static snapshot at
 aigov.mattguenther.com (Cloudflare, DEC-032), rebuilt every 6 h and on pushes to main
 by `.github/workflows/publish.yml`. See AGENT_HANDOFF.md.
@@ -52,8 +55,8 @@ npm run build:static                           # static public build → dist-st
 8. Demo/seed data is explicitly marked `DEMO DATA` in data and UI.
 9. Color is never the sole indicator of state; keep the DESIGN_SYSTEM.md a11y checklist.
 10. SQLite is the only supported DB (DEC-019); `create_all()` until V1 schema freeze,
-    then Alembic (DEC-021). No structured HTML scrapers — feeds/APIs + page_watch
-    hashing only (DEC-020).
+    then Alembic (DEC-021); see DEC-034 for how a kept database upgrades. No structured
+    HTML scrapers — feeds/APIs + page_watch hashing only (DEC-020).
 
 ## Working practice
 - Work TASKS.md top-down; set status IN PROGRESS → DONE; one task = one verifiable

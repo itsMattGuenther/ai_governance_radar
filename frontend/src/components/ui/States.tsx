@@ -47,7 +47,7 @@ export function ErrorState({
   );
 }
 
-export function Skeleton({ className = "" }: { className?: string }) {
+function Skeleton({ className = "" }: { className?: string }) {
   return (
     <div
       aria-hidden

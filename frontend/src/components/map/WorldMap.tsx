@@ -37,7 +37,7 @@ function shade(n: number): string {
   return SHADES.find(([min]) => n >= min)![1];
 }
 
-export function describe(row: MapRow): string {
+function describe(row: MapRow): string {
   const parts = [
     row.binding ? `${row.binding} law${row.binding === 1 ? "" : "s"}` : null,
     row.guidance ? `${row.guidance} standard${row.guidance === 1 ? "" : "s"} or framework${row.guidance === 1 ? "" : "s"}` : null,

@@ -1,8 +1,7 @@
 # Design System — "Watch Board"
 
-**Status: APPROVED 2026-11-25 (DEC-033), build in progress.** Chosen by the owner
-after a UX review of the public site. It replaces "Refined Intelligence Dashboard"
-(DEC-025). The earlier research in
+**Status: SHIPPED 2026-11-25 (DEC-033).** Chosen by the owner after a UX review of the
+public site. It replaces "Refined Intelligence Dashboard" (DEC-025). The earlier research in
 [docs/design/V2-DESIGN-DIRECTION.md](docs/design/V2-DESIGN-DIRECTION.md) still applies
 where it argues for small radii, a status strip, absolute time and no glow.
 
@@ -47,7 +46,7 @@ Semantic colours. They mean status and nothing else:
 
 | Token | Value | Meaning |
 |---|---|---|
-| `sev-critical` | `#F26D66` | critical severity, failures |
+| `sev-critical` | `#F3726B` | critical severity, failures |
 | `sev-high` | `#EE8A45` | high severity |
 | `sev-watch` | `#E3A63A` | attention: a date within 60 days, a law signed but not yet in force |
 | `sev-positive` | `#4FB477` | in force, enforced, healthy |
@@ -58,7 +57,9 @@ Other fixed values: notice banner background `#2B2412` with `sev-watch` text; ra
 sweep `#4FE58F` (unchanged).
 
 Rules: colour is **never** the only signal — every state carries a word. All text
-pairs meet AA; chip text on its own 15% tint is at least 4.5:1.
+pairs meet AA; chip text on its own 15% tint is at least 4.5:1, including over
+`bg-raised` when a row is hovered (the reason `sev-critical` is `#F3726B` rather than
+the first proposal's `#F26D66`, which measured 4.46:1 there).
 
 ## 3. Brand mark
 
@@ -85,10 +86,10 @@ that moves (5s rotation, off under `prefers-reduced-motion`). Lockup in the top 
 | **Panel header** | `bg-raised` band with a bottom border: 8px square marker (2px radius) in the panel's subject colour, 13px semibold title, and a mono 11px count or window on the right. |
 | **Tile** | 12px label, 30px mono numeral with its unit in small sans, 12.5px detail line. The `hot` variant (9% `sev-watch` tint, 40% `sev-watch` border, `sev-watch` numeral) is used only when the tile shows a date within 60 days. No sparklines or icons. |
 | **Chip** | 4px radius, 11px semibold sans, 4×7px padding; coloured text on a 15% tint with a 38% border of the same colour. Quiet variant: `bd-subtle` outline, `tx-secondary` text. One per row. |
-| **Day count** | A chip reading "37 days". Filled `sev-watch` within 60 days, quiet beyond that, absent for past dates. |
+| **Day count** | A chip reading "37 days". Filled `sev-watch` within 60 days, quiet beyond that, absent for past dates. In table cells that already hold a stage chip, the count is text instead (amber within 60 days), so the row keeps one chip. |
 | **Stage track** | Five 11×6px segments, 2px apart, filled up to the law's stage: introduced 1, passed 2, signed 3, in force 4, enforced 5. Always paired with the stage chip, and labelled for screen readers ("Stage 3 of 5: signed"). A superseded law shows an empty track and a quiet "✕ Superseded" chip. |
 | **Code tile** | Mono 10.5px code on `bg-raised` with a `bd-subtle` border and 3px radius: `US-CO`, `GOV.UK`, `OWASP`. Replaces the coloured source monograms. |
-| **Flag** | Real SVG flags stay, about 18px wide with 2px corners, beside the jurisdiction code. Never circular, never fetched at runtime. |
+| **Flag** | Real SVG flags stay, 18×12px with 2px corners, beside the jurisdiction code. Never circular, never fetched from anywhere but the site itself; each loads only when shown (country flags as small SVG files, US state flags as their own script chunks). Decorative: the code carries the meaning. |
 | **Row** | Optional mono date column, then a 13.5px medium `tx-primary` title over a 12.5px `tx-secondary` detail line, then at most one chip. 10×14px padding, `bd-subtle` divider, `bg-raised` hover. A row whose date is within 60 days gets a 6% `sev-watch` tint. |
 | **InfoTip** | Unchanged: every classifier is defined from `lib/definitions.ts`. The About page carries the same definitions for touch users. |
 
@@ -97,7 +98,9 @@ enforced = positive · superseded = quiet. Standards: final = positive ·
 updated/amended = emerging · draft/comment = watch · withdrawn = critical. Record
 events: note = info · status change = watch · document updated = emerging. Incident
 severity: critical · high · medium = watch · low = info. Fact status and confidence
-chips are quiet unless they warn (alleged, disputed, confidence lowered).
+chips are quiet unless they warn (alleged, disputed, confidence lowered). In tables
+whose row already has a chip, they are words: quiet, or `sev-high` with a ▲ when they
+warn.
 
 Panel marker colours: dates = watch · record changes = accent · laws = emerging ·
 standards = info · incidents = high · sources and feed = positive.
@@ -113,13 +116,26 @@ in the item drawer. On laws, confidence shows only when it is below high.
 - **Top bar**: brand lockup, six tabs (Watch, Laws, Standards, Incidents, All sources,
   About), search on the right, focused with `/`. No side rail. Route paths are
   unchanged; the local app adds Settings.
-- **Status strip** under the top bar, mono 11px: data time in UTC, refresh interval,
-  sources OK count, last record check, next check due.
+- **Status strip** under the top bar, mono 11px: data time in UTC (the public build's
+  export time, or the newest collection in the local app), refresh interval (every 6 h
+  on the public site, the sources' polling range locally), sources OK (collected at
+  least once and not failing; links to the source list), the oldest record check and
+  the next check due (that date plus 90 days).
 - **Phone**: bottom tab bar with Watch, Laws, Standards, Incidents, All; About in the
   header. No horizontal body scroll from 360px. Tables become stacked rows.
 - **Home ("Watch")**: tiles (next two dates, record changes in 30 days, records
   tracked, items collected in 7 days), then four panels in two columns: Dates ahead,
-  Record changes, Laws by stage, From government sources.
+  Record changes, Laws by stage, From government sources. The two date tiles are wider
+  than the rest. A date shared by several laws names each of them.
+- **Laws**: the coverage map, then one table sorted by next date and latest change:
+  jurisdiction, law, stage, next date, last change, and the checked date (or the
+  confidence when it is below high). A superseded law sits under its successor.
+- **Record page**: credentials (checked date, official source, copy link) beside the
+  title; a milestone strip under it, with past dates muted, a today marker and dates
+  ahead with their day counts (a list on phones).
+- **All sources**: tabs by source tier — government and standards bodies, research and
+  incident databases, press — opening on the first, plus All, which a count elsewhere
+  links to so the number equals the list. Impact and confidence are columns.
 
 ## 7. Dates ahead
 
@@ -134,10 +150,13 @@ data stamp is UTC: `25 NOV 2026 15:13Z`. No "2d ago" or "1y ago".
 
 ## 9. Map
 
-Lives on the Laws page above the table, about a third of its former height. Flat land
-on the page background, flat markers, no glow. The metric is always named, the
-tooltip, keyboard navigation and text alternative stay, and colour means volume of
-tracked records, never "good" or "bad".
+Lives on the Laws page above the table, about a third of its former height. Flat land,
+flat `accent` markers, no glow. Shading is `accent` at three strengths for 1, 2–3 and
+4+ tracked records, named beside the map; it never means "good" or "bad". Beside it, a
+list of every country with records and its count is the text alternative and the
+keyboard route; selecting one filters the table, or opens Standards for a country with
+frameworks only. Natural Earth 110m, loaded only on this page; countries too small to
+have a polygon there (Singapore) and the EU get a marker at a fixed point.
 
 ## 10. Motion
 

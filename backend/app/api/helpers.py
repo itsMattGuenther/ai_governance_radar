@@ -3,7 +3,7 @@
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models import Entity, Item, ItemEntity, Source
+from app.models import Item
 from app.schemas.models import EntityBrief, ItemOut
 
 
@@ -29,18 +29,7 @@ def item_to_out(db: Session, item: Item, cluster_sizes: dict[int, int] | None = 
     return out
 
 
-def entity_names_for_item(db: Session, item_id: int) -> str:
-    rows = db.execute(
-        select(Entity.name).join(ItemEntity).where(ItemEntity.item_id == item_id)
-    ).scalars().all()
-    return " ".join(rows)
-
-
 def category_like(column, category: str):
     from sqlalchemy import String, cast
 
     return cast(column, String).like(f'%"{category}"%')
-
-
-def source_by_id(db: Session, source_id: int) -> Source | None:
-    return db.get(Source, source_id)

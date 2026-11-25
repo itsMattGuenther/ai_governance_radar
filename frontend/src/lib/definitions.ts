@@ -64,13 +64,3 @@ export const TIER_DEFS: Record<number, string> = {
   3: "Tier 3 — professional reporting: established technology, security, or legal press.",
   4: "Tier 4 — community/discovery: blogs, forums, social. Can surface leads but never establishes a regulatory fact on its own.",
 };
-
-export const CATEGORY_DEFS: Record<string, string> = {
-  regulation: "Laws, bills, executive actions, and regulatory guidance.",
-  standard: "Standards and frameworks (NIST, ISO, OWASP, MITRE and similar).",
-  incident: "Real-world AI harms, failures, enforcement actions, and lawsuits.",
-  security: "AI security research, vulnerabilities, and attack techniques.",
-  research: "Academic and institutional research output.",
-  news: "General AI governance-relevant reporting.",
-  ranking: "Indices and benchmarks comparing jurisdictions or systems.",
-};

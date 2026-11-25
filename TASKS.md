@@ -430,10 +430,9 @@ error states + accessibility reviewed. Update this file and CHANGELOG.md as you 
   Top 10 for Agentic Applications (or re-scope `owasp-agentic`). Verify each against
   primary sources first.
 
-## UX rebuild (owner-approved 2026-11-25, DEC-033)
+## Watch Board rebuild (owner-approved and built 2026-11-25, DEC-033)
 
-Work these in order on the `ux-rebuild` branch. The look is specified in
-DESIGN_SYSTEM.md. T-035, T-036 and T-037 are folded in below.
+The look is specified in DESIGN_SYSTEM.md. T-035, T-036 and T-037 are folded in below.
 
 ### T-042 Defects that do not depend on the redesign
 - **Status:** DONE 2026-11-25 · entities decoded at collection and repaired in stored rows (DEC-034); AIID reports grouped by incident number (23 groups from 91 reports); last update from the timeline; share tags and image
@@ -526,19 +525,16 @@ DESIGN_SYSTEM.md. T-035, T-036 and T-037 are folded in below.
   the future milestones; initial JS under 1 MB uncompressed.
 
 ### T-048 Clean up and hand back
-- **Status:** TODO
-- **Description:** Leave nothing behind that only existed for this build. Delete
-  `docs/handoff/ux-rebuild/` and every reference to it. Remove components, styles,
-  tokens, hooks, endpoints, export fields, tests and packages that nothing uses any
-  more. Bring README, ARCHITECTURE, DATA_MODEL, PRODUCT_SPEC, TEST_PLAN and CLAUDE.md's
-  "Current state" in line with what shipped, set DESIGN_SYSTEM.md's status to SHIPPED,
-  and rewrite AGENT_HANDOFF.md as the current state with no build instructions left
-  in it. Add the CHANGELOG entry. No scratch screenshots, temp scripts, commented-out
-  code or stray TODOs; dev servers stopped; `git status` clean. Then push the branch
-  and open one pull request to main. Do not merge it: merging deploys the public site.
-- **Acceptance:** all gates in TEST_PLAN.md §2 pass; no file mentions the handoff
-  folder or the branch (reword this section's own lines as the last step); the pull
-  request is open.
+- **Status:** DONE 2026-11-25 · build-only files and unused code removed (date helpers, two hooks, map `recent_items`, unused API helpers, styles); standing docs describe what shipped; checked under CI's Python 3.12, Node 22 and Docker
+- **Description:** Leave nothing behind that only existed for the build: the build
+  instructions and review files, components, styles, tokens, hooks, export fields,
+  tests and packages that nothing uses any more. Bring README, ARCHITECTURE,
+  DATA_MODEL, PRODUCT_SPEC, TEST_PLAN and CLAUDE.md's "Current state" in line with what
+  shipped, set DESIGN_SYSTEM.md's status to SHIPPED, rewrite AGENT_HANDOFF.md as the
+  current state, and add the CHANGELOG entry. Then open one pull request to main; the
+  owner later asked for it to be merged once every check passed.
+- **Acceptance:** all gates in TEST_PLAN.md §2 pass; no build-only files or references
+  remain; the pull request's checks pass before it is merged.
 
 ## Post-V1 (parked — do not start)
 Rankings page + snapshots (§12) · Training page (§13) · Events page (§14) · comparison

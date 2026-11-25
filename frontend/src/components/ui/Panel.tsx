@@ -5,7 +5,7 @@ import clsx from "clsx";
 import { Link } from "react-router-dom";
 
 /** Panel marker colours: what each panel is about (DESIGN_SYSTEM.md §5). */
-export const MARKERS = {
+const MARKERS = {
   dates: "bg-sev-watch",
   changes: "bg-accent",
   laws: "bg-sev-emerging",
@@ -14,7 +14,7 @@ export const MARKERS = {
   feed: "bg-sev-positive",
 } as const;
 
-export type Marker = keyof typeof MARKERS;
+type Marker = keyof typeof MARKERS;
 
 export function Panel({
   title,

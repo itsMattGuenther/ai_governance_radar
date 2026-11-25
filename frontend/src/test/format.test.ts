@@ -2,7 +2,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { absDate, dateColumn, daysUntil, parseTimestamp, relativeTime, shortDate, utcStamp } from "../lib/format";
+import { absDate, dateColumn, daysUntil, parseTimestamp, utcStamp } from "../lib/format";
 
 describe("parseTimestamp", () => {
   it("reads offset-less API timestamps as UTC", () => {
@@ -20,11 +20,7 @@ describe("parseTimestamp", () => {
 
 describe("date display", () => {
   it("shows a UTC-midnight calendar date as that day in any timezone", () => {
-    expect(shortDate("2026-06-30T00:00:00")).toBe("Jun 30, 2026");
-  });
-  it("computes relative time from UTC", () => {
-    const tenMinAgo = new Date(Date.now() - 10 * 60_000).toISOString().replace("Z", "");
-    expect(relativeTime(tenMinAgo)).toBe("10m ago");
+    expect(absDate("2026-06-30T00:00:00")).toBe("30 Jun 2026");
   });
 });
 

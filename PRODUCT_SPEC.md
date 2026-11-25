@@ -51,14 +51,15 @@ in the data model (as item categories) but get no dedicated pages in V1. See DEC
   Regulation lifecycle: PROPOSED → INTRODUCED → PASSED → SIGNED/ENACTED → EFFECTIVE →
   AMENDED → ENFORCEMENT, with jurisdiction-specific statuses. Structured fields per §7
   (jurisdiction, level, status, key dates, deadline, authority, penalties, covered entities,
-  risk classification, sources, confidence, last-verified). **Legal status must be grounded
-  in source records/structured data — never solely an LLM summary. Regulations are database
-  entities, never hard-coded in frontend components.**
+  risk classification, sources, confidence, last-verified), plus dated **milestones** and a
+  `superseded_by` link (DEC-033). **Legal status must be grounded in source records/structured
+  data — never solely an LLM summary. Regulations are database entities, never hard-coded in
+  frontend components. Lists of upcoming dates read milestones only.**
 - **Standards & Frameworks Radar** (§8, §23) — NIST AI RMF (+profiles), ISO/IEC 42001/23894/22989,
   OWASP LLM Top 10 & Agentic AI, MITRE ATLAS, CISA, OECD, UNESCO, IEEE, ENISA. Document
   lifecycle: ANNOUNCED / DRAFT / PUBLIC COMMENT / FINAL / UPDATED / AMENDED / WITHDRAWN /
-  SUPERSEDED. Standards cards show name, version, status, dates, change magnitude, summary,
-  related frameworks, official source, watch state.
+  SUPERSEDED. The Standards table shows publisher, name, version, status and last update;
+  each record page adds summary, related frameworks, official source and timeline.
 - **AI Incident Intelligence** (§9, §24) — categorized incidents (prompt injection, data
   leakage, bias, deepfake abuse, agent failure, model theft, poisoning, excessive agency…)
   with severity, geography, root cause, governance/security relevance, related frameworks,
@@ -71,12 +72,12 @@ in the data model (as item categories) but get no dedicated pages in V1. See DEC
 - **Curated news** (§11) — prioritized by regulatory/standards/incident/security relevance;
   generic model-release news only when governance-relevant. In V1: category + impact
   filtering, no dedicated page beyond items views.
-- **Dashboard** (§17–21): KPI cards (High Impact / Total Changes / Incident Reports /
-  Sources Reporting — each click-through to a filtered view; §19's "New Opportunities"
-  KPI was replaced when Events & Training was removed, DEC-027), Top Developments (5–7 items with
-  severity badge, source, category, one-line explanation, relative time, link), global
-  regulatory heat map (clearly labeled metric; color ≠ good/bad), incidents card, standards
-  watch card.
+- **Home, the watch board** (§17–21, revised by DEC-033): tiles for the next two legal
+  dates, record changes in 30 days, records tracked and items collected in 7 days; panels
+  for Dates ahead (milestones only), Record changes (laws and standards), Laws by stage,
+  and items from government sources. Deviates from §19–21: the KPI cards, Top
+  Developments and the heat map left Home because they were driven by the automated feed
+  and its impact score, which never reads content. The coverage map lives on the Laws page.
 - ~~**Watchlist** (§5.5, §51)~~ — **removed** (DEC-028): a scale feature that adds nothing
   while the whole tracked corpus fits on one screen. Personalization should return as
   §80's profile layer (my jurisdictions / my frameworks), not manual starring.
@@ -103,7 +104,8 @@ in the data model (as item categories) but get no dedicated pages in V1. See DEC
   nothing may silently invent legal status, dates, penalties, incident details, costs,
   or rankings.
 - **API** (§54) — documented, provider-neutral REST endpoints: items, entities,
-  regulations, standards, incidents, sources, watchlist, ingest trigger.
+  regulations, standards, incidents, sources, search, ingest trigger, and the calendar
+  and change feeds.
 - **Import/export** (§53) — JSON/CSV export, JSON/CSV import for watchlists and
   configuration (no vendor lock-in).
 
@@ -127,15 +129,16 @@ in the data model (as item categories) but get no dedicated pages in V1. See DEC
 
 ## 5. UX direction (§15–19, §55–59)
 
-- **Dark-first, dense, professional intelligence terminal** — Bloomberg-terminal feel, not
-  an admin panel, RSS reader, or marketing site. Details in [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md).
-- Semantic colors only (red=critical, orange=medium/high, yellow=watch, green=healthy,
-  blue=informational, purple=emerging/research); **color is never the only indicator**.
-- Fixed left sidebar (collapsible to icons), six surfaces after DEC-027/028: Home,
-  Regulatory Radar, Standards, Incidents & Risks, All Sources, Settings. Each has a
-  distinct job; nothing is a lesser copy of another.
-- Desktop primary; tablet functional; mobile uses bottom nav with priority: Home,
-  Regulatory Radar, Incidents, All Sources.
+- **Dark-first, dense "Watch Board"** — the flat discipline of an operations console with
+  enough colour and panel separation to skim (DEC-033). Details in
+  [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md).
+- Colour encodes something or goes: how close a date is (amber within 60 days), a law's
+  stage, a panel's subject, severity and health; **color is never the only indicator**.
+- A notice banner, top tabs and a status strip; no side rail. Surfaces: Watch (Home),
+  Laws, Standards, Incidents, All sources, About, and Settings in the local app. Each has
+  a distinct job; nothing is a lesser copy of another.
+- Desktop primary; phones get a bottom tab bar (Watch, Laws, Standards, Incidents, All),
+  stacked rows instead of tables, and no horizontal scrolling from 360px.
 - Accessibility baseline: keyboard nav, visible focus, contrast, semantic HTML, screen-reader
   labels, reduced motion. Restrained animation. Meaningful empty states; visible, actionable
   error states — **never silently discard ingestion failures**.

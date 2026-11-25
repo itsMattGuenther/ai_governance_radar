@@ -79,13 +79,6 @@ export const useItems = (filters: ItemFilters, enabled = true) =>
     enabled,
   });
 
-export const useItem = (id: number | null) =>
-  useQuery({
-    queryKey: ["item", id],
-    queryFn: () => (STATIC_MODE ? snapshot.item(id!) : request<ItemOut>(`/items/${id}`)),
-    enabled: id !== null,
-  });
-
 export const useClusterMembers = (id: number | null) =>
   useQuery({
     queryKey: ["cluster", id],
@@ -159,13 +152,6 @@ export const useSources = () =>
   useQuery({
     queryKey: ["sources"],
     queryFn: () => (STATIC_MODE ? snapshot.sources() : request<SourceOut[]>("/sources")),
-  });
-
-export const useSourceRuns = (sourceId: number | null) =>
-  useQuery({
-    queryKey: ["source-runs", sourceId],
-    queryFn: () => request<SourceRunOut[]>(`/sources/${sourceId}/runs`),
-    enabled: sourceId !== null && !STATIC_MODE,
   });
 
 export const useJurisdictions = () =>

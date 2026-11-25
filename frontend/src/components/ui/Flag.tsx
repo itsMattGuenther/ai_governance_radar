@@ -69,7 +69,7 @@ function StateFlag({ abbr }: { abbr: string }) {
 }
 
 /** Whether `code` has a flag to show. */
-export function hasFlag(code: string | null | undefined): boolean {
+function hasFlag(code: string | null | undefined): boolean {
   if (!code) return false;
   if (code.startsWith("US-")) return true;
   return code in COUNTRY_CODES;

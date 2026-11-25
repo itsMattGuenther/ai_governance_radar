@@ -4,10 +4,10 @@ All notable changes to this project. Dates are UTC.
 
 ## [Unreleased] — 2026-09-29 to 2026-11-25
 
-### Planned (2026-11-25)
-- **Watch Board rebuild approved** (DEC-033) after a UX review of the public site:
-  Home will lead with legal dates and record changes, and the visual system changes
-  (DESIGN_SYSTEM.md). Tasks T-042 to T-048. Not built yet.
+### Summary (2026-11-25): the Watch Board rebuild (DEC-033, T-042 to T-048)
+Home now leads with legal dates and record changes, laws carry curated milestones, and
+the whole site moved to the "Watch Board" visual system (DESIGN_SYSTEM.md). The
+entries below give the detail.
 
 ### Added (2026-11-25, T-047)
 - **About page**: what the site is and who built it, what is tracked, how records are
@@ -55,8 +55,11 @@ All notable changes to this project. Dates are UTC.
   Pulse, the "Latest" strip and the LIVE dot are gone, which also retires the "High
   impact" counter, the shared sparkline and the alphabetical Regulatory Pulse.
 - `/api/dashboard/summary` (and `summary.json`) now return `collected`, `government`,
-  `page_changes` and `others`; `high_impact`, `new_incidents` and the source counts are
-  gone. `/api/items` takes `tier` (e.g. `1` or `3,4`).
+  `page_changes`, `others` and `demo`; `high_impact`, `new_incidents` and the source
+  counts are gone. `/api/items` takes `tier` (e.g. `1` or `3,4`).
+- Record changes on Home and in the Atom feed are curated changes only; "linked document
+  changed" events that collection adds stay on the record's own timeline. On a local
+  install with demo data, the Collected tile says how many items are DEMO DATA.
 
 ### Changed (2026-11-25, T-044)
 - **Watch Board foundation** (DEC-033, DESIGN_SYSTEM.md): new colour values under the
@@ -67,7 +70,8 @@ All notable changes to this project. Dates are UTC.
   footer was hidden on phones), then a top bar with tabs and search (`/` focuses it)
   and a status strip: data time in UTC, refresh interval, sources OK, when records were
   last checked and when the next check is due. Phones get a five-tab bar that now
-  includes Standards. Feed rows lose the impact ring and confidence dots.
+  includes Standards. Feed rows lose the impact ring and confidence dots. A source
+  counts as OK once it has been collected and is not failing.
 - A first About page (completed in T-047).
 
 ### Fixed (2026-11-25, T-042)

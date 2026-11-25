@@ -22,7 +22,7 @@ import { STATIC_MODE } from "../lib/env";
 import { absDate, utcStamp } from "../lib/format";
 import { REVERIFY_DAYS, SOON_DAYS, recordsChecked } from "../lib/records";
 
-export const REPO_URL = "https://github.com/itsMattGuenther/ai_governance_radar";
+const REPO_URL = "https://github.com/itsMattGuenther/ai_governance_radar";
 const CORRECTIONS_URL = `${REPO_URL}/blob/main/docs/reviews/2026-11-25-records-verification.md`;
 const FEEDS = STATIC_MODE
   ? { calendar: "/data/milestones.ics", changes: "/data/changes.xml" }

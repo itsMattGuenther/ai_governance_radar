@@ -197,7 +197,6 @@ export interface MapRow {
   binding: number;
   /** Voluntary frameworks, standards, and guidance. */
   guidance: number;
-  recent_items: number;
   /** Where clicking should navigate (EU member states point at "EU"). */
   link_code: string;
   /** Higher-level jurisdictions contributing to this count, e.g. ["EU"]. */

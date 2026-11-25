@@ -8,47 +8,8 @@ export function parseTimestamp(iso: string): Date {
   return new Date(iso.includes("T") && !hasZone ? `${iso}Z` : iso);
 }
 
-export function relativeTime(iso: string | null | undefined): string {
-  if (!iso) return "—";
-  const then = parseTimestamp(iso).getTime();
-  if (Number.isNaN(then)) return "—";
-  const seconds = Math.floor((Date.now() - then) / 1000);
-  if (seconds < 60) return "just now";
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
-  const months = Math.floor(days / 30);
-  if (months < 12) return `${months}mo ago`;
-  return `${Math.floor(months / 12)}y ago`;
-}
-
-// Calendar dates (effective dates, occurred-on) are stored as UTC midnight, so they
-// render in UTC — otherwise "Jun 30" becomes "Jun 29" for every viewer west of UTC.
-export function shortDate(iso: string | null | undefined): string {
-  if (!iso) return "—";
-  const d = parseTimestamp(iso);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("en-US", {
-    year: "numeric", month: "short", day: "numeric", timeZone: "UTC",
-  });
-}
-
-export function longDate(iso: string | null | undefined): string {
-  if (!iso) return "—";
-  const d = parseTimestamp(iso);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    timeZone: "UTC",
-  });
-}
-
+// Calendar dates (effective dates, milestones) are stored as UTC midnight, so they
+// render in UTC: otherwise "30 Jun" becomes "29 Jun" for every viewer west of UTC.
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 function utcParts(iso: string | null | undefined): { d: number; m: number; y: number } | null {

@@ -34,7 +34,7 @@ const PHONE_TABS = [
 const PUBLIC_REFRESH_HOURS = 6;
 
 /** Where the source list with health lives. */
-export const SOURCES_PATH = STATIC_MODE ? "/about#sources" : "/settings";
+const SOURCES_PATH = STATIC_MODE ? "/about#sources" : "/settings";
 
 const SITE_URL = (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/$/, "");
 

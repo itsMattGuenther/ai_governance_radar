@@ -104,12 +104,6 @@ export async function items(f: ItemFilters): Promise<PageOut> {
   return { items: matches.slice(offset, offset + limit), total: matches.length, offset, limit };
 }
 
-export async function item(id: number): Promise<ItemOut> {
-  const found = (await loadItems()).byId.get(id);
-  if (!found) throw new ApiError(404, "Item not found");
-  return found;
-}
-
 export async function clusterMembers(id: number): Promise<ItemOut[]> {
   const { rows, byId, seenAt } = await loadItems();
   const found = byId.get(id);

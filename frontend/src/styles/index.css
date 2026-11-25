@@ -37,9 +37,6 @@
   .card {
     @apply overflow-hidden rounded-panel border border-bd-subtle bg-bg-surface;
   }
-  .meta-label {
-    @apply text-xs font-medium text-tx-secondary;
-  }
   .num {
     @apply font-mono tabular-nums;
   }
