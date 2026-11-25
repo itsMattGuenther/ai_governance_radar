@@ -30,18 +30,23 @@ this file defines the layers, tooling, and release gates.
   excerpts (XSS corpus).
 
 ### Frontend tests (Vitest + React Testing Library)
-- Every primitive renders in all states (T-004 kit); page tests with mocked API
-  (loading/empty/error/data); interaction tests (filters, watch toggle, search
-  keyboard nav, KPI click-through routing).
+- Every primitive renders with its word, not colour alone (Panel, Tile, Chip, day count,
+  stage track, code tile, flag, row); page tests with a mocked API for Home, Laws,
+  Standards and All Sources (data, empty and error states); shell tests (notice, tabs,
+  `/` focuses search, navigation survives a Promise-returning `scrollTo`); helper tests
+  for dates, day counts, milestones and stage order.
 
 ### Accessibility
-- axe-core automated scan on the `/dev/kit` page and each route (serious/critical = 0).
+- axe-core automated scan on each route (serious/critical = 0) — still deferred.
 - Manual: keyboard-only walkthrough, focus visibility, reduced-motion, screen-reader
-  labels spot-check. Checklist = DESIGN_SYSTEM.md §8.
+  labels spot-check, AA contrast for each token pair. Checklist = DESIGN_SYSTEM.md §11.
 
 ### Visual QA (manual, agent-driven browser loop)
-- Screenshot Dashboard, Regulatory Radar, Standards, Incident detail, All Sources,
-  Settings at 1280 / 768 / 375 px. Compare against DESIGN_SYSTEM.md.
+- Screenshot Watch, Laws, a record page, Standards, Incidents, an incident, All
+  Sources, About and (local app) Settings at 1440×900 and 390×844 with headless
+  Chromium, in both the static build and the local app. Compare against
+  DESIGN_SYSTEM.md. Check for horizontal body scroll at 360–430px and click through
+  the tabs in a real browser (single page loads miss navigation bugs).
   Archive in `docs/qa/YYYY-MM-DD/`. Repeat until no obvious defects (§70, §73).
 
 ### End-to-end (deferred until after T-030)
@@ -50,8 +55,9 @@ this file defines the layers, tooling, and release gates.
 
 ## 2. Static gates (every change)
 
-Backend: `ruff check`, `ruff format --check`, `mypy`, `pytest`.
-Frontend: `eslint`, `tsc --noEmit`, `vitest run`, `vite build`.
+Backend: `ruff check`, `mypy`, `pytest` (`ruff format --check` is advisory: CI runs it
+with `|| true`, and older modules are not yet formatted).
+Frontend: `eslint`, `tsc --noEmit`, `vitest run`, `vite build` (and `build:static`).
 All wired into CI (T-029); all must pass before a task is marked DONE.
 
 ## 3. Data-quality verification (maps to §74 checklist)

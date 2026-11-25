@@ -16,6 +16,10 @@ from app.services.search import index_item
 
 logger = logging.getLogger("radar.ingest")
 
+# raw_metadata flag: the stored title/excerpt were repaired in place, so the next
+# collection takes the feed's text silently instead of reporting an update.
+REFRESH_TEXT = "refresh_text"
+
 
 def utcnow() -> datetime:
     return datetime.now(UTC)
@@ -61,7 +65,9 @@ def _ingest_feed(db: Session, source: Source, run: SourceRun) -> None:
         return
     source.http_etag = result.headers.get("etag")
     source.http_last_modified = result.headers.get("last-modified")
-    normalized = parsers.parse_feed(result.content, source.url)
+    normalized = parsers.parse_feed(
+        result.content, source.url, (source.config or {}).get("report_group_pattern")
+    )
     _persist_items(db, source, run, normalized)
 
 
@@ -122,6 +128,16 @@ class NormalizedToItem:
 
         if existing is not None:
             existing.last_seen_at = utcnow()
+            metadata = existing.raw_metadata or {}
+            if metadata.get(REFRESH_TEXT) and existing.content_hash != n.content_hash:
+                # Stored text was repaired in place (services/repairs.py), and where the
+                # feed's excerpt is cut can't be predicted from it: take the feed's text
+                # without treating it as a change to the document.
+                existing.title, existing.excerpt = n.title, n.excerpt
+                existing.content_hash = n.content_hash
+                existing.raw_metadata = {k: v for k, v in metadata.items() if k != REFRESH_TEXT}
+                index_item(self.db, existing, self._entity_names(existing))
+                return None
             if existing.content_hash != n.content_hash:
                 # T-026: document changed
                 existing.content_hash = n.content_hash

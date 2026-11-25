@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import { X } from "lucide-react";
 
 import { useClusterMembers } from "../../lib/api";
-import { categoryLabel, relativeTime } from "../../lib/format";
+import { absDate, categoryLabel } from "../../lib/format";
 import type { ItemOut } from "../../lib/types";
 import { ConfidenceBadge, DemoBadge, FactStatusBadge, ImpactBadge } from "../ui/Badge";
 import { SourceAttribution } from "../ui/SourceAttribution";
@@ -14,7 +14,7 @@ import { SourceAttribution } from "../ui/SourceAttribution";
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <section className="space-y-1.5">
-      <h3 className="meta-label">{label}</h3>
+      <h3 className="text-xs font-semibold text-tx-secondary">{label}</h3>
       {children}
     </section>
   );
@@ -36,11 +36,11 @@ export function ItemDetailDrawer({ item, onClose }: { item: ItemOut | null; onCl
 
   return (
     <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Item detail">
-      <button aria-label="Close" className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <button aria-label="Close" className="absolute inset-0 bg-black/70" onClick={onClose} />
       <div
         ref={panelRef}
         tabIndex={-1}
-        className="absolute right-0 top-0 h-full w-full max-w-lg overflow-y-auto border-l border-bd-subtle bg-bg-surface p-5 shadow-card outline-none"
+        className="absolute right-0 top-0 h-full w-full max-w-lg overflow-y-auto border-l border-bd-strong bg-bg-surface p-5 outline-none"
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-wrap items-center gap-1.5">
@@ -52,13 +52,13 @@ export function ItemDetailDrawer({ item, onClose }: { item: ItemOut | null; onCl
           <button
             onClick={onClose}
             aria-label="Close detail"
-            className="rounded-ctl border border-bd-strong p-1 text-tx-muted transition-colors hover:text-tx-primary"
+            className="rounded-ctl border border-bd-strong p-1 text-tx-muted hover:text-tx-primary"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <h2 className="mt-3 text-lg font-semibold text-tx-primary">{item.title}</h2>
+        <h2 className="mt-3 text-lg font-semibold leading-snug text-tx-primary">{item.title}</h2>
         <div className="mt-2">
           <SourceAttribution
             sourceName={item.source_name}
@@ -82,12 +82,12 @@ export function ItemDetailDrawer({ item, onClose }: { item: ItemOut | null; onCl
                 {item.impact_factors.map((f) => (
                   <li key={f.factor} className="flex justify-between gap-3 text-xs">
                     <span className="text-tx-secondary">+ {f.factor}</span>
-                    <span className="font-mono text-tx-muted">{f.points}</span>
+                    <span className="num text-tx-muted">{f.points}</span>
                   </li>
                 ))}
                 <li className="flex justify-between gap-3 border-t border-bd-subtle pt-1 text-xs font-medium">
                   <span className="text-tx-primary">Impact score</span>
-                  <span className="font-mono text-tx-primary">{item.impact_score}/100</span>
+                  <span className="num text-tx-primary">{item.impact_score}/100</span>
                 </li>
               </ul>
             </Section>
@@ -96,17 +96,17 @@ export function ItemDetailDrawer({ item, onClose }: { item: ItemOut | null; onCl
           <Section label="Classification">
             <div className="flex flex-wrap gap-1.5">
               {item.categories.map((c) => (
-                <span key={c} className="rounded border border-bd-strong px-2 py-0.5 text-xs text-tx-secondary">
+                <span key={c} className="rounded-ctl border border-bd-subtle px-2 py-0.5 text-xs text-tx-secondary">
                   {categoryLabel(c)}
                 </span>
               ))}
               {item.jurisdiction_code && (
-                <span className="rounded border border-bd-strong px-2 py-0.5 font-mono text-xs text-tx-secondary">
+                <span className="rounded-ctl border border-bd-subtle px-2 py-0.5 font-mono text-xs text-tx-secondary">
                   {item.jurisdiction_code}
                 </span>
               )}
               {item.change_type && (
-                <span className="rounded border border-bd-strong px-2 py-0.5 text-xs text-tx-secondary">
+                <span className="rounded-ctl border border-bd-subtle px-2 py-0.5 text-xs text-tx-secondary">
                   {item.change_type.replace(/_/g, " ")}
                 </span>
               )}
@@ -126,7 +126,7 @@ export function ItemDetailDrawer({ item, onClose }: { item: ItemOut | null; onCl
                       {e.name}
                     </Link>
                     {e.current_status && (
-                      <span className="ml-2 meta-label">{e.current_status.replace(/_/g, " ")}</span>
+                      <span className="ml-2 text-xs text-tx-muted">{e.current_status.replace(/_/g, " ")}</span>
                     )}
                   </li>
                 ))}
@@ -135,18 +135,24 @@ export function ItemDetailDrawer({ item, onClose }: { item: ItemOut | null; onCl
           )}
 
           {cluster && cluster.length > 1 && (
-            <Section label={`Coverage — ${cluster.length} sources`}>
+            <Section label={`${cluster.length} reports of this event`}>
               <ul className="space-y-1.5">
                 {cluster.map((m) => (
                   <li key={m.id} className="text-xs">
                     <a href={m.url} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
                       {m.source_name}
                     </a>
-                    <span className="ml-2 text-tx-muted">T{m.source_tier} · {relativeTime(m.first_seen_at)}</span>
+                    <span className="ml-2 text-tx-muted">
+                      Tier {m.source_tier} · {absDate(m.published_at ?? m.first_seen_at)}
+                    </span>
                   </li>
                 ))}
               </ul>
-              <p className="text-meta text-tx-muted">Highest-tier source is treated as primary evidence.</p>
+              <p className="text-meta text-tx-muted">
+                Grouped because the source files them under the same incident, or because
+                sources published near-identical headlines within 72 hours. The row shows the
+                report from the most reliable source, newest first.
+              </p>
             </Section>
           )}
         </div>

@@ -68,7 +68,7 @@ The live public copy is at **https://aigov.mattguenther.com**.
 
 The repo includes a GitHub Actions workflow
 ([`.github/workflows/publish.yml`](.github/workflows/publish.yml)) that collects the
-latest items every 6 hours and publishes a **read-only** copy of the dashboard to
+latest items every 6 hours and publishes a **read-only** copy of the site to
 Cloudflare (static files only, served free). Visitors can't change anything. To run
 your own copy from a fork:
 
@@ -99,13 +99,14 @@ file is just a plain-text settings file — open it in any text editor.)
 
 | | Feature | What it gives you |
 |---|---|---|
-| 📊 | **Dashboard** | High-impact counts, top developments, a world map of regulatory activity, incidents, and standards — all on one screen |
-| 🏛️ | **Regulatory Radar** | Tracked AI laws (Colorado AI Act, EU AI Act, and more) with status, key dates, penalties, and links to official sources |
-| 📐 | **Standards** | NIST AI RMF, ISO/IEC 42001, OWASP, MITRE ATLAS — versions, status, and what changed |
-| ⚠️ | **Incidents** | Real, documented AI incidents written up like intelligence reports, with severity and "confirmed vs. alleged" labels |
-| 📰 | **All Sources** | Everything collected, newest first — filter by category, impact, confidence, or source |
-| 🔍 | **Search** | One search box across everything, results grouped by type |
-| 🩺 | **Source health** | See exactly which feeds are working, when they last succeeded, and why one failed |
+| 📅 | **Watch board** | The next legal dates with day counts, what changed in the checked records, where every law stands, and what government sources published this week |
+| 🏛️ | **Laws** | Tracked AI laws (EU AI Act, Colorado, California and more), soonest date first, with stage, dated milestones, penalties, and links to official sources |
+| 📐 | **Standards** | NIST AI RMF, ISO/IEC 42001, OWASP, MITRE ATLAS — publisher, version, status, and when each last changed |
+| ⚠️ | **Incidents** | Real, documented AI incidents written up like intelligence reports, with severity and "confirmed vs. alleged" labels, then reports grouped by incident |
+| 📰 | **All Sources** | Everything collected, by source tier — filter by category, impact, confidence, or source |
+| 🔍 | **Search** | One search box across everything (press `/`), results grouped by type |
+| ℹ️ | **About** | How records are checked, how scores work, the corrections log, and every source with its health |
+| 🗓️ | **Feeds** | A calendar of dates ahead (.ics) and a feed of record changes (Atom) to subscribe to |
 | 📤 | **Import/export** | Take your settings with you, or export collected items as CSV — no lock-in, ever |
 
 Starter/demo entries are always clearly labeled **DEMO DATA** so you never mistake

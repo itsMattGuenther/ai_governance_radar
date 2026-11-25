@@ -165,7 +165,7 @@ def cmd_export_static(args: argparse.Namespace) -> int:
     init_db()
     db = SessionLocal()
     try:
-        meta = export_static(db, Path(args.out))
+        meta = export_static(db, Path(args.out), site_url=args.site_url)
         print(f"Exported {meta['items_exported']} of {meta['items_total']} items "
               f"to {args.out}")
         return 0
@@ -233,6 +233,10 @@ def main() -> int:
     p_export = sub.add_parser(
         "export-static", help="Write a read-only JSON snapshot for the static public site")
     p_export.add_argument("--out", required=True, help="Output directory")
+    p_export.add_argument(
+        "--site-url", default=None,
+        help="Public address for absolute links in the calendar and change feeds "
+             "(default: SITE_URL)")
     p_export.set_defaults(func=cmd_export_static)
 
     p_backup = sub.add_parser("backup", help="Write a consistent copy of the database")

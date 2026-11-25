@@ -43,13 +43,16 @@ process (DEC-017).
 - **pytest** — offline tests against recorded feed fixtures.
 
 ### Frontend — React + TypeScript + Vite
-- **Tailwind CSS + shadcn/ui (Radix) + lucide-react** — components copied into repo.
+- **Tailwind CSS + hand-rolled primitives (DEC-023) + lucide-react.** The "Watch
+  Board" visual system (DESIGN_SYSTEM.md, DEC-033): Panel, Tile, Chip, day count,
+  stage track, code tile, flag, row.
 - **TanStack Query** (server state, loading/error handling) + **React Router**. SPA
   only, no SSR/Next.js (DEC-004).
-- **Recharts** — compact charts.
-- **Choropleth:** `topojson-client` + `d3-geo` directly in a small React SVG component;
-  Natural Earth countries data **vendored in the repo** — no runtime downloads, fully
-  offline (DEC-022). Fonts self-hosted for the same reason.
+- **Coverage map** on the Laws page: `topojson-client` + `d3-geo` directly in a small
+  React SVG component with Natural Earth `countries-110m` from the `world-atlas`
+  package, loaded only when that page opens (DEC-022). Flags ship with the build and
+  load one at a time as shown. IBM Plex Sans and Mono are self-hosted. No runtime
+  downloads from anywhere else.
 - **Vitest + React Testing Library**; Playwright reserved for post-V1 e2e.
 
 ## 3. Repository layout (DEC-002)
@@ -94,8 +97,11 @@ source registry (DB, seeded from data/sources/*.yaml)
                      on change emit a "page changed — review" signal item;
                      NO structured HTML scraping in V1)
   → normalizer → sanitized plain-text excerpt (≤ ~500 chars) + metadata
-  → dedupe: canonical-URL + content-hash exact matching; conservative
-    near-exact title clustering into item_clusters (official source primary)
+  → dedupe: canonical-URL + content-hash exact matching; reports a source files
+    under one event (e.g. the AI Incident Database's incident number, read with the
+    source's `report_group_pattern`) share an item_cluster; otherwise conservative
+    near-exact title clustering across sources (most reliable source, then newest,
+    is the primary)
   → rule-based classifier (source defaults + keyword rules; NO LLM in V1)
   → change detection (new vs. content-hash change vs. curated entity edits
     → entity_events)
@@ -104,8 +110,13 @@ source registry (DB, seeded from data/sources/*.yaml)
   → persist (items, item_entities, entity_events, source_runs)
 ```
 
-Every run writes a `source_runs` row — failures are first-class data surfaced in
-Settings source health (§59), never silently dropped.
+Every run writes a `source_runs` row — failures are first-class data surfaced in the
+status strip and the source list (About on the public site, Settings locally; §59),
+never silently dropped.
+
+**Upgrading a kept database (DEC-034):** new tables come from `create_all()`; fixes to
+stored rows run once per database as named repairs (`services/repairs.py`) from
+`seed_all`, recorded in `app_state`.
 
 **Curated vs. ingested (DEC-014):** regulations, standards, and incidents are curated
 structured records (reviewed seed data / explicit API edits). Ingestion links evidence
@@ -114,13 +125,16 @@ Regulation views surface `last_verified_at` age so staleness is visible, not hid
 
 ## 5. API surface (V1)
 
-`GET /api/health` · `GET/POST/PATCH /api/sources` · `GET /api/source-runs` ·
-`GET /api/items` (filters: category, jurisdiction, impact≥, confidence, source, date,
-watched, cluster-collapsed; sort; offset pagination) · `GET /api/items/{id}` ·
-`GET /api/entities[/{id}]` (incl. timeline) · `GET /api/regulations` ·
+`GET /api/health` · `GET /api/jurisdictions` · `GET/POST /api/sources` ·
+`PATCH/DELETE /api/sources/{id}` · `GET /api/sources/{id}/runs` ·
+`GET /api/items` (filters: category, jurisdiction, impact≥, confidence, source, source
+tier, entity, since/until, demo, page changes, cluster-collapsed; sort; offset
+pagination) · `GET /api/items/{id}[/cluster]` · `GET /api/entities[/{slug}]` (incl.
+timeline) · `GET /api/regulations` (incl. milestones and `superseded_by`) ·
 `GET /api/standards` · `GET /api/incidents[/{id}]` · `GET /api/search?q=` (grouped) ·
-`GET /api/dashboard/summary` · `GET /api/dashboard/map` ·
-`POST /api/ingest` · export/import (JSON/CSV). Documented at `/docs`.
+`GET /api/dashboard/summary` (Home's collection counts) · `GET /api/dashboard/map` ·
+`GET /api/feeds/milestones.ics` · `GET /api/feeds/changes.xml` · `POST /api/ingest` ·
+export/import (JSON/CSV). Documented at `/api/docs`.
 
 ## 6. Security architecture (§86)
 
@@ -164,7 +178,8 @@ GitHub Actions, every 6 h (.github/workflows/publish.yml)
   → radar seed (upserts curated records) → radar ingest --tolerate-source-errors
   → radar backup → push radar-data            (saved before the build can fail)
   → npm run build:static (VITE_STATIC_DATA=1)  → frontend/dist-static/ (+ _headers)
-  → radar export-static → dist-static/data/*.json   (no demo data, ≤ 3,000 items)
+  → radar export-static --site-url … → dist-static/data/*.json, milestones.ics,
+    changes.xml   (no demo data, ≤ 3,000 items)
   → wrangler deploy → assets-only Cloudflare Worker at aigov.mattguenther.com
     (unknown paths return index.html with HTTP 200, so deep links work)
 ```

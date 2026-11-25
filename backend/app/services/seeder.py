@@ -6,7 +6,7 @@ confidence required, last_verified_at required on regulations, fact_status on in
 
 import json
 import logging
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 import yaml
@@ -23,6 +23,8 @@ from app.models import (
     Item,
     ItemEntity,
     Regulation,
+    RegulationMilestone,
+    RegulationSuccession,
     Source,
     Standard,
 )
@@ -51,6 +53,47 @@ def _require(cond: bool, msg: str) -> None:
 def _check_jurisdiction(code: str | None, ctx: str) -> None:
     if code is not None:
         _require(jurisdictions.is_valid(code), f"{ctx}: unknown jurisdiction {code!r}")
+
+
+MILESTONE_KINDS = {"takes_effect", "obligations_apply", "deadline", "expires"}
+
+
+def _milestones(slug: str, rows: list[dict]) -> list[tuple[date, str, str]]:
+    """Validated (date, kind, label) in date order. Full dates only (DEC-033)."""
+    out = []
+    for m in rows:
+        try:
+            when = date.fromisoformat(m.get("date", ""))
+        except (TypeError, ValueError):
+            raise SeedError(f"{slug}: milestone needs a full date: {m}") from None
+        _require(m.get("kind") in MILESTONE_KINDS, f"{slug}: unknown milestone kind: {m}")
+        _require(bool((m.get("label") or "").strip()), f"{slug}: milestone needs a label: {m}")
+        out.append((when, m["kind"], m["label"]))
+    out.sort(key=lambda m: m[0])
+    _require(len({m[0] for m in out}) == len(out), f"{slug}: two milestones share a date")
+    return out
+
+
+def _seed_successions(db: Session, links: dict[int, str | None]) -> None:
+    """superseded_by links, set once every record exists. Mirrors the file: a link
+    removed there is removed here."""
+    for entity_id, successor_slug in links.items():
+        reg = db.get(Regulation, entity_id)
+        assert reg is not None
+        if successor_slug is None:
+            reg.succession = None
+            continue
+        successor = db.execute(
+            select(Entity).where(Entity.slug == successor_slug)
+        ).scalar_one_or_none()
+        _require(
+            successor is not None and successor.entity_type == "regulation"
+            and successor.id != entity_id,
+            f"{reg.entity.slug}: superseded_by {successor_slug!r} is not another regulation",
+        )
+        assert successor is not None
+        if reg.succession is None or reg.succession.successor_id != successor.id:
+            reg.succession = RegulationSuccession(successor_id=successor.id)
 
 
 def seed_sources(db: Session, path: Path | None = None) -> int:
@@ -94,6 +137,7 @@ def seed_entities(db: Session, path: Path | None = None) -> int:
         return 0
     data = json.loads(path.read_text(encoding="utf-8"))
     count = 0
+    successions: dict[int, str | None] = {}
     for row in data:
         _require(bool(row.get("slug")) and bool(row.get("name")),
                  f"entity missing slug/name: {row}")
@@ -118,7 +162,10 @@ def seed_entities(db: Session, path: Path | None = None) -> int:
                      f"{row['slug']}: regulation requires official_source_url")
             _require(bool(reg_data.get("last_verified_at")),
                      f"{row['slug']}: regulation requires last_verified_at")
-            reg = db.get(Regulation, entity.id) or Regulation(entity_id=entity.id)
+            reg = db.get(Regulation, entity.id)
+            if reg is None:
+                reg = Regulation(entity_id=entity.id)
+                db.add(reg)
             reg.government_level = reg_data.get("government_level", "state")
             reg.status = reg_data.get("status", "proposed")
             reg.status_label = reg_data.get("status_label")
@@ -139,7 +186,13 @@ def seed_entities(db: Session, path: Path | None = None) -> int:
             assert verified is not None  # guaranteed by _require above
             reg.last_verified_at = verified
             entity.current_status = reg.status
-            db.merge(reg)
+            # Milestones mirror the file, like events: an edit there replaces them here.
+            milestones = _milestones(row["slug"], reg_data.get("milestones", []))
+            if [(m.date, m.kind, m.label) for m in reg.milestones] != milestones:
+                reg.milestones = [
+                    RegulationMilestone(date=d, kind=k, label=label) for d, k, label in milestones
+                ]
+            successions[entity.id] = reg_data.get("superseded_by")
 
         elif row["type"] in ("standard", "framework"):
             std_data = row.get("standard") or {}
@@ -196,6 +249,8 @@ def seed_entities(db: Session, path: Path | None = None) -> int:
         ).scalars():
             db.delete(stale)
         count += 1
+    db.flush()
+    _seed_successions(db, successions)
     db.commit()
     return count
 
@@ -331,9 +386,16 @@ def seed_demo_items(db: Session, path: Path | None = None) -> int:
 
 
 def seed_all(db: Session) -> dict:
-    return {
+    from app.services.repairs import apply_repairs
+
+    counts: dict[str, int | dict[str, int]] = {
         "sources": seed_sources(db),
         "entities": seed_entities(db),
         "incidents": seed_incidents(db),
         "demo_items": seed_demo_items(db),
     }
+    # After the registry is re-read, so repairs see the current source configuration.
+    repaired = apply_repairs(db)
+    if repaired:
+        counts["repairs"] = repaired
+    return counts

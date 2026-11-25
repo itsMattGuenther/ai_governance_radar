@@ -44,8 +44,8 @@ items_found, items_new, items_updated, error_message, http_status.
 | url | str | original URL — always preserved |
 | canonical_url | str, indexed | normalized for dedupe |
 | content_hash | str, indexed | sha256 of normalized title+body |
-| title | str | |
-| excerpt | text? | plain text, ≤ ~500 chars, sanitized |
+| title | str | plain text, entities decoded |
+| excerpt | text? | plain text, ≤ ~500 chars, sanitized, entities decoded |
 | published_at | datetime? | from source |
 | first_seen_at / last_seen_at | datetime | retrieval timestamps — always preserved |
 | categories | JSON | list: `regulation`,`standard`,`incident`,`security`,`news`,`research`,`training`,`event`,`ranking` |
@@ -56,11 +56,14 @@ items_found, items_new, items_updated, error_message, http_status.
 | confidence | str | `high` \| `medium` \| `low` |
 | fact_status | str? | `confirmed`\|`reported`\|`alleged`\|`under_investigation`\|`disputed` (§9) |
 | cluster_id | int? FK item_clusters | dedupe/event grouping |
-| raw_metadata | JSON? | parser leftovers |
+| raw_metadata | JSON? | parser leftovers; `report_group` = the source's own key for the event a report belongs to (the AI Incident Database's incident number); `refresh_text` = text was repaired in place, take the feed's text silently on the next collection |
 
 ### item_clusters (§62)
-id, primary_item_id FK (highest-tier source = primary evidence), title, created_at.
-Groups duplicate coverage of one real-world event.
+id, primary_item_id FK, title, created_at. Groups reports of one real-world event:
+same-source reports sharing a `report_group` (takes precedence), or near-identical
+titles from different sources within 72 hours. The primary is the report from the
+most reliable source, then the newest, so an event with fresh coverage shows in recent
+windows.
 
 ### entities (§5.3)
 | column | type | notes |
@@ -84,6 +87,20 @@ last_amended_at?; enforcement_authority?, penalties?, covered_entities?,
 risk_classification?, applicability_notes?; official_source_url;
 confidence, last_verified_at. **Every status/date field is curated + evidence-linked;
 ingestion may only flag "needs review", never write these silently.**
+
+### regulation_milestones (DEC-033)
+id; entity_id FK regulations; date (full date; month-only facts stay in the record's
+text); kind (`takes_effect`|`obligations_apply`|`deadline`|`expires`); label. The
+dated phases and deadlines of a law. Every list of upcoming dates reads these and
+nothing else: dates are never parsed out of notes text. Curated like any other legal
+date; the seeder mirrors `regulation.milestones` in the seed file, so an edit there
+replaces the rows here. Returned in date order as `RegulationOut.milestones`.
+
+### regulation_successions (DEC-033)
+entity_id PK FK regulations; successor_id FK entities. The law that replaced a
+superseded one, from `regulation.superseded_by` (a slug) in the seed file; returned as
+`RegulationOut.superseded_by`. A table of its own so existing databases gain it
+through `create_all()` (DEC-034).
 
 ### standards (1:1 extension of entities where entity_type='standard') (§8)
 entity_id PK/FK; publisher (`NIST`|`ISO`|`OWASP`|`MITRE`|`IEEE`|`CISA`|`OECD`|…);
@@ -112,8 +129,8 @@ Entity timeline = ordered entity_events.
 item_id FK + entity_id FK (composite PK), relation (`about`|`mentions`|`evidence`).
 
 ### app_state
-key PK, value JSON — single-user prefs: dashboard settings, last_visit_at,
-default time window, visible modules. (Replaces a `users` table in V1.)
+key PK, value JSON — single-user prefs and app metadata. `repairs_applied` lists the
+one-time data repairs this database has had (DEC-034). (Replaces a `users` table in V1.)
 
 ### items_fts (SQLite FTS5 virtual table)
 Indexes items.title + excerpt (+ entity names), kept in sync on ingest. Queried
@@ -126,6 +143,7 @@ sources 1─* source_runs
 sources 1─* items *─1 item_clusters
 items *─* entities (item_entities)
 entities 1─0..1 regulations            entities 1─0..1 standards
+regulations 1─* regulation_milestones  regulations 1─0..1 regulation_successions ─1 entities
 entities 1─* entity_events (*─0..1 evidence item)
 incidents *─(evidence via item_entities on linked items; framework slugs JSON)
 jurisdiction codes ← validated against core/jurisdictions.py (static module)

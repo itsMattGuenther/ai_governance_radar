@@ -16,10 +16,13 @@ from sqlalchemy.orm import Session, joinedload
 
 from app import __version__
 from app.api.dashboard import map_data
+from app.api.entities import REGULATION_PARTS
 from app.api.helpers import item_to_out
+from app.core.config import settings
 from app.core.jurisdictions import JURISDICTIONS
 from app.models import Entity, Incident, Item, ItemCluster, ItemEntity, Source
 from app.schemas.models import EntityOut, IncidentOut, JurisdictionOut, SourceOut
+from app.services.feeds import changes_atom, milestones_ics
 from app.services.item_query import EVENT_TIME
 from app.services.summary import dashboard_summary
 
@@ -61,8 +64,9 @@ def _items(db: Session) -> tuple[list[dict], int]:
     return out, total
 
 
-def export_static(db: Session, out_dir: Path) -> dict:
-    """Write the snapshot into out_dir; returns meta.json's contents."""
+def export_static(db: Session, out_dir: Path, site_url: str | None = None) -> dict:
+    """Write the snapshot into out_dir; returns meta.json's contents. `site_url` (the
+    public address) makes the calendar's and feed's links absolute."""
     out_dir.mkdir(parents=True, exist_ok=True)
 
     items, items_total = _items(db)
@@ -70,8 +74,7 @@ def export_static(db: Session, out_dir: Path) -> dict:
 
     entities = db.execute(
         select(Entity).where(Entity.is_demo.is_(False)).options(
-            joinedload(Entity.regulation), joinedload(Entity.standard),
-            joinedload(Entity.events))
+            *REGULATION_PARTS, joinedload(Entity.standard), joinedload(Entity.events))
         .order_by(Entity.name)
     ).unique().scalars().all()
     _dump(out_dir / "entities.json",
@@ -96,6 +99,12 @@ def export_static(db: Session, out_dir: Path) -> dict:
     ])
     _dump(out_dir / "summary.json", dashboard_summary(db))
     _dump(out_dir / "map.json", map_data(db))
+
+    site = (site_url if site_url is not None else settings.site_url).rstrip("/")
+    (out_dir / "milestones.ics").write_text(milestones_ics(db, site), encoding="utf-8", newline="")
+    (out_dir / "changes.xml").write_bytes(
+        changes_atom(db, site, self_url=f"{site}/data/changes.xml" if site else "")
+    )
 
     meta = {
         "generated_at": datetime.now(UTC).isoformat(),

@@ -1,5 +1,6 @@
 """Pydantic response/request schemas."""
 
+import datetime as dt
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -110,6 +111,14 @@ class EntityEventOut(ORMModel):
     evidence_item_id: int | None
 
 
+class MilestoneOut(ORMModel):
+    """A dated phase or deadline of a law (DEC-033)."""
+
+    date: dt.date
+    kind: str  # takes_effect | obligations_apply | deadline | expires
+    label: str
+
+
 class RegulationOut(ORMModel):
     government_level: str
     status: str
@@ -132,6 +141,11 @@ class RegulationOut(ORMModel):
     # verification is overdue or a key date has passed since it (DEC-031).
     curated_confidence: str | None = None
     confidence_notes: list[str] = []
+    # Curated dates ahead and behind, in date order. Every list of upcoming dates reads
+    # these and nothing else (DEC-033).
+    milestones: list[MilestoneOut] = []
+    # Slug of the law that replaced this one.
+    superseded_by: str | None = None
 
     @model_validator(mode="after")
     def _age_confidence(self) -> "RegulationOut":

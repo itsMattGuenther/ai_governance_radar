@@ -14,6 +14,7 @@ from app import __version__
 from app.api import (
     dashboard,
     entities,
+    feeds,
     incidents,
     ingest,
     items,
@@ -87,7 +88,7 @@ app.add_middleware(
 api = FastAPI(title="AI Governance Radar API", version=__version__)
 for router in (meta.router, sources.router, items.router, entities.router,
                incidents.router, search.router, dashboard.router,
-               ingest.router, transfer.router):
+               ingest.router, transfer.router, feeds.router):
     api.include_router(router)
 app.mount("/api", api)
 

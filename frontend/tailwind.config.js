@@ -1,43 +1,42 @@
-/** Design tokens — "Refined Intelligence Dashboard" (approved Direction A rev 2).
+/** Design tokens — "Watch Board" (DESIGN_SYSTEM.md, DEC-033).
  * Keep hex values in sync with src/lib/tokens.ts (used for inline SVG/dynamic styles). */
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        bg: { base: "#090C12", surface: "#10151E", raised: "#1A2230" },
-        bd: { subtle: "#1E2836", strong: "#2C3A4E" },
-        tx: { primary: "#E8EDF5", secondary: "#8FA0B5", muted: "#7A8BA3" },
-        accent: "#628BFF",
+        bg: { base: "#0B0F13", surface: "#131A20", raised: "#19222B" },
+        bd: { subtle: "#26323C", strong: "#3A464F" },
+        tx: { primary: "#E4E9EC", secondary: "#A8B3BA", muted: "#7F8B93" },
+        accent: "#5FC3D7",
+        notice: "#2B2412",
         sev: {
-          critical: "#F2564D",
-          high: "#F2913D",
-          watch: "#E5C445",
-          positive: "#3FBF77",
-          info: "#5B9BD8",
+          critical: "#F3726B",
+          high: "#EE8A45",
+          watch: "#E3A63A",
+          positive: "#4FB477",
+          info: "#6AA8E8",
           emerging: "#A78BFA",
         },
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        mono: ["'JetBrains Mono'", "ui-monospace", "monospace"],
+        sans: ["'IBM Plex Sans'", "system-ui", "-apple-system", "'Segoe UI'", "sans-serif"],
+        mono: ["'IBM Plex Mono'", "ui-monospace", "'SF Mono'", "Menlo", "Consolas", "monospace"],
       },
+      // DESIGN_SYSTEM.md §4. Use these steps; don't scatter arbitrary sizes.
       fontSize: {
-        meta: ["11px", { lineHeight: "1.35", letterSpacing: "0.06em" }],
-        xs: ["12px", "1.4"],
-        sm: ["13px", "1.45"],
-        base: ["14px", "1.45"],
+        code: ["10.5px", "1"], // code tiles
+        meta: ["11px", "1.45"], // status strip, counts, mono date columns
+        xs: ["12px", "1.45"], // labels
+        detail: ["12.5px", "1.45"], // detail lines
+        sm: ["13px", "1.45"], // panel titles, controls
+        row: ["13.5px", "1.4"], // row titles
+        base: ["14px", "1.55"], // running text
         lg: ["16px", "1.4"],
-        xl: ["20px", "1.35"],
-        kpi: ["30px", "1.15"],
+        xl: ["20px", "1.3"], // page titles
+        tile: ["30px", "1.15"], // tile numerals
       },
-      borderRadius: { card: "12px", ctl: "8px" },
-      boxShadow: {
-        card: "0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.045)",
-      },
-      backgroundImage: {
-        surface: "linear-gradient(180deg, #131A26 0%, #0F141D 100%)",
-      },
+      borderRadius: { panel: "6px", ctl: "4px", code: "3px" },
     },
   },
   plugins: [],

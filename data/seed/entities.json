@@ -21,7 +21,8 @@
       "applicability_notes": "Superseded. SB 25B-004 (August 2025) moved the start of the duties from February 1, 2026 to June 30, 2026. SB 26-189 (signed May 14, 2026) repeals and reenacts this part of Colorado law with different duties, effective January 1, 2027. In X.AI LLC v. Weiser, No. 1:26-cv-01515 (D. Colo.), a court-approved stipulation of April 27, 2026 bars the Attorney General from enforcing SB 24-205 or its replacement for conduct up to 14 days after the court rules on xAI's request for a preliminary injunction. It is not an injunction or a ruling on the merits. Whether SB 24-205's duties applied between June 30 and December 31, 2026 is unresolved.",
       "official_source_url": "https://leg.colorado.gov/bills/sb24-205",
       "confidence": "medium",
-      "last_verified_at": "2026-11-25"
+      "last_verified_at": "2026-11-25",
+      "superseded_by": "colorado-sb-26-189"
     },
     "events": [
       {"type": "created", "occurred_at": "2024-04-10", "summary": "SB 24-205 introduced in the Colorado General Assembly.", "impact": 60},
@@ -56,7 +57,11 @@
       "applicability_notes": "Applies to decisions made on or after January 1, 2027; a few provisions took effect on passage. The Attorney General's department adopted ADMT and chatbot safety rules on November 19, 2026 (proposed August 11, 2026); an AG opinion and filing with the Secretary of State are pending. Enforcement is subject to the court-approved stipulation in X.AI LLC v. Weiser (see the SB 24-205 record).",
       "official_source_url": "https://leg.colorado.gov/bills/sb26-189",
       "confidence": "medium",
-      "last_verified_at": "2026-11-25"
+      "last_verified_at": "2026-11-25",
+      "milestones": [
+        {"date": "2027-01-01", "kind": "takes_effect", "label": "Takes effect; applies to decisions made on or after this date"},
+        {"date": "2030-01-01", "kind": "expires", "label": "60-day notice-and-cure period ends"}
+      ]
     },
     "events": [
       {"type": "created", "occurred_at": "2026-05-01", "summary": "SB 26-189 introduced in the Colorado General Assembly.", "impact": 60},
@@ -89,7 +94,17 @@
       "last_amended_at": "2026-07-27",
       "official_source_url": "https://eur-lex.europa.eu/eli/reg/2024/1689/oj",
       "confidence": "high",
-      "last_verified_at": "2026-11-25"
+      "last_verified_at": "2026-11-25",
+      "milestones": [
+        {"date": "2025-02-02", "kind": "obligations_apply", "label": "Prohibitions and AI literacy obligations apply"},
+        {"date": "2025-08-02", "kind": "obligations_apply", "label": "General-purpose AI, governance and penalties provisions apply"},
+        {"date": "2026-08-02", "kind": "obligations_apply", "label": "General application, including Article 50 transparency rules"},
+        {"date": "2026-12-02", "kind": "obligations_apply", "label": "New prohibitions on generating intimate imagery and CSAM apply; Article 50(2) deadline for generative systems already on the market"},
+        {"date": "2027-08-02", "kind": "deadline", "label": "National sandboxes due"},
+        {"date": "2027-12-02", "kind": "obligations_apply", "label": "Annex III high-risk obligations apply"},
+        {"date": "2028-08-02", "kind": "obligations_apply", "label": "Annex I (regulated products) obligations apply"},
+        {"date": "2030-08-02", "kind": "deadline", "label": "High-risk systems already used by public authorities must comply"}
+      ]
     },
     "events": [
       {"type": "status_change", "occurred_at": "2024-08-01", "previous": "signed", "new": "effective", "summary": "Entered into force; application originally phased over 6–36 months, extended to August 2, 2028 by Regulation (EU) 2026/1744.", "impact": 95},
@@ -153,7 +168,10 @@
       "last_amended_at": "2026-03-18",
       "official_source_url": "https://le.utah.gov/xcode/Title13/Chapter77/13-77.html",
       "confidence": "high",
-      "last_verified_at": "2026-11-25"
+      "last_verified_at": "2026-11-25",
+      "milestones": [
+        {"date": "2027-07-01", "kind": "expires", "label": "AI Policy Act (Chapter 72) is repealed unless extended"}
+      ]
     },
     "events": [
       {"type": "status_change", "occurred_at": "2024-05-01", "previous": "signed", "new": "effective", "summary": "AI Policy Act (SB 149) took effect.", "impact": 65},
@@ -184,7 +202,10 @@
       "passed_at": "2025-09-13",
       "official_source_url": "https://leginfo.legislature.ca.gov/faces/billNavClient.xhtml?bill_id=202520260SB53",
       "confidence": "high",
-      "last_verified_at": "2026-11-25"
+      "last_verified_at": "2026-11-25",
+      "milestones": [
+        {"date": "2027-01-01", "kind": "deadline", "label": "First annual incident and whistleblower reports due"}
+      ]
     },
     "events": [
       {"type": "created", "occurred_at": "2025-01-07", "summary": "SB 53 introduced in the California Senate.", "impact": 55},

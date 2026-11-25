@@ -34,7 +34,7 @@ export function InfoTip({
       {open && (
         <span
           role="tooltip"
-          className={`absolute top-full z-50 mt-1.5 w-72 rounded-ctl border border-bd-strong bg-bg-raised px-3 py-2 text-xs font-normal normal-case leading-relaxed tracking-normal text-tx-secondary shadow-card ${
+          className={`absolute top-full z-50 mt-1.5 w-72 max-w-[80vw] rounded-ctl border border-bd-strong bg-bg-raised px-3 py-2 text-xs font-normal normal-case leading-relaxed tracking-normal text-tx-secondary ${
             align === "right" ? "right-0" : "left-0"
           }`}
         >

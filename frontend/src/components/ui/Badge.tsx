@@ -1,7 +1,5 @@
-/** Badges/pills — approved "alive" treatment: filled tinted pills with text
- * (never color-only) and outline micro-pills for low-emphasis metadata. */
-
-import clsx from "clsx";
+/** Semantic chips: the one chip a row carries, with its tone rules from
+ * DESIGN_SYSTEM.md §5. Every chip is a word; colour only reinforces it. */
 
 import {
   CONFIDENCE_DEFS,
@@ -11,143 +9,102 @@ import {
   TIER_DEFS,
   impactBand,
 } from "../../lib/definitions";
+import { lawStage } from "../../lib/stages";
+import { Chip, type Tone } from "./Chip";
 
-type Severity = "critical" | "high" | "watch" | "positive" | "info" | "emerging";
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, " ");
 
-const FILL_STYLES: Record<Severity, string> = {
-  critical: "text-sev-critical bg-sev-critical/15 border-sev-critical/40",
-  high: "text-sev-high bg-sev-high/15 border-sev-high/40",
-  watch: "text-sev-watch bg-sev-watch/15 border-sev-watch/40",
-  positive: "text-sev-positive bg-sev-positive/15 border-sev-positive/40",
-  info: "text-sev-info bg-sev-info/15 border-sev-info/40",
-  emerging: "text-sev-emerging bg-sev-emerging/15 border-sev-emerging/40",
+const SEVERITY_TONE: Record<string, Tone> = {
+  critical: "critical",
+  high: "high",
+  medium: "watch",
+  low: "info",
 };
 
-/** Filled status pill — primary status treatment. */
-export function Pill({
-  tone = "info",
-  children,
-  className,
-  title,
-}: {
-  tone?: Severity;
-  children: React.ReactNode;
-  className?: string;
-  title?: string;
-}) {
+export function SeverityBadge({ severity }: { severity: string }) {
   return (
-    <span
-      title={title}
-      className={clsx(
-        "inline-flex items-center rounded-ctl border px-2 py-[2px] text-[10.5px] font-semibold capitalize tracking-wide",
-        FILL_STYLES[tone],
-        className,
-      )}
-    >
-      {children}
-    </span>
+    <Chip tone={SEVERITY_TONE[severity] ?? "quiet"} title={SEVERITY_DEFS[severity] ?? `Severity: ${severity}`}>
+      {cap(severity)}
+    </Chip>
   );
 }
 
-/** Outline micro-pill — quiet metadata (categories, jurisdiction codes). */
-export function MicroPill({ children, className, title, dashed = false }: {
-  children: React.ReactNode; className?: string; title?: string; dashed?: boolean;
-}) {
+/** Quiet unless it warns: alleged and disputed facts. */
+export function FactStatusBadge({ status }: { status: string | null }) {
+  if (!status) return null;
+  const warns = status === "alleged" || status === "disputed";
   return (
-    <span
-      title={title}
-      className={clsx(
-        "inline-flex items-center rounded-[5px] border border-bd-strong px-1.5 py-[1px] font-mono text-[10px] uppercase tracking-wide text-tx-muted",
-        dashed && "border-dashed",
-        className,
-      )}
-    >
-      {children}
-    </span>
+    <Chip tone={warns ? "high" : "quiet"} title={FACT_STATUS_DEFS[status] ?? `Fact status: ${status}`}>
+      {cap(status)}
+    </Chip>
   );
 }
 
-export function impactTone(score: number): Severity {
-  if (score >= 70) return "critical";
-  if (score >= 50) return "high";
-  if (score >= 30) return "watch";
-  return "info";
+/** Quiet unless it warns: low confidence, or confidence lowered by an overdue check. */
+export function ConfidenceBadge({ confidence, notes }: { confidence: string; notes?: string[] }) {
+  const lowered = (notes?.length ?? 0) > 0;
+  return (
+    <Chip
+      tone={lowered || confidence === "low" ? "high" : "quiet"}
+      title={lowered ? `Lowered: ${notes!.join(" ")}` : (CONFIDENCE_DEFS[confidence] ?? `Confidence: ${confidence}`)}
+    >
+      {lowered ? `Confidence lowered: ${confidence}` : `${cap(confidence)} confidence`}
+    </Chip>
+  );
 }
 
 export function ImpactBadge({ score }: { score: number }) {
   const band = impactBand(score);
   return (
-    <Pill
-      tone={impactTone(score)}
-      title={`${band.label} — ${score}/100. ${band.meaning}\n\n${IMPACT_EXPLAINER}`}
-    >
-      {band.label} {score}
-    </Pill>
-  );
-}
-
-export function SeverityBadge({ severity }: { severity: string }) {
-  const tone: Severity =
-    severity === "critical" ? "critical" : severity === "high" ? "high" : severity === "medium" ? "watch" : "info";
-  return <Pill tone={tone} title={SEVERITY_DEFS[severity] ?? `Severity: ${severity}`}>{severity}</Pill>;
-}
-
-export function ConfidenceBadge({ confidence, notes }: { confidence: string; notes?: string[] }) {
-  const tone: Severity = confidence === "high" ? "positive" : confidence === "medium" ? "watch" : "critical";
-  const def = CONFIDENCE_DEFS[confidence] ?? `Confidence: ${confidence}`;
-  return (
-    <Pill tone={tone} title={notes?.length ? `Lowered: ${notes.join(" ")}` : def}>
-      Conf {confidence === "medium" ? "med" : confidence}
-    </Pill>
+    <Chip title={`${band.label}: ${score}/100. ${band.meaning}\n\n${IMPACT_EXPLAINER}`}>
+      Impact {score} · {band.label}
+    </Chip>
   );
 }
 
 export function TierBadge({ tier }: { tier: number }) {
-  return <MicroPill title={TIER_DEFS[tier] ?? `Tier ${tier}`}>T{tier}</MicroPill>;
+  return <Chip title={TIER_DEFS[tier] ?? `Tier ${tier}`}>Tier {tier}</Chip>;
 }
 
-const REG_STATUS_TONE: Record<string, Severity> = {
-  proposed: "emerging",
-  introduced: "info",
-  passed: "watch",
-  signed: "high",
-  effective: "positive",
-  amended: "high",
-  enforcement: "positive",
-};
-
-const STD_STATUS_TONE: Record<string, Severity> = {
-  announced: "emerging",
+const STANDARD_TONE: Record<string, Tone> = {
+  final: "positive",
+  updated: "emerging",
+  amended: "emerging",
   draft: "watch",
   public_comment: "watch",
-  final: "positive",
-  updated: "high",
-  amended: "high",
   withdrawn: "critical",
-  superseded: "info",
+  announced: "info",
+  superseded: "quiet",
 };
 
 export function StatusPill({ status, kind }: { status: string; kind: "regulation" | "standard" }) {
-  const tone = (kind === "regulation" ? REG_STATUS_TONE : STD_STATUS_TONE)[status] ?? "info";
-  return <Pill tone={tone}>{status.replace(/_/g, " ")}</Pill>;
+  if (kind === "regulation") {
+    const s = lawStage({ status, superseded_by: null });
+    return <Chip tone={s.tone}>{s.label}</Chip>;
+  }
+  return <Chip tone={STANDARD_TONE[status] ?? "quiet"}>{cap(status)}</Chip>;
+}
+
+const EVENT_CHIPS: Record<string, [string, Tone]> = {
+  note: ["Note", "info"],
+  status_change: ["Status change", "watch"],
+  amended: ["Amended", "watch"],
+  date_changed: ["Date changed", "watch"],
+  enforcement: ["Enforcement", "watch"],
+  document_updated: ["Updated", "emerging"],
+  created: ["Created", "quiet"],
+};
+
+export function EventChip({ type }: { type: string }) {
+  const [label, tone] = EVENT_CHIPS[type] ?? [cap(type), "quiet" as Tone];
+  return <Chip tone={tone}>{label}</Chip>;
 }
 
 export function DemoBadge({ show }: { show: boolean }) {
   if (!show) return null;
   return (
-    <MicroPill dashed title="Seeded demonstration data — not live intelligence">
+    <Chip title="Seeded demonstration data — not live intelligence" className="border-dashed">
       DEMO DATA
-    </MicroPill>
-  );
-}
-
-export function FactStatusBadge({ status }: { status: string | null }) {
-  if (!status) return null;
-  const tone: Severity =
-    status === "confirmed" ? "positive" : status === "disputed" || status === "alleged" ? "critical" : "watch";
-  return (
-    <Pill tone={tone} title={FACT_STATUS_DEFS[status] ?? `Fact status: ${status}`}>
-      {status.replace(/_/g, " ")}
-    </Pill>
+    </Chip>
   );
 }

@@ -88,6 +88,13 @@ export interface EntityEventOut {
   evidence_item_id: number | null;
 }
 
+/** A dated phase or deadline of a law (curated, DEC-033). `date` is YYYY-MM-DD. */
+export interface Milestone {
+  date: string;
+  kind: "takes_effect" | "obligations_apply" | "deadline" | "expires";
+  label: string;
+}
+
 export interface RegulationOut {
   government_level: string;
   status: string;
@@ -110,6 +117,10 @@ export interface RegulationOut {
   curated_confidence: Confidence | null;
   /** Why `confidence` is lower than the curated value; empty when it isn't. */
   confidence_notes: string[];
+  /** Curated dates in date order: the only source for any list of upcoming dates. */
+  milestones: Milestone[];
+  /** Slug of the law that replaced this one. */
+  superseded_by: string | null;
 }
 
 export interface StandardOut {
@@ -162,13 +173,18 @@ export interface IncidentOut {
   is_demo: boolean;
 }
 
+/** Home's collection counts for a window (distinct developments, clusters collapsed). */
 export interface DashboardSummary {
   since: string;
-  high_impact: number;
-  total_changes: number;
-  new_incidents: number;
-  sources_ok: number;
-  sources_total: number;
+  /** Everything published in the window. */
+  collected: number;
+  /** From tier 1 sources, page-change alerts aside. */
+  government: number;
+  page_changes: number;
+  /** The rest by primary category, largest first. */
+  others: Record<string, number>;
+  /** How many are seeded demo items (local app only; never published). */
+  demo: number;
 }
 
 export interface MapRow {
@@ -181,7 +197,6 @@ export interface MapRow {
   binding: number;
   /** Voluntary frameworks, standards, and guidance. */
   guidance: number;
-  recent_items: number;
   /** Where clicking should navigate (EU member states point at "EU"). */
   link_code: string;
   /** Higher-level jurisdictions contributing to this count, e.g. ["EU"]. */

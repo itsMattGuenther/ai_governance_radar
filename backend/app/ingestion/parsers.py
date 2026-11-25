@@ -1,6 +1,7 @@
 """Feed/API parsers → NormalizedItem list. No structured HTML scraping (DEC-020)."""
 
 import hashlib
+import html
 import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -40,10 +41,20 @@ def canonicalize_url(url: str) -> str:
 
 
 def sanitize_text(html_or_text: str) -> str:
-    """Strip ALL markup → plain text, collapse whitespace. Excerpts are data, not markup."""
-    text = nh3.clean(html_or_text, tags=set())  # no tags allowed → text only
-    text = re.sub(r"\s+", " ", text).strip()
-    return text
+    """Strip ALL markup → plain text with entities decoded ("&amp;" → "&"), whitespace
+    collapsed. Excerpts are data, not markup: React renders them as text.
+
+    nh3 returns HTML, so its output is unescaped. Markup that arrives entity-encoded
+    ("&lt;script&gt;") becomes real tags on unescaping, so cleaning repeats until the
+    text stops changing: encoded markup is stripped like any other, never shown.
+    """
+    text = html_or_text
+    for _ in range(3):
+        cleaned = html.unescape(nh3.clean(text, tags=set()))  # no tags allowed → text only
+        if cleaned == text:
+            break
+        text = cleaned
+    return re.sub(r"\s+", " ", text).strip()
 
 
 def make_excerpt(raw: str | None) -> str | None:
@@ -71,8 +82,23 @@ def _struct_to_dt(st: struct_time | None) -> datetime | None:
         return None
 
 
-def parse_feed(content: bytes, base_url: str) -> list[NormalizedItem]:
-    """RSS/Atom via feedparser. Malformed feeds yield whatever entries are salvageable."""
+def report_group(text: str | None, pattern: str | None) -> str | None:
+    """The source's own key for "these reports describe the same event", read with a
+    pattern from the source's config. The AI Incident Database ends each description
+    with its citation link, https://incidentdatabase.ai/cite/<incident>#<report>, so
+    its pattern captures the incident number."""
+    if not text or not pattern:
+        return None
+    match = re.search(pattern, text)
+    return match.group(1) if match else None
+
+
+def parse_feed(
+    content: bytes, base_url: str, group_pattern: str | None = None
+) -> list[NormalizedItem]:
+    """RSS/Atom via feedparser. Malformed feeds yield whatever entries are salvageable.
+    `group_pattern` (source config `report_group_pattern`) is matched against the full
+    description before it is cut to an excerpt."""
     parsed = feedparser.parse(content)
     items: list[NormalizedItem] = []
     for entry in parsed.entries:
@@ -91,6 +117,10 @@ def parse_feed(content: bytes, base_url: str) -> list[NormalizedItem]:
             entry.get("published_parsed") or entry.get("updated_parsed")
         )
         excerpt = make_excerpt(summary)
+        metadata = {"feed_title": sanitize_text(parsed.feed.get("title", ""))}
+        group = report_group(summary, group_pattern)
+        if group is not None:
+            metadata["report_group"] = group
         items.append(
             NormalizedItem(
                 url=link,
@@ -99,7 +129,7 @@ def parse_feed(content: bytes, base_url: str) -> list[NormalizedItem]:
                 excerpt=excerpt,
                 published_at=published,
                 content_hash=content_hash(title, excerpt),
-                raw_metadata={"feed_title": sanitize_text(parsed.feed.get("title", ""))},
+                raw_metadata=metadata,
             )
         )
     return items

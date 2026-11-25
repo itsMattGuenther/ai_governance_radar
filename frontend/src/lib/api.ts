@@ -52,6 +52,8 @@ export type ItemFilters = {
   include_page_changes?: boolean;
   /** ISO timestamp; filters on publication date (collection time if undated). */
   since?: string;
+  /** Source reliability tiers, comma-separated: "1", or "3,4". */
+  tier?: string;
   collapse_clusters?: boolean;
   sort?: "impact" | "newest" | "first_seen";
   offset?: number;
@@ -75,13 +77,6 @@ export const useItems = (filters: ItemFilters, enabled = true) =>
     queryFn: () =>
       STATIC_MODE ? snapshot.items(filters) : request<PageOut>(`/items${qs(filters)}`),
     enabled,
-  });
-
-export const useItem = (id: number | null) =>
-  useQuery({
-    queryKey: ["item", id],
-    queryFn: () => (STATIC_MODE ? snapshot.item(id!) : request<ItemOut>(`/items/${id}`)),
-    enabled: id !== null,
   });
 
 export const useClusterMembers = (id: number | null) =>
@@ -157,13 +152,6 @@ export const useSources = () =>
   useQuery({
     queryKey: ["sources"],
     queryFn: () => (STATIC_MODE ? snapshot.sources() : request<SourceOut[]>("/sources")),
-  });
-
-export const useSourceRuns = (sourceId: number | null) =>
-  useQuery({
-    queryKey: ["source-runs", sourceId],
-    queryFn: () => request<SourceRunOut[]>(`/sources/${sourceId}/runs`),
-    enabled: sourceId !== null && !STATIC_MODE,
   });
 
 export const useJurisdictions = () =>
