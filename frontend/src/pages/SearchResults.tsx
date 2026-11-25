@@ -10,8 +10,9 @@ import { SeverityBadge, StatusPill } from "../components/ui/Badge";
 import { Jurisdiction } from "../components/ui/Flag";
 import { Panel } from "../components/ui/Panel";
 import { DateCell, Row } from "../components/ui/Row";
+import { LawStage } from "../components/ui/StageTrack";
 import { CardSkeleton, EmptyState, ErrorState } from "../components/ui/States";
-import { useSearch } from "../lib/api";
+import { useRegulations, useSearch } from "../lib/api";
 import { categoryLabel, titleCase } from "../lib/format";
 import type { ItemOut } from "../lib/types";
 
@@ -21,6 +22,7 @@ export default function SearchResults() {
   const [params] = useSearchParams();
   const q = params.get("q") ?? "";
   const search = useSearch(q);
+  const laws = useRegulations();
   const [openItem, setOpenItem] = useState<ItemOut | null>(null);
 
   if (!q) {
@@ -76,11 +78,13 @@ export default function SearchResults() {
                   lead={<Jurisdiction code={e.jurisdiction_code} />}
                   title={e.name}
                   detail={titleCase(e.entity_type)}
-                  chip={
-                    e.current_status ? (
+                  chip={(() => {
+                    const reg = laws.data?.find((l) => l.slug === e.slug)?.regulation;
+                    if (reg) return <LawStage regulation={reg} track={false} />;
+                    return e.current_status ? (
                       <StatusPill status={e.current_status} kind={e.entity_type === "regulation" ? "regulation" : "standard"} />
-                    ) : undefined
-                  }
+                    ) : undefined;
+                  })()}
                 />
               ))}
             </Panel>

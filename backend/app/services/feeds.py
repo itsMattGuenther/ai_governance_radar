@@ -149,6 +149,9 @@ def changes_atom(
             .where(
                 Entity.is_demo.is_(False),
                 Entity.entity_type.in_(("regulation", "standard", "framework")),
+                # Curated changes only; "linked document changed" events from ingestion
+                # stay on the record's own timeline.
+                EntityEvent.evidence_item_id.is_(None),
             )
             .options(joinedload(EntityEvent.entity))
             .order_by(EntityEvent.occurred_at.desc(), EntityEvent.id.desc())
@@ -187,9 +190,7 @@ def changes_atom(
         entity = ev.entity
         label = EVENT_LABELS.get(ev.event_type, ev.event_type.replace("_", " ").capitalize())
         entry = el(feed, "entry")
-        key = f"{entity.slug}/{ev.occurred_at:%Y-%m-%d}/{ev.event_type}"
-        if ev.evidence_item_id is not None:  # collected, so a date and type may repeat
-            key += f"/{ev.id}"
+        key = f"{entity.slug}/{ev.occurred_at:%Y-%m-%d}/{ev.event_type}"  # unique per seed
         el(entry, "id", f"tag:{host},2026:{key}")
         el(entry, "title", f"{_short(entity.name)}: {label}")
         el(entry, "updated", _iso(ev.occurred_at))

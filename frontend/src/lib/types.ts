@@ -183,6 +183,8 @@ export interface DashboardSummary {
   page_changes: number;
   /** The rest by primary category, largest first. */
   others: Record<string, number>;
+  /** How many are seeded demo items (local app only; never published). */
+  demo: number;
 }
 
 export interface MapRow {

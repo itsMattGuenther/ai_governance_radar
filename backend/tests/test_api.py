@@ -139,11 +139,13 @@ def test_search_grouped(client):
 
 def test_dashboard_summary(client):
     body = client.get("/api/dashboard/summary", params={"window_days": 30}).json()
-    for key in ("since", "collected", "government", "page_changes", "others"):
+    for key in ("since", "collected", "government", "page_changes", "others", "demo"):
         assert key in body
     assert body["government"] + body["page_changes"] + sum(body["others"].values()) == (
         body["collected"]
     )
+    # Tests run with DEMO_DATA=true: the demo items in the window are counted and named.
+    assert 0 < body["demo"] <= body["collected"]
 
 
 def test_map_data(client):

@@ -14,7 +14,12 @@ const later = new Date(Date.now() + 37 * 86_400_000).toISOString().slice(0, 10);
 const LAWS = [
   makeLaw("eu-ai-act", "EU AI Act", {
     code: "EU", milestones: [{ date: soon, kind: "obligations_apply", label: "New prohibitions apply" }],
-    events: [{ occurred_at: new Date().toISOString().slice(0, 19), summary: "Amended by a new regulation" }],
+    events: [
+      { occurred_at: new Date().toISOString().slice(0, 19), summary: "Amended by a new regulation" },
+      // Added by ingestion when a linked page changed: not a change to the checked record.
+      { occurred_at: new Date().toISOString().slice(0, 19), summary: "Linked document changed: x",
+        event_type: "document_updated", evidence_item_id: 99 },
+    ],
   }),
   makeLaw("colorado-sb-26-189", "Colorado SB 26-189 (Automated Decision-Making Technology)", {
     status: "signed", milestones: [{ date: later, kind: "takes_effect", label: "Takes effect" }],
@@ -79,6 +84,7 @@ describe("Watch board", () => {
 
     const changes = screen.getByRole("heading", { name: "Record changes" }).closest("section")!;
     expect(within(changes).getByText("Amended by a new regulation")).toBeInTheDocument();
+    expect(within(changes).queryByText(/Linked document changed/)).toBeNull();
 
     const gov = screen.getByRole("heading", { name: "From government sources" }).closest("section")!;
     await waitFor(() => expect(within(gov).getByText(/Nothing from government sources/)).toBeInTheDocument());

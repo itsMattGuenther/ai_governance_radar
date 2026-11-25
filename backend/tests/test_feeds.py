@@ -109,3 +109,47 @@ def test_local_app_serves_the_feeds(client):
     assert atom.status_code == 200
     assert atom.headers["content-type"].startswith("application/atom+xml")
     assert not feedparser.parse(atom.content).bozo
+
+
+def test_feed_leaves_out_events_ingestion_generated(db):
+    """ "Linked document changed" events carry an evidence item; they belong on the
+    record's timeline, not in a feed of changes to checked records."""
+    from app.models import Entity, EntityEvent, Item, Source
+
+    seed_entities(db)
+    entity = db.query(Entity).filter(Entity.slug == "nist-ai-rmf").one()
+    src = Source(name="Feed Test Source", url="https://example.org/", source_type="rss")
+    db.add(src)
+    db.flush()
+    item = Item(
+        source_id=src.id,
+        url="https://example.org/doc",
+        canonical_url="https://example.org/doc",
+        content_hash="feed-test",
+        title="NIST AI RMF page",
+        first_seen_at=NOW,
+        last_seen_at=NOW,
+        categories=["standard"],
+        impact_score=40,
+        confidence="high",
+    )
+    db.add(item)
+    db.flush()
+    db.add(
+        EntityEvent(
+            entity_id=entity.id,
+            event_type="document_updated",
+            occurred_at=NOW,
+            summary="Linked document changed: NIST AI RMF page",
+            evidence_item_id=item.id,
+        )
+    )
+    db.commit()
+    try:
+        titles = [e.summary for e in feedparser.parse(changes_atom(db, SITE)).entries]
+        assert not any(t.startswith("Linked document changed") for t in titles)
+    finally:
+        db.query(EntityEvent).filter(EntityEvent.evidence_item_id == item.id).delete()
+        db.delete(item)
+        db.delete(src)
+        db.commit()

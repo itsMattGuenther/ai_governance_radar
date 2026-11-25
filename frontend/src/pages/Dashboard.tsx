@@ -95,6 +95,9 @@ export default function Dashboard() {
     const records = [...lawRows, ...(standards.data ?? [])];
     return records
       .flatMap((entity) => entity.events.map((event) => ({ entity, event })))
+      // Curated changes only: "linked document changed" events that ingestion adds
+      // (they carry an evidence item) stay on the record's own timeline.
+      .filter(({ event }) => event.evidence_item_id === null)
       .filter(({ event }) => parseTimestamp(event.occurred_at).getTime() >= cutoff)
       .sort((a, b) => b.event.occurred_at.localeCompare(a.event.occurred_at) || b.event.id - a.event.id);
   }, [lawRows, standards.data, now]);
@@ -107,7 +110,8 @@ export default function Dashboard() {
   const allSources = since ? `/items?${new URLSearchParams({ since, tier: "all" })}` : "/items?tier=all";
   const others = summary.data
     ? [
-        ...Object.entries(summary.data.others).map(([c, n]) => counted(n, c)),
+        // `?? {}`: a summary.json cached from before this shape existed lacks it.
+        ...Object.entries(summary.data.others ?? {}).map(([c, n]) => counted(n, c)),
         ...(summary.data.page_changes
           ? [`${summary.data.page_changes} page-change alert${summary.data.page_changes === 1 ? "" : "s"}`]
           : []),
@@ -136,7 +140,11 @@ export default function Dashboard() {
         <Tile
           label={`Collected, ${COLLECTED_DAYS} days`}
           value={summary.data?.collected ?? "—"}
-          detail={summary.data ? `${summary.data.government} from government sources` : undefined}
+          detail={
+            summary.data
+              ? `${summary.data.government} from government sources${summary.data.demo ? ` · ${summary.data.demo} DEMO DATA` : ""}`
+              : undefined
+          }
           to={allSources}
           loading={summary.isPending}
           className="col-span-2 md:col-span-1"

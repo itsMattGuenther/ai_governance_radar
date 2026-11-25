@@ -11,7 +11,7 @@ export default {
         accent: "#5FC3D7",
         notice: "#2B2412",
         sev: {
-          critical: "#F26D66",
+          critical: "#F3726B",
           high: "#EE8A45",
           watch: "#E3A63A",
           positive: "#4FB477",

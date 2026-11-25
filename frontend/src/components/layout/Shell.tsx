@@ -111,7 +111,8 @@ function StatusStrip() {
   const laws = useRegulations();
 
   const enabled = sources.data?.filter((s) => s.enabled) ?? [];
-  const ok = enabled.filter((s) => !s.last_error).length;
+  // OK: collected at least once and not failing now.
+  const ok = enabled.filter((s) => s.last_success_at && !s.last_error).length;
   const allOk = ok === enabled.length;
   // Local app: the newest successful collection. Public site: when it was built.
   const dataTime = STATIC_MODE

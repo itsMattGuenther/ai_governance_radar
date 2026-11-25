@@ -32,7 +32,11 @@ function SourceHealth() {
     <Panel
       title="Sources"
       marker="feed"
-      meta={sources.data ? `${sources.data.filter((s) => s.enabled && !s.last_error).length}/${sources.data.filter((s) => s.enabled).length} OK` : undefined}
+      meta={
+        sources.data
+          ? `${sources.data.filter((s) => s.enabled && s.last_success_at && !s.last_error).length}/${sources.data.filter((s) => s.enabled).length} OK`
+          : undefined
+      }
       action={
         <button
           type="button"
@@ -54,9 +58,17 @@ function SourceHealth() {
           {sources.data.map((s) => (
             <li key={s.id} className="border-b border-bd-subtle px-3.5 py-2.5 last:border-b-0">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                <span className={s.last_error ? "text-detail font-medium text-sev-critical" : "text-detail font-medium text-sev-positive"}>
-                  <span aria-hidden>{s.last_error ? "▲ " : "● "}</span>
-                  {s.last_error ? "Failing" : "OK"}
+                <span
+                  className={
+                    s.last_error
+                      ? "text-detail font-medium text-sev-critical"
+                      : s.last_success_at
+                        ? "text-detail font-medium text-sev-positive"
+                        : "text-detail text-tx-muted"
+                  }
+                >
+                  <span aria-hidden>{s.last_error ? "▲ " : s.last_success_at ? "● " : ""}</span>
+                  {s.last_error ? "Failing" : s.last_success_at ? "OK" : "Not collected yet"}
                 </span>
                 <span className="text-row font-medium text-tx-primary">{s.name}</span>
                 <TierBadge tier={s.reliability_tier} />

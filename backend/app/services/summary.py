@@ -19,7 +19,8 @@ def dashboard_summary(db: Session, window_days: int | None = None) -> dict:
     """`collected`: everything in the window. `government`: from tier 1 sources
     (governments, regulators, standards bodies), page-change alerts aside. `others`:
     the rest by primary category, and `page_changes` the alerts. The three add up to
-    `collected`."""
+    `collected`. `demo`: how many of them are seeded demo items (never on the public site),
+    so the count can say so."""
     since = datetime.now(UTC) - timedelta(days=window_days or DEFAULT_WINDOW_DAYS)
     window = (EVENT_TIME >= since, is_cluster_primary())
     collected = db.execute(select(func.count(Item.id)).where(*window)).scalar_one()
@@ -33,6 +34,9 @@ def dashboard_summary(db: Session, window_days: int | None = None) -> dict:
         .where(*window, ~is_page_change())
         .group_by(Source.reliability_tier, first_category)
     ).all()
+    demo = db.execute(
+        select(func.count(Item.id)).where(*window, Item.is_demo.is_(True))
+    ).scalar_one()
     government = sum(n for tier, _, n in rows if tier == 1)
     others: dict[str, int] = {}
     for tier, category, n in rows:
@@ -44,4 +48,5 @@ def dashboard_summary(db: Session, window_days: int | None = None) -> dict:
         "government": government,
         "page_changes": page_changes,
         "others": dict(sorted(others.items(), key=lambda kv: -kv[1])),
+        "demo": demo,
     }

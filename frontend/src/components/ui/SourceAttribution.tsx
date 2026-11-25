@@ -2,7 +2,7 @@
 
 import { ExternalLink } from "lucide-react";
 
-import { shortDate } from "../../lib/format";
+import { absDate } from "../../lib/format";
 import { TierBadge } from "./Badge";
 
 export function SourceAttribution({
@@ -24,8 +24,8 @@ export function SourceAttribution({
         {tier !== undefined && <TierBadge tier={tier} />}
         {sourceName}
       </span>
-      <span>Published {shortDate(publishedAt)}</span>
-      <span>Retrieved {shortDate(retrievedAt)}</span>
+      <span>Published {absDate(publishedAt)}</span>
+      <span>Retrieved {absDate(retrievedAt)}</span>
       <a
         href={url}
         target="_blank"

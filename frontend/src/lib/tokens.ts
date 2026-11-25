@@ -10,7 +10,7 @@ export const T = {
   txSecondary: "#A8B3BA",
   txMuted: "#7F8B93",
   accent: "#5FC3D7",
-  critical: "#F26D66",
+  critical: "#F3726B",
   high: "#EE8A45",
   watch: "#E3A63A",
   positive: "#4FB477",

@@ -57,6 +57,22 @@ function Defs({ items }: { items: [string, string][] }) {
 
 const strip = (def: string) => def.replace(/^[^—]+— /, "");
 
+/** A source's state as a word: OK, Failing, or Not collected yet. */
+function SourceState({ error, collected }: { error: string | null; collected: boolean }) {
+  if (error)
+    return (
+      <span className="font-medium text-sev-critical">
+        <span aria-hidden>▲ </span>Failing
+      </span>
+    );
+  if (!collected) return <span className="text-tx-muted">Not collected yet</span>;
+  return (
+    <span className="font-medium text-sev-positive">
+      <span aria-hidden>● </span>OK
+    </span>
+  );
+}
+
 function Sources() {
   const sources = useSources();
   if (sources.isPending) return <CardSkeleton rows={6} />;
@@ -94,16 +110,8 @@ function Sources() {
                 {s.last_success_at ? utcStamp(s.last_success_at) : "Never"}
               </td>
               <td className="px-3.5 py-2.5 text-detail">
-                {s.last_error ? (
-                  <span className="font-medium text-sev-critical">
-                    <span aria-hidden>▲ </span>Failing
-                    <span className="block font-normal text-tx-muted">{s.last_error}</span>
-                  </span>
-                ) : (
-                  <span className="font-medium text-sev-positive">
-                    <span aria-hidden>● </span>OK
-                  </span>
-                )}
+                <SourceState error={s.last_error} collected={!!s.last_success_at} />
+                {s.last_error && <span className="block text-tx-muted">{s.last_error}</span>}
               </td>
             </tr>
           ))}
@@ -116,11 +124,7 @@ function Sources() {
               {s.name}
             </a>
             <p className="mt-0.5 text-detail text-tx-secondary">
-              {s.last_error ? (
-                <span className="font-medium text-sev-critical">▲ Failing</span>
-              ) : (
-                <span className="font-medium text-sev-positive">● OK</span>
-              )}
+              <SourceState error={s.last_error} collected={!!s.last_success_at} />
               {" · "}Tier {s.reliability_tier} · last collected{" "}
               <span className="num">{s.last_success_at ? utcStamp(s.last_success_at) : "never"}</span>
             </p>
@@ -179,11 +183,12 @@ export default function About() {
         <Panel title="What is tracked" marker="laws">
           <Text>
             <p>
-              <span className="num text-tx-primary">{laws.data?.length ?? "—"}</span> laws,{" "}
+              <span className="num text-tx-primary">{laws.data?.length ?? "—"}</span> laws and{" "}
               <span className="num text-tx-primary">{standards.data?.length ?? "—"}</span> standards and
-              frameworks, and <span className="num text-tx-primary">{incidents.data?.length ?? "—"}</span>{" "}
-              curated incident write-ups, each with its official source. Laws carry their stage,
-              key dates and dated milestones; every record keeps a timeline of what changed.
+              frameworks, each with its official source, and{" "}
+              <span className="num text-tx-primary">{incidents.data?.length ?? "—"}</span> curated
+              incident write-ups with the sources they cite. Laws carry their stage, key dates and
+              dated milestones; every record keeps a timeline of what changed.
             </p>
             <p>
               Alongside, <span className="num text-tx-primary">{enabledSources ?? "—"}</span> public
@@ -290,7 +295,11 @@ export default function About() {
           <Panel
             title="Sources"
             marker="feed"
-            meta={sources.data ? `${sources.data.filter((s) => s.enabled && !s.last_error).length}/${enabledSources} OK` : undefined}
+            meta={
+              sources.data
+                ? `${sources.data.filter((s) => s.enabled && s.last_success_at && !s.last_error).length}/${enabledSources} OK`
+                : undefined
+            }
             action={
               <a href={`${REPO_URL}/blob/main/SOURCE_CATALOG.md`} className="inline-flex items-center gap-1 text-xs text-accent hover:underline">
                 Source catalog <ExternalLink aria-hidden className="h-3 w-3" />
